@@ -18,5 +18,5 @@ public interface PasswordClient {
     Response<Meta, Password> changePassword();
 
     @RequestMapping(method= RequestMethod.POST, value = "/sync")
-    Response<Meta, Password> syncPassword();
+    Response<Meta, Password> sync();
 }

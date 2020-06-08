@@ -20,7 +20,7 @@ public class SwaggerConfig {
     public Docket api() {
         return new Docket(DocumentationType.SWAGGER_2)
                 .select()
-                .apis(RequestHandlerSelectors.basePackage("com.example.ysell"))
+                .apis(RequestHandlerSelectors.basePackage("com.ysell.proxy"))
                 .paths(regex("/.*"))
                 .build()
                 .apiInfo(apiEndPointsInfo());
