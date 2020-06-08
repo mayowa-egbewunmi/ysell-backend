@@ -40,7 +40,7 @@ public class PasswordController {
     @ResponseStatus(HttpStatus.CREATED)
     public Response<Meta, Password> sync() {
 
-        return passwordClient.syncPassword();
+        return passwordClient.sync();
 
     }
 
