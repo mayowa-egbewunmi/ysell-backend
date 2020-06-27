@@ -17,14 +17,7 @@
 	<properties>
 		<java.version>1.8</java.version>
 		<spring-cloud.version>Hoxton.SR5</spring-cloud.version>
-		<flyway.user>databaseUser</flyway.user>
-		<flyway.password>databasePassword</flyway.password>
-		<flyway.schemas>schemaName</flyway.schemas>
 	</properties>
-
-
-
-
 
 	<profiles>
 		<profile>
@@ -116,23 +109,24 @@
 		</dependency>
 
 		<dependency>
-			<groupId>com.h2database</groupId>
-			<artifactId>h2</artifactId>
-		</dependency>
-
-		<dependency>
 			<groupId>io.springfox</groupId>
 			<artifactId>springfox-swagger2</artifactId>
 			<version>2.8.0</version>
 			<scope>compile</scope>
 		</dependency>
+		
 		<dependency>
 			<groupId>io.springfox</groupId>
 			<artifactId>springfox-swagger-ui</artifactId>
 			<version>2.8.0</version>
 			<scope>compile</scope>
 		</dependency>
-
+        
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-core</artifactId>
+            <version>6.5.0</version>
+        </dependency>
 
 	</dependencies>
 	<dependencyManagement>
@@ -153,10 +147,33 @@
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 			</plugin>
+			
+			<plugin>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.7.0</version>
+                <configuration>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                </configuration>
+            </plugin>
             <plugin>
                 <groupId>org.flywaydb</groupId>
                 <artifactId>flyway-maven-plugin</artifactId>
-                <version>4.0.3</version>
+                <version>6.5.0</version>
+                <configuration>
+                    <url>jdbc:h2:file:./target/yselldb</url>
+                    <user>sa</user>
+                    <locations>
+                        <location>classpath:db/migration</location>
+                    </locations>
+                </configuration>
+                <dependencies>
+                    <dependency>
+                        <groupId>com.h2database</groupId>
+                        <artifactId>h2</artifactId>
+                        <version>1.4.191</version>
+                    </dependency>
+                </dependencies>
             </plugin>
 		</plugins>
 	</build>
