@@ -1,4 +1,4 @@
-package com.example.ysell.filter
+package com.example.ysell.filter;
 
 import java.io.IOException;
 import javax.servlet.FilterChain;
@@ -12,14 +12,16 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
-import com.javainuse.service.JwtUserDetailsService;
+import com.example.ysell.component.JwtTokenUtil;
+import com.example.ysell.service.UserService;
+
+//import com.javainuse.service.JwtUserDetailsService;
 import io.jsonwebtoken.ExpiredJwtException;
 
 @Component
 public class JwtRequestFilter extends OncePerRequestFilter {
 	
-	@Autowired
-	private JwtUserDetailsService jwtUserDetailsService;
+	private UserService jwtUserDetailsService;
 	
 	@Autowired
 	private JwtTokenUtil jwtTokenUtil;

@@ -1,4 +1,4 @@
-package com.example.ysell.Entities;
+package com.example.ysell.Entity;
 
 import javax.persistence.*;
 

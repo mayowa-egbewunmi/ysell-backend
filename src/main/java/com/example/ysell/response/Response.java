@@ -1,4 +1,4 @@
-package com.example.ysell.model;
+package com.example.ysell.response;
 
 public class Response<M, T> {
 

@@ -1,4 +1,4 @@
-package com.example.ysell.config
+package com.example.ysell.component;
 
 import java.io.IOException;
 import java.io.Serializable;

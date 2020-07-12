@@ -1,12 +1,17 @@
 package com.example.ysell.service;
 
-import com.example.ysell.Entities.UserEntity;
+import com.example.ysell.Entity.UserEntity;
 import com.example.ysell.repository.UserRepository;
+
+import model.MyUserDetails;
+
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
-import org.springframework.beans.factory.annotation.Autowired;
 
 @Service
-public class UserService {
+public class UserService implements UserDetailsService{
 	
     private final UserRepository userRepository;
 	
@@ -18,9 +23,18 @@ public class UserService {
         return userRepository.saveAndFlush(userEntity);
     }
     
-    public UserEntity getUserByEmail(final Long id) {
+    public UserEntity getUserByEmail(final String email) {
     	UserEntity user = new UserEntity();
     	user.setEmail("mayowaegbewunmi@gmail.com");
-    	return userRepository.findById(id).orElse(user);
+    	return user;
     }
+
+	@Override
+	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+    	UserEntity user = new UserEntity();
+    	user.setEmail("mayowaegbewunmi@gmail.com");
+    	user.setPassword("password");
+    	
+		return new MyUserDetails(user);
+	}
 }

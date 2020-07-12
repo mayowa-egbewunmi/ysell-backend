@@ -1,10 +1,10 @@
 package com.example.ysell.controller;
 
-import com.example.ysell.Entities.UserEntity;
-import com.example.ysell.config.UserClient;
-import com.example.ysell.model.Meta;
-import com.example.ysell.model.Response;
-import com.example.ysell.model.User;
+import com.example.ysell.Entity.UserEntity;
+import com.example.ysell.mock.UserClient;
+import com.example.ysell.response.Meta;
+import com.example.ysell.response.Response;
+import com.example.ysell.response.User;
 import com.example.ysell.service.UserService;
 
 import org.springframework.http.HttpStatus;
@@ -50,7 +50,7 @@ public class UserController {
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
     public UserEntity getUser(@PathVariable(value = "id") Long id) {
-    	UserEntity user = userService.getUserByEmail(id);
+    	UserEntity user = new UserEntity();//userService.getUserByEmail(id);
     	return user;
     }
 }

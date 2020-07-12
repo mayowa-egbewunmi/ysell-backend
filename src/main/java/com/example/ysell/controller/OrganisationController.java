@@ -1,9 +1,9 @@
 package com.example.ysell.controller;
 
-import com.example.ysell.config.OrganisationClient;
-import com.example.ysell.model.Meta;
-import com.example.ysell.model.Organisation;
-import com.example.ysell.model.Response;
+import com.example.ysell.mock.OrganisationClient;
+import com.example.ysell.response.Meta;
+import com.example.ysell.response.Organisation;
+import com.example.ysell.response.Response;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
