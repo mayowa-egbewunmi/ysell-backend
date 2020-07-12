@@ -14,8 +14,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import com.example.ysell.component.JwtTokenUtil;
 import com.example.ysell.service.UserService;
-
-//import com.javainuse.service.JwtUserDetailsService;
 import io.jsonwebtoken.ExpiredJwtException;
 
 @Component
@@ -30,6 +28,8 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
 			throws ServletException, IOException {
 		
+		System.out.println("Filter");
+
 		final String requestTokenHeader = request.getHeader("Authorization");
 		String username = null;
 		String jwtToken = null;

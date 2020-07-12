@@ -1,6 +1,7 @@
 package com.example.ysell.controller;
 
 import java.util.Objects;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -32,10 +33,12 @@ public class JwtAuthenticationController {
 
 	@RequestMapping(value = "/authenticate", method = RequestMethod.POST)
 	public ResponseEntity<?> createAuthenticationToken(@RequestBody JwtRequest authenticationRequest) throws Exception {
-		
+		System.out.println("Controller");
 		authenticate(authenticationRequest.getUsername(), authenticationRequest.getPassword());
 		
 		final UserDetails userDetails = userService.loadUserByUsername(authenticationRequest.getUsername());
+		System.out.println("Controller"+userDetails.getUsername()+" "+userDetails.getPassword());
+
 		final String token = jwtTokenUtil.generateToken(userDetails);
 		
 		return ResponseEntity.ok(new JwtResponse(token));

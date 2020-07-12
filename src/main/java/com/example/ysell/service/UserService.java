@@ -33,7 +33,7 @@ public class UserService implements UserDetailsService{
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
     	UserEntity user = new UserEntity();
     	user.setEmail("mayowaegbewunmi@gmail.com");
-    	user.setPassword("password");
+    	user.setPassword("$2a$10$A3NEr93zOQVmUPEu9uSeBOSDWOZ6UbrbNsi4UO4V2cXI9mYJFoG1S");
     	
 		return new MyUserDetails(user);
 	}

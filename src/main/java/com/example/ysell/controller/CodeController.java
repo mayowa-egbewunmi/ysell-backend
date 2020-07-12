@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
     @RestController
     @RequestMapping("/v1/mobile/code")
     public class CodeController {
+    	
         private final CodeClient codeClient;
 
         public CodeController( CodeClient codeClient) {
