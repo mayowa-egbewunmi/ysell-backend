@@ -1,4 +1,4 @@
-package com.example.ysell.model;
+package com.example.ysell.response;
 
 import java.util.UUID;
 

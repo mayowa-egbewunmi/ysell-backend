@@ -1,4 +1,4 @@
-package com.example.ysell.Entities;
+package com.example.ysell.Entity;
 
 import javax.persistence.*;
 
@@ -15,8 +15,8 @@ public class UserEntity {
     @Column(name = "email")
     private String email;
 
-    @Column(name = "token")
-    private String token;
+    @Column(name = "password")
+    private String password;
 
     @Column(name = "organisation")
     private String organisation;
@@ -48,12 +48,12 @@ public class UserEntity {
         this.email = email;
     }
 
-    public String getToken() {
-        return token;
+    public String getPassword() {
+        return password;
     }
 
-    public void setToken(String token) {
-        this.token = token;
+    public void setPassword(String password) {
+        this.password = password;
     }
 
     public String getOrganisation() {
@@ -70,7 +70,7 @@ public class UserEntity {
                 "id=" + id +
                 ", name='" + name + '\'' +
                 ", email='" + email + '\'' +
-                ", token='" + token + '\'' +
+                ", password='" + password + '\'' +
                 ", organisation='" + organisation + '\'' +
                 '}';
     }

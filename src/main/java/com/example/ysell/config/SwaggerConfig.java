@@ -11,7 +11,7 @@ import springfox.documentation.spring.web.plugins.Docket;
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
 import static springfox.documentation.builders.PathSelectors.regex;
-
+   
 @Configuration
 @EnableSwagger2
 public class SwaggerConfig {
@@ -20,7 +20,7 @@ public class SwaggerConfig {
     public Docket api() {
         return new Docket(DocumentationType.SWAGGER_2)
                 .select()
-                .apis(RequestHandlerSelectors.basePackage("com.example.ysell"))
+                .apis(RequestHandlerSelectors.basePackage("com.ysell.proxy"))
                 .paths(regex("/.*"))
                 .build()
                 .apiInfo(apiEndPointsInfo());

@@ -1,6 +1,8 @@
 # Default ignored files
 /.idea/workspace.xml
 .idea/
+bin/
+.settings/
 target
 HELP.md
 mvnw
