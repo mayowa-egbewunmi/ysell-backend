@@ -1,20 +1,19 @@
 package com.ysell.modules.product.models.response;
 
-import com.ysell.modules.common.models.LookupDto;
+import com.ysell.modules.common.dto.LookupDto;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 import java.math.BigDecimal;
+import java.util.UUID;
 
+@Builder
 @AllArgsConstructor
-@NoArgsConstructor
 @Getter
-@Setter
 public class ProductResponse {
 
-	private long id;
+	private UUID id;
 
     private String name;
 

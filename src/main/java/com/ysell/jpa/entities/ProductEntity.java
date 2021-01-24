@@ -1,41 +1,41 @@
 package com.ysell.jpa.entities;
 
-import java.math.BigDecimal;
-
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.Table;
-
-import com.ysell.jpa.entities.base.AuditableEntity;
-
+import com.ysell.jpa.entities.base.ActiveAuditableEntity;
+import com.ysell.jpa.entities.base.NamedEntity;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+
+import javax.persistence.*;
+import java.math.BigDecimal;
 
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
 @Setter
 @Entity
-@Table(name = "Products")
-public class ProductEntity extends AuditableEntity<Long> {
+@Table(name = "products")
+public class ProductEntity extends ActiveAuditableEntity implements NamedEntity {
 
-	String name;
+    @Column(nullable = false)
+	private String name;
 
     private String description;
     
-    private int currentStock;
-    
-    private BigDecimal price; 		
-    
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "Organisation_Id", nullable = false)
+    private Integer currentStock;
+
+    @Column(nullable = false)
+    private BigDecimal costPrice;
+
+    @Column(nullable = false)
+    private BigDecimal sellingPrice;
+
+    @ManyToOne
+    @JoinColumn(nullable = false)    //name = "organisation_Id"
     private OrganisationEntity organisation;
 
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "productCategoryId", nullable = false)
+    @ManyToOne
+    @JoinColumn(nullable = false)   //name = "product_category_Id"
     private ProductCategoryEntity productCategory;	
 }

@@ -1,23 +1,26 @@
 package com.ysell.jpa.repositories;
 
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
-
-import org.springframework.data.jpa.repository.JpaRepository;
-
 import com.ysell.jpa.entities.ProductEntity;
+import com.ysell.jpa.repositories.base.ActiveJpaRepository;
+import com.ysell.jpa.repositories.base.NameRepository;
 
-public interface ProductRepository extends JpaRepository<ProductEntity, Long> {
+import java.time.LocalDate;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 
-	List<ProductEntity> findByOrganisationId(long organisationId);
+public interface ProductRepository extends ActiveJpaRepository<ProductEntity>, NameRepository<ProductEntity> {
 
-	Optional<ProductEntity> findByNameIgnoreCaseAndOrganisationId(String name, long organisationId);
+	List<ProductEntity> findByOrganisationIdIn(Set<UUID> organisationId);
 
-	Optional<ProductEntity> findByIdEqualsAndOrganisationIdIn(long id, Collection<Long> organisationIds);
+	boolean existsByIdAndOrganisationIdIn(UUID id, Set<UUID> organisationId);
 
-	List<ProductEntity> findByCreatedAtGreaterThanAndOrganisationIdIn(Date lastSyncDate, Collection<Long> organisationIds);
+	List<ProductEntity> findByNameIgnoreCaseAndOrganisationId(String name, UUID organisationId);
 
-	List<ProductEntity> findByUpdatedAtGreaterThanAndCreatedAtLessThanAndOrganisationIdIn(Date lastSyncDate, Date lastCreatedSyncDate, Collection<Long> organisationIds);
+	boolean existsByNameIgnoreCaseAndOrganisationId(String name, UUID organisationId);
+
+	List<ProductEntity> findByCreatedAtGreaterThanAndOrganisationIdIn(LocalDate lastSyncDate, Collection<UUID> organisationIds);
+
+	List<ProductEntity> findByUpdatedAtGreaterThanAndCreatedAtLessThanAndOrganisationIdIn(LocalDate lastSyncDate, LocalDate lastCreatedSyncDate, Collection<UUID> organisationIds);
 }

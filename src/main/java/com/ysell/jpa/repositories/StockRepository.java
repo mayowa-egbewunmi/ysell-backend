@@ -1,14 +1,19 @@
 package com.ysell.jpa.repositories;
 
-import java.util.Date;
-import java.util.List;
-
-import org.springframework.data.domain.Sort;
-import org.springframework.data.jpa.repository.JpaRepository;
-
+import com.ysell.jpa.entities.OrderEntity;
 import com.ysell.jpa.entities.StockEntity;
+import com.ysell.jpa.repositories.base.ActiveJpaRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
-public interface StockRepository extends JpaRepository<StockEntity, Long>  {
+import java.time.LocalDate;
+import java.util.Collection;
+import java.util.List;
+import java.util.UUID;
 
-	List<StockEntity> findByCreatedAtGreaterThanEqual(Date earliestCreatedDate, Sort sort);
+public interface StockRepository extends ActiveJpaRepository<StockEntity> {
+
+	Page<StockEntity> findByCreatedAtGreaterThanEqual(LocalDate earliestCreatedDate, Pageable pageable);
+
+	List<OrderEntity> findByCreatedAtGreaterThanAndProductOrganisationIdIn(LocalDate lastSyncDate, Collection<UUID> organisationIds);
 }

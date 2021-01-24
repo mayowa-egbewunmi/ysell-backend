@@ -1,46 +1,79 @@
 package com.ysell.modules.stock.domain;
 
+import com.ysell.jpa.entities.ProductEntity;
+import com.ysell.jpa.entities.StockEntity;
+import com.ysell.jpa.repositories.ProductRepository;
+import com.ysell.jpa.repositories.StockRepository;
+import com.ysell.modules.common.dto.LookupDto;
+import com.ysell.modules.common.dto.PageWrapper;
 import com.ysell.modules.common.exceptions.YSellRuntimeException;
-import com.ysell.modules.common.models.LookupDto;
+import com.ysell.modules.common.services.ProductStockService;
 import com.ysell.modules.common.utilities.ServiceUtils;
-import com.ysell.modules.stock.domain.abstraction.StockDao;
-import com.ysell.modules.stock.domain.abstraction.StockService;
-import com.ysell.modules.stock.models.dto.ProductDto;
-import com.ysell.modules.stock.models.request.StockDataRequest;
-import com.ysell.modules.stock.models.request.StockRequest;
-import com.ysell.modules.stock.models.response.StockDataResponse;
+import com.ysell.modules.stock.models.request.StockCreateRequest;
+import com.ysell.modules.stock.models.response.StockCreateResponse;
 import com.ysell.modules.stock.models.response.StockResponse;
 import lombok.RequiredArgsConstructor;
+import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.validation.Valid;
-import java.util.List;
+import java.time.LocalDate;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class AppStockService implements StockService {
 
-	private final StockDao stockDao;
+	private final StockRepository stockRepo;
+
+	private final ProductRepository productRepo;
+
+	private final ProductStockService productStockService;
+
+	private final ModelMapper mapper = new ModelMapper();
+
 
 	@Override
-	@Transactional
-	public StockResponse updateStock(@Valid StockRequest request) {
-		ProductDto productDto = stockDao.getProduct(request.getProduct().getId())
+	public StockCreateResponse postStock(StockCreateRequest request) {
+		ProductEntity productEntity = productRepo.findById(request.getProduct().getId())
 				.orElseThrow(() -> ServiceUtils.wrongIdException("Product", request.getProduct().getId()));
 
 		int amountToRemove = request.getQuantity() * -1;
-		if (amountToRemove > productDto.getCurrentStock())
-			throw new YSellRuntimeException(String.format("Current Stock for %s is %d. Cannot remove %d", productDto.getName(), productDto.getCurrentStock(), amountToRemove));
+		if (amountToRemove > productEntity.getCurrentStock())
+			throw new YSellRuntimeException(String.format("Current Stock for %s is %d. Cannot remove %d", productEntity.getName(), productEntity.getCurrentStock(), amountToRemove));
 
-		long stockId = stockDao.recordStockChange(request);
-		productDto = stockDao.updateProductStock(request.getProduct().getId(), request.getQuantity());
+		StockEntity stockEntity = recordStock(request);
+		productStockService.updateProductStock(productEntity.getId(), request.getQuantity());
 
-		return new StockResponse(stockId, LookupDto.create(productDto.getId(), productDto.getName()), productDto.getCurrentStock());
+		return new StockCreateResponse(stockEntity.getId(),
+				LookupDto.create(productEntity),
+				stockEntity.getQuantity(),
+				productEntity.getCurrentStock());
 	}
 
+
+	private StockEntity recordStock(StockCreateRequest request) {
+		StockEntity stock = mapper.map(request, StockEntity.class);
+		return stockRepo.save(stock);
+	}
+
+
+	private ProductEntity updateProductStock(ProductEntity productEntity, int quantity) {
+		int newStockQuantity = productEntity.getCurrentStock() + quantity;
+		productEntity.setCurrentStock(newStockQuantity);
+		return productRepo.save(productEntity);
+	}
+
+
 	@Override
-	public List<StockDataResponse> getStockByDate(StockDataRequest request) {
-		return stockDao.getStockByDate(request.getEarliestCreatedDate());
+	public PageWrapper<StockResponse> getStockByDate(LocalDate earliestCreatedDate, Pageable pageable) {
+		earliestCreatedDate = earliestCreatedDate == null ? LocalDate.MIN : earliestCreatedDate;
+
+		Page<StockResponse> stocks = stockRepo.findByCreatedAtGreaterThanEqual(earliestCreatedDate, pageable)
+				.map(stockEntity -> mapper.map(stockEntity, StockResponse.class));
+
+		return PageWrapper.from(stocks);
 	}
 }

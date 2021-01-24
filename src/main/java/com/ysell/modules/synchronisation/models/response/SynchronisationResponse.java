@@ -1,13 +1,14 @@
 package com.ysell.modules.synchronisation.models.response;
 
-import com.ysell.modules.synchronisation.models.dto.output.OrderResponseDto;
-import com.ysell.modules.synchronisation.models.dto.output.ProductResponseDto;
+import com.ysell.modules.synchronisation.models.dto.OrderResponseDto;
+import com.ysell.modules.synchronisation.models.dto.ProductResponseDto;
+import com.ysell.modules.synchronisation.models.dto.StockResponseDto;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.util.Date;
+import java.time.LocalDate;
 import java.util.Set;
 
 @AllArgsConstructor
@@ -16,13 +17,15 @@ import java.util.Set;
 @Setter
 public class SynchronisationResponse {
 
-	private Date lastSyncTime;
+	private Set<ProductResponseDto> newProducts;
 
-	private Set<OrderResponseDto> newOrders;	
+	private Set<ProductResponseDto> updatedProducts;
+
+	private Set<OrderResponseDto> newOrders;
 
 	private Set<OrderResponseDto> updatedOrders;
 
-	private Set<ProductResponseDto> newProducts;	
+	private Set<StockResponseDto> newStocks;
 
-	private Set<ProductResponseDto> updatedProducts;
+	private LocalDate lastSyncTime;
 }

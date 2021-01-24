@@ -1,25 +1,29 @@
 package com.ysell.modules.synchronisation;
 
-import com.ysell.common.annotations.WrapResponse;
 import com.ysell.modules.common.constants.ControllerConstants;
-import com.ysell.modules.synchronisation.domain.abstraction.SynchronisationService;
+import com.ysell.modules.synchronisation.domain.SynchronisationService;
 import com.ysell.modules.synchronisation.models.request.SynchronisationRequest;
 import com.ysell.modules.synchronisation.models.response.SynchronisationResponse;
-import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import javax.validation.Valid;
 
 @RestController
-@RequestMapping(ControllerConstants.VERSION_URL + "/synchronisation")
+@RequestMapping(SynchronisationController.PATH)
 @RequiredArgsConstructor
-@WrapResponse
 public class SynchronisationController {
+
+    public static final String PATH = ControllerConstants.VERSION_URL + "/synchronisation";
 
 	private final SynchronisationService syncService;
 
-    @PostMapping("")
-    @ResponseBody
-    public SynchronisationResponse synchroniseRecords(@RequestBody SynchronisationRequest request) {
+
+    @PostMapping
+    public SynchronisationResponse synchroniseRecords(@RequestBody @Valid SynchronisationRequest request) {
         return syncService.synchroniseRecords(request);
     }
 }

@@ -1,106 +1,126 @@
 package com.ysell.modules.product.domain;
 
+import com.ysell.jpa.entities.OrganisationEntity;
+import com.ysell.jpa.entities.ProductCategoryEntity;
+import com.ysell.jpa.entities.ProductEntity;
+import com.ysell.jpa.repositories.OrganisationRepository;
+import com.ysell.jpa.repositories.ProductCategoryRepository;
+import com.ysell.jpa.repositories.ProductRepository;
+import com.ysell.modules.common.abstractions.BaseCrudService;
+import com.ysell.modules.common.dto.LookupDto;
 import com.ysell.modules.common.exceptions.YSellRuntimeException;
-import com.ysell.modules.common.models.LookupDto;
 import com.ysell.modules.common.utilities.ServiceUtils;
-import com.ysell.modules.product.domain.abstractions.ProductDao;
-import com.ysell.modules.product.domain.abstractions.ProductService;
-import com.ysell.modules.product.models.request.CreateProductRequest;
 import com.ysell.modules.product.models.request.ProductCategoryRequest;
-import com.ysell.modules.product.models.request.ProductsByOrganisationRequest;
-import com.ysell.modules.product.models.request.UpdateProductRequest;
+import com.ysell.modules.product.models.request.ProductRequest;
 import com.ysell.modules.product.models.response.ProductCategoryResponse;
 import com.ysell.modules.product.models.response.ProductResponse;
-import lombok.RequiredArgsConstructor;
+import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.validation.Valid;
 import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
-@RequiredArgsConstructor
-public class AppProductService implements ProductService {
+@Transactional
+public class AppProductService
+        extends BaseCrudService<ProductEntity, ProductRequest, ProductRequest, ProductResponse>
+        implements ProductService {
 
-	private final ProductDao productDao;
+    private final ProductRepository productRepo;
 
-	@Override
-	public List<ProductResponse> getAllProducts() {
-		return productDao.getAllProducts();
-	}
+    private final ProductCategoryRepository productCategoryRepo;
 
-	@Override
-	public ProductResponse getProduct(long id) {
-		return productDao.getProduct(id)
-				.orElseThrow(() -> ServiceUtils.wrongIdException("Product", id));
-	}
+    private final OrganisationRepository orgRepo;
 
-	@Override
-	@Transactional
-	public ProductResponse createProduct(@Valid CreateProductRequest request) {
-		productDao.getProductByNameAndOganisation(request.getName(), request.getOrganisation().getId())
-				.orElseThrow(() -> new YSellRuntimeException(String.format("Product With Name %s Already Exists For Organisation", request.getName())));
+    private final ModelMapper modelMapper = new ModelMapper();
 
-		validateOrganisationAndCategory(request.getOrganisation().getId(), request.getProductCategory().getId());
 
-		return productDao.createProduct(request);
-	}
+    public AppProductService(ProductRepository productRepo, ProductCategoryRepository productCategoryRepo, OrganisationRepository orgRepo) {
+        super(productRepo, ProductEntity.class, ProductResponse.class);
 
-	@Override
-	@Transactional
-	public ProductResponse updateProduct(@Valid UpdateProductRequest request) {
-		productDao.getProduct(request.getId())
-				.orElseThrow(() -> ServiceUtils.wrongIdException("Product", request.getId()));
+        this.productRepo = productRepo;
+        this.productCategoryRepo = productCategoryRepo;
+        this.orgRepo = orgRepo;
+    }
 
-		validateOrganisationAndCategory(request.getOrganisation().getId(), request.getProductCategory().getId());
 
-		productDao.getProductByNameAndOganisation(request.getName(), request.getOrganisation().getId())
-				.ifPresent(product -> {
-					if (product.getId() != request.getId())
-						throw new YSellRuntimeException(String.format("Product With Name %s Already Exists For Organisation", request.getName()));
-				});
+    @Override
+    public List<ProductResponse> getProductsByOrganisationIds(Set<UUID> organisationIds) {
+        for (UUID organisationId : organisationIds) {
+            if (!productRepo.existsById(organisationId))
+                throw ServiceUtils.wrongIdException("Organisation", organisationId);
+        }
 
-		return productDao.updateProduct(request);
-	}
+        return productRepo.findByOrganisationIdIn(organisationIds).stream()
+                .map(this::convertToResponse)
+                .collect(Collectors.toList());
+    }
 
-	private void validateOrganisationAndCategory(long organisationId, long categoryId) {
-		if (!productDao.hasOrganisation(organisationId))
-			throw new YSellRuntimeException(String.format("Organisation with Id %s does not exist", organisationId));
-		if (!productDao.hasCategory(categoryId))
-			throw new YSellRuntimeException(String.format("Product Category with Id %s does not exist", categoryId));
-	}
 
-	@Override
-	@Transactional
-	public ProductResponse deleteProduct(long id) {
-		ProductResponse product = productDao.getProduct(id)
-				.orElseThrow(() -> ServiceUtils.wrongIdException("Product", id));
+    @Override
+    public List<ProductCategoryResponse> getProductCategories() {
+        return productCategoryRepo.findAll().stream()
+                .map(productCategoryEntity ->  modelMapper.map(productCategoryEntity, ProductCategoryResponse.class))
+                .collect(Collectors.toList());
+    }
 
-		productDao.deleteProduct(id);
 
-		return product;
-	}
+    @Override
+    public ProductCategoryResponse createOrUpdateProductCategory(ProductCategoryRequest request) {
+        ProductCategoryEntity entity = modelMapper.map(request, ProductCategoryEntity.class);
+        entity = productCategoryRepo.save(entity);
 
-	@Override
-	public List<ProductResponse> getProductsByOrganisations(@Valid ProductsByOrganisationRequest request) {
-		for (LookupDto organisation : request.getOrganisations()) {
-			if (!productDao.hasOrganisation(organisation.getId()))
-				throw ServiceUtils.wrongIdException("Organisation", organisation.getId());
-		}
+        return modelMapper.map(entity, ProductCategoryResponse.class);
+    }
 
-		return request.getOrganisations().stream()
-				.flatMap(organisation -> productDao.getProductsByOrganisation(organisation.getId()).stream())
-				.collect(Collectors.toList());
-	}
 
-	@Override
-	public List<ProductCategoryResponse> getProductCategories() {
-		return productDao.getProductCategories();
-	}
+    @Override
+    protected void beforeCreate(ProductRequest request) {
+        if (productRepo.existsByNameIgnoreCaseAndOrganisationId(request.getName(), request.getOrganisation().getId()))
+            throw new YSellRuntimeException(String.format("Product With Name %s Already Exists For Organisation", request.getName()));
 
-	@Override
-	public ProductCategoryResponse createOrUpdateProductCategory(@Valid ProductCategoryRequest request) {
-		return productDao.saveProductCategory(request);
-	}
+        validateOrganisationAndCategory(request.getOrganisation().getId(), request.getProductCategory().getId());
+    }
+
+
+    @Override
+    protected void beforeUpdate(UUID productId, ProductRequest request) {
+        List<ProductEntity> existingProducts = productRepo.findByNameIgnoreCaseAndOrganisationId(request.getName(), request.getOrganisation().getId());
+
+        boolean productNameExists = existingProducts.stream()
+                .anyMatch(productEntity -> productEntity.getId() != productId);
+        if(productNameExists)
+            throw new YSellRuntimeException(String.format("Product With Name %s Already Exists For Organisation", request.getName()));
+
+        validateOrganisationAndCategory(request.getOrganisation().getId(), request.getProductCategory().getId());
+    }
+
+
+    @Override
+    protected ProductResponse convertToResponse(ProductEntity entity) {
+        OrganisationEntity organisationEntity = orgRepo.getOne(entity.getOrganisation().getId());
+        ProductCategoryEntity productCategoryEntity = productCategoryRepo.getOne(entity.getProductCategory().getId());
+
+        return ProductResponse.builder()
+                .id(entity.getId())
+                .name(entity.getName())
+                .description(entity.getDescription())
+                .price(entity.getSellingPrice())
+                .currentStock(entity.getCurrentStock())
+                .organisation(LookupDto.create(organisationEntity))
+                .productCategory(LookupDto.create(productCategoryEntity))
+                .build();
+    }
+
+
+    private void validateOrganisationAndCategory(UUID organisationId, UUID categoryId) {
+        if (!orgRepo.existsById(organisationId))
+            ServiceUtils.throwWrongIdException("Organisation", organisationId);
+        if (!productCategoryRepo.existsById(categoryId))
+            ServiceUtils.throwWrongIdException("Product Category", categoryId);
+    }
 }

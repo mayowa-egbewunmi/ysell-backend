@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import javax.validation.constraints.NotNull;
+import java.util.UUID;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -12,5 +13,5 @@ import javax.validation.constraints.NotNull;
 public class SubscriptionRequest {
 
 	@NotNull
-	private Long userId;
+	private UUID userId;
 }

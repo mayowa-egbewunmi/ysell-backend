@@ -1,61 +1,56 @@
 package com.ysell.modules.organisation;
 
-import com.ysell.common.annotations.WrapResponse;
 import com.ysell.modules.common.constants.ControllerConstants;
-import com.ysell.modules.common.models.LookupDto;
-import com.ysell.modules.organisation.domain.abstractions.OrganisationService;
-import com.ysell.modules.organisation.models.request.CreateOrganisationRequest;
-import com.ysell.modules.organisation.models.request.OrganisationsByUserRequest;
-import com.ysell.modules.organisation.models.request.UpdateOrganisationRequest;
+import com.ysell.modules.organisation.domain.OrganisationService;
+import com.ysell.modules.organisation.models.request.OrganisationRequest;
 import com.ysell.modules.organisation.models.response.OrganisationResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
-import java.util.HashSet;
+import javax.validation.Valid;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Set;
+import java.util.UUID;
 
 @RestController
-@RequestMapping(ControllerConstants.VERSION_URL + "/organisations")
+@RequestMapping(OrganisationController.PATH)
 @RequiredArgsConstructor
-@WrapResponse
 public class OrganisationController {
+
+    public static final String PATH = ControllerConstants.VERSION_URL + "/organisations";
 
 	private final OrganisationService organisationService;
 
-    @GetMapping("")
-    @ResponseBody
+
+    @GetMapping
     public List<OrganisationResponse> getAllOrganisations(){
-        return organisationService.getAllOrganisations();
+        return organisationService.getAll();
     }
-    
-    @GetMapping("/by_user")
-    @ResponseBody
-    public List<OrganisationResponse> getOrganisationsByUser(@RequestParam("id") ArrayList<Long> ids){
-    	List<LookupDto> userLookups = ids.stream()
-    			.map(id -> LookupDto.create(id))
-    			.collect(Collectors.toList());
-    	OrganisationsByUserRequest request = new OrganisationsByUserRequest(new HashSet<>(userLookups));
-    	
-        return organisationService.getOrganisationsByUser(request);
+
+
+    @GetMapping("/{id}")
+    public OrganisationResponse getOrganisation(@PathVariable("id") UUID organisationId){
+        return organisationService.getById(organisationId);
     }
-    
-    @PostMapping("/{id}")
-    @ResponseBody
-    public OrganisationResponse getOrganisation(@PathVariable("id") long id){
-        return organisationService.getOrganisationById(id);
-    }
-    
-    @PostMapping("")
-    @ResponseBody
-    public OrganisationResponse createOrganisation(@RequestBody CreateOrganisationRequest request){
-        return organisationService.createOrganisation(request);
+
+
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    public OrganisationResponse createOrganisation(@RequestBody @Valid OrganisationRequest request){
+        return organisationService.create(request);
     }    
-    
-    @PutMapping("")
-    @ResponseBody
-    public OrganisationResponse updateOrganisation(@RequestBody UpdateOrganisationRequest request){
-        return organisationService.updateOrganisation(request);
-    }    
+
+
+    @PutMapping("/{id}")
+    public OrganisationResponse updateOrganisation(@PathVariable("id") UUID organisationId,
+                                                   @RequestBody @Valid OrganisationRequest request){
+        return organisationService.update(organisationId, request);
+    }
+
+
+    @GetMapping("/by-user")
+    public List<OrganisationResponse> getOrganisationsByUser(@RequestParam("userId") Set<UUID> userIds){
+        return organisationService.getOrganisationsByUserIds(userIds);
+    }
 }

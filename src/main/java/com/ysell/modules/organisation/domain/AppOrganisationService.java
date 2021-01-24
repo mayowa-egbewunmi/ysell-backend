@@ -1,76 +1,73 @@
 package com.ysell.modules.organisation.domain;
 
-import com.ysell.modules.common.exceptions.YSellRuntimeException;
-import com.ysell.modules.common.models.LookupDto;
+import com.ysell.jpa.entities.OrganisationEntity;
+import com.ysell.jpa.repositories.OrganisationRepository;
+import com.ysell.jpa.repositories.UserRepository;
+import com.ysell.modules.common.abstractions.BaseCrudService;
 import com.ysell.modules.common.utilities.ServiceUtils;
-import com.ysell.modules.organisation.domain.abstractions.OrganisationDao;
-import com.ysell.modules.organisation.domain.abstractions.OrganisationService;
-import com.ysell.modules.organisation.models.dto.OrganisationDto;
-import com.ysell.modules.organisation.models.request.CreateOrganisationRequest;
-import com.ysell.modules.organisation.models.request.OrganisationsByUserRequest;
-import com.ysell.modules.organisation.models.request.UpdateOrganisationRequest;
+import com.ysell.modules.organisation.models.request.OrganisationRequest;
 import com.ysell.modules.organisation.models.response.OrganisationResponse;
-import lombok.RequiredArgsConstructor;
+import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.validation.Valid;
 import java.util.List;
-import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
-@RequiredArgsConstructor
-public class AppOrganisationService implements OrganisationService {
+@Transactional
+public class AppOrganisationService
+		extends BaseCrudService<OrganisationEntity, OrganisationRequest, OrganisationRequest, OrganisationResponse>
+		implements OrganisationService {
 
-	private final OrganisationDao organisationDao;
+	private final OrganisationRepository organisationRepo;
 
-	@Override
-	public List<OrganisationResponse> getAllOrganisations() {
-		return organisationDao.getAllOrganisations();
+	private final UserRepository userRepo;
+
+	private final ModelMapper mapper = new ModelMapper();
+
+
+	public AppOrganisationService(OrganisationRepository organisationRepo, UserRepository userRepo) {
+		super(organisationRepo, OrganisationEntity.class, OrganisationResponse.class);
+
+		this.organisationRepo = organisationRepo;
+		this.userRepo = userRepo;
 	}
 
-	@Override
-	public OrganisationResponse getOrganisationById(long id) {
-		return organisationDao.getOrganisationById(id)
-				.orElseThrow(() -> ServiceUtils.wrongIdException("Organisation", id));
-	}
 
 	@Override
-	public List<OrganisationResponse> getOrganisationsByUser(@Valid OrganisationsByUserRequest request) {
-		for (LookupDto user : request.getUsers()) {
-			if (!organisationDao.hasUser(user.getId())) {
-				throw ServiceUtils.wrongIdException("Organisation", user.getId());
-			}
-		}
+	public List<OrganisationResponse> getOrganisationsByUserIds(Set<UUID> userIds) {
+		userIds.forEach(userId -> {
+			if(!userRepo.existsById(userId))
+				ServiceUtils.throwWrongIdException("User", userId);
+		});
 
-		return request.getUsers().stream()
-				.flatMap(user -> organisationDao.getOrganisationsByUser(user.getId()).stream())
+		return organisationRepo.findByUsersIdIn(userIds).stream()
+				.map(organisationEntity -> mapper.map(organisationEntity, OrganisationResponse.class))
 				.collect(Collectors.toList());
 	}
 
-	@Override
-	@Transactional
-	public OrganisationResponse createOrganisation(@Valid CreateOrganisationRequest request) {
-		OrganisationDto existingOrg = organisationDao.getOrganisationByEmail(request.getEmail())
-				.orElseThrow(() -> new YSellRuntimeException(String.format("Organisation with email %s already exists", request.getEmail())));
 
-		return organisationDao.createOrganisation(request);
+	@Override
+	protected void beforeCreate(OrganisationRequest request) {
+		if(organisationRepo.existsByEmailIgnoreCase(request.getEmail()))
+			ServiceUtils.throwWrongEmailException("Organisation", request.getEmail());
+		if(organisationRepo.existsByNameIgnoreCase(request.getName()))
+			ServiceUtils.throwWrongNameException("Organisation", request.getName());
 	}
 
+
 	@Override
-	@Transactional
-	public OrganisationResponse updateOrganisation(@Valid UpdateOrganisationRequest request) {
-		OrganisationResponse currentOrg = organisationDao.getOrganisationById(request.getId())
-				.orElseThrow(() -> new YSellRuntimeException(String.format("Organisation with Id %d does not exist", request.getId())));
-
-		Optional<OrganisationDto> optSameOrOtherOrg = organisationDao.getOrganisationByEmail(request.getEmail());
-		if (optSameOrOtherOrg.isPresent()
-				&& optSameOrOtherOrg.get().getId() != currentOrg.getId()
-				&& !optSameOrOtherOrg.get().getEmail().equals(currentOrg.getEmail())) {
-			throw new YSellRuntimeException(String.format("Another organisation with email %s already exists", request.getEmail()));
-		}
-
-		return organisationDao.updateOrganisation(request);
+	protected void beforeUpdate(UUID organisationId, OrganisationRequest request) {
+		organisationRepo.findByEmailIgnoreCase(request.getEmail()).ifPresent(organisationEntity -> {
+			if (organisationEntity.getId() != organisationId)
+				ServiceUtils.throwWrongEmailException("Organisation", request.getEmail());
+		});
+		organisationRepo.findByNameIgnoreCase(request.getName()).ifPresent(organisationEntity -> {
+			if (organisationEntity.getId() != organisationId)
+				ServiceUtils.throwWrongNameException("Organisation", request.getName());
+		});
 	}
 }

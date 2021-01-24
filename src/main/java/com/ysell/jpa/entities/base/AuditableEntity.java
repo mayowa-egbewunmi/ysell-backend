@@ -1,63 +1,75 @@
 package com.ysell.jpa.entities.base;
 
-import java.util.Date;
-
-import javax.persistence.EntityListeners;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.MappedSuperclass;
-import javax.persistence.Temporal;
-import javax.persistence.TemporalType;
-
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedBy;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import lombok.Getter;
-import lombok.Setter;
+import javax.persistence.*;
+import java.time.LocalDate;
+import java.util.UUID;
 
 @MappedSuperclass
 @EntityListeners(AuditingEntityListener.class)
 @Getter
 @Setter
-public abstract class AuditableEntity<TAuditorId> {
+public abstract class AuditableEntity {
 
 	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private long id;
+	@Column(columnDefinition = "BINARY(16)")
+	private UUID id;
 	
 	@CreatedBy
-    protected TAuditorId createdBy;
+	@Column(columnDefinition = "BINARY(16)")
+	private UUID createdBy;
 
 	@CreatedDate
     @Temporal(TemporalType.TIMESTAMP)
-    protected Date createdAt;
+	private LocalDate createdAt;
 
 	@LastModifiedBy
-    protected TAuditorId updatedBy;
+	@Column(columnDefinition = "BINARY(16)")
+	private UUID updatedBy;
 
 	@LastModifiedDate
 	@Temporal(TemporalType.TIMESTAMP)
-    protected Date updatedAt;
+	private LocalDate updatedAt;
+
+	@Version
+	private int version;
+	
+    private LocalDate clientCreatedAt;
+
+    private LocalDate clientUpdatedAt;
+	
+	@PrePersist
+	public void validateUuid() {
+		if(id == null) 
+			id = UUID.randomUUID();
+	}
 	
 	@Override
 	public boolean equals(Object obj) {
-		if(id == 0)
+		if(id == null)
 			return super.equals(obj);
 		else if(obj == null || obj.getClass() != getClass())
 			return false;
-		
+
 		@SuppressWarnings("unchecked")
-		boolean isEqual = id == ((AuditableEntity<TAuditorId>)obj).id;
+		boolean isEqual = id == ((AuditableEntity)obj).id;
 		
 		return isEqual;
 	}
 
 	@Override
 	public int hashCode() {
-		return id == 0 ? super.hashCode() : new Long(id).intValue();
+		if(id == null)
+			return super.hashCode();
+		
+		long bitSum = id.getMostSignificantBits() + id.getLeastSignificantBits();
+		return new Long(bitSum).intValue();
 	}
 }

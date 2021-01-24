@@ -1,7 +1,7 @@
 package com.ysell.modules.orders.models.request;
 
-import com.ysell.modules.common.models.LookupDto;
-import com.ysell.modules.orders.models.dto.others.SaleUpdateRequestDto;
+import com.ysell.modules.common.dto.LookupDto;
+import com.ysell.modules.orders.models.dto.SaleUpdateDto;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -12,7 +12,6 @@ import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.UUID;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -20,15 +19,17 @@ import java.util.UUID;
 @Setter
 public class OrderUpdateRequest {
 
-	@NotNull
-	private UUID id;
-	
-	private Set<SaleUpdateRequestDto> sales = new HashSet<>();
+    @NotNull
+    @Valid
+    private Set<SaleUpdateDto> sales = new HashSet<>();
 
+    @NotNull
 	@Valid
     private LookupDto organisation;
-    
-    private double percentageDiscount;
-    
-    private BigDecimal totalPrice;
+
+    @NotNull
+    private BigDecimal discount;
+
+    @NotNull
+    private BigDecimal amountPaid;
 }

@@ -1,7 +1,7 @@
 package com.ysell.common.advices;
 
-import com.ysell.modules.common.exceptions.YSellRuntimeException;
 import com.ysell.common.models.YsellResponse;
+import com.ysell.modules.common.exceptions.YSellRuntimeException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.FieldError;
@@ -23,14 +23,13 @@ public class GlobalControllerAdvice {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public YsellResponse handleMethodArgumentNotValidException(MethodArgumentNotValidException e, HttpServletRequest httpServletRequest) {
         log.error("Invalid request", e);
-        if (e.getBindingResult() == null || e.getBindingResult().getFieldError() == null) {
+        if (e.getBindingResult().getFieldError() == null) {
             return YsellResponse.createError("invalid arguments");
         }
 
         FieldError error = e.getBindingResult().getFieldError();
-        String field = error.getField() == null ? "" : error.getField();
 
-        return YsellResponse.createError(String.format("Field %s %s", field, error.getDefaultMessage()));
+        return YsellResponse.createError(String.format("Field %s %s", error.getField(), error.getDefaultMessage()));
     }
 
     @ExceptionHandler(ConstraintViolationException.class)

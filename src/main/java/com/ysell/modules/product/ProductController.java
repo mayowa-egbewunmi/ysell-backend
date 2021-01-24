@@ -1,83 +1,79 @@
 package com.ysell.modules.product;
 
-import com.ysell.common.annotations.WrapResponse;
+import com.ysell.config.constants.AppConstants;
 import com.ysell.modules.common.constants.ControllerConstants;
-import com.ysell.modules.common.models.LookupDto;
-import com.ysell.modules.product.domain.abstractions.ProductService;
-import com.ysell.modules.product.models.request.CreateProductRequest;
+import com.ysell.modules.common.dto.PageWrapper;
+import com.ysell.modules.product.domain.ProductService;
 import com.ysell.modules.product.models.request.ProductCategoryRequest;
-import com.ysell.modules.product.models.request.ProductsByOrganisationRequest;
-import com.ysell.modules.product.models.request.UpdateProductRequest;
+import com.ysell.modules.product.models.request.ProductRequest;
 import com.ysell.modules.product.models.response.ProductCategoryResponse;
 import com.ysell.modules.product.models.response.ProductResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
-import java.util.HashSet;
+import javax.validation.Valid;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Set;
+import java.util.UUID;
 
 @RestController
-@RequestMapping(ControllerConstants.VERSION_URL + "/products")
+@RequestMapping(ProductController.PATH)
 @RequiredArgsConstructor
-@WrapResponse
 public class ProductController {
+
+    public static final String PATH = ControllerConstants.VERSION_URL + "/products";
 
 	private final ProductService productService;
 
-    @GetMapping("")
-    @ResponseBody
-    public List<ProductResponse> getAllProducts(){
-        return productService.getAllProducts();
+
+    @GetMapping
+    public PageWrapper<ProductResponse> getAllProductsPaged(@PageableDefault(size = AppConstants.DEFAULT_PAGE_SIZE) Pageable page){
+        return productService.getAllPaged(page);
     }
 
+
     @GetMapping("/{id}")
-    @ResponseBody
-    public ProductResponse getProduct(@PathVariable("id") long id){
-        return productService.getProduct(id);
+    public ProductResponse getProduct(@PathVariable("id") UUID productId){
+        return productService.getById(productId);
     }
-    
-    @PostMapping("")
-    @ResponseBody
+
+
+    @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public ProductResponse createProduct(@RequestBody CreateProductRequest request) {
-        return productService.createProduct(request);
+    public ProductResponse createProduct(@RequestBody @Valid ProductRequest request) {
+        return productService.create(request);
     }
-    
-    @PutMapping("")
-    @ResponseBody
-    public ProductResponse updateProduct(@RequestBody UpdateProductRequest request) {
-        return productService.updateProduct(request);
+
+
+    @PutMapping("/{productId}")
+    public ProductResponse updateProduct(@PathVariable UUID productId, @RequestBody @Valid ProductRequest request) {
+        return productService.update(productId, request);
     }
-    
-    @GetMapping("/by_organisation")
-    @ResponseBody
-    public List<ProductResponse> getProductsByOrganisation(@RequestParam("id") ArrayList<Long> ids) {
-    	List<LookupDto> organisationLookups = ids.stream()
-    			.map(id -> LookupDto.create(id))
-    			.collect(Collectors.toList());
-    	ProductsByOrganisationRequest request = new ProductsByOrganisationRequest(new HashSet<>(organisationLookups));
-    	
-        return productService.getProductsByOrganisations(request);
+
+
+    @GetMapping("/by-organisation")
+    public List<ProductResponse> getProductsByOrganisation(@RequestParam("id") Set<UUID> organisationIds) {
+        return productService.getProductsByOrganisationIds(organisationIds);
     }
-    
+
+
     @DeleteMapping("/{id}")
-    @ResponseBody
-    public ProductResponse deleteProduct(@PathVariable("id") long id) {
-        return productService.deleteProduct(id);
+    public ProductResponse deleteProduct(@PathVariable("id") UUID productId) {
+        return productService.delete(productId);
     }
-    
+
+
     @GetMapping("/categories")
-    @ResponseBody
     public List<ProductCategoryResponse> getProductCategories() {
         return productService.getProductCategories();
     }
-    
+
+
     @PostMapping("/categories")
-    @ResponseBody
-    public ProductCategoryResponse createOrUpdateProductCategory(@RequestBody ProductCategoryRequest request) {
+    public ProductCategoryResponse createOrUpdateProductCategory(@RequestBody @Valid ProductCategoryRequest request) {
         return productService.createOrUpdateProductCategory(request);
     }
 }

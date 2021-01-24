@@ -1,169 +1,158 @@
 package com.ysell.modules.orders.domain;
 
-import com.ysell.modules.common.exceptions.YSellRuntimeException;
-import com.ysell.modules.common.models.LookupDto;
+import com.ysell.jpa.entities.OrderEntity;
+import com.ysell.jpa.entities.SaleEntity;
+import com.ysell.jpa.entities.enums.OrderStatus;
+import com.ysell.jpa.repositories.OrderRepository;
+import com.ysell.jpa.repositories.OrganisationRepository;
+import com.ysell.jpa.repositories.ProductRepository;
+import com.ysell.jpa.repositories.SaleRepository;
+import com.ysell.modules.common.services.ProductStockService;
 import com.ysell.modules.common.utilities.ServiceUtils;
-import com.ysell.modules.orders.domain.abstractions.OrderDao;
-import com.ysell.modules.orders.domain.abstractions.OrderService;
-import com.ysell.modules.orders.enums.OrderStatus;
-import com.ysell.modules.orders.models.dto.others.SaleRequestDto;
-import com.ysell.modules.orders.models.dto.output.ProductDto;
-import com.ysell.modules.orders.models.dto.output.SaleOutputDto;
-import com.ysell.modules.orders.models.request.OrderByOrganisationRequest;
-import com.ysell.modules.orders.models.request.OrderIdRequest;
-import com.ysell.modules.orders.models.request.OrderRequest;
+import com.ysell.modules.orders.models.request.OrderCreateRequest;
 import com.ysell.modules.orders.models.request.OrderUpdateRequest;
 import com.ysell.modules.orders.models.response.OrderResponse;
 import lombok.RequiredArgsConstructor;
+import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.validation.Valid;
-import java.math.BigDecimal;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class AppOrderService implements OrderService {
 
-	private final OrderDao orderDao;
+	private final OrderRepository orderRepo;
+
+	private final SaleRepository saleRepo;
+
+	private final ProductRepository productRepo;
+
+	private final OrganisationRepository orgRepo;
+
+	private final ProductStockService productStockService;
+
+	private final ModelMapper mapper = new ModelMapper();
+
 
 	@Override
-	@Transactional
-	public OrderResponse postOrder(@Valid OrderRequest request) {
-		validateProductAndStock(request.getSales(), request.getOrganisation().getId());
+	public OrderResponse postOrder(OrderCreateRequest request) {
+		request.getSales().forEach(sale -> productStockService.validateProductAndStock(
+				request.getOrganisation().getId(),
+				sale.getProduct().getId(),
+				sale.getQuantity())
+		);
 
-		updateTotalPrice(request);
+		request.getSales().forEach(sale ->
+				deductFromProductStock(sale.getProduct().getId(), sale.getQuantity()));
 
-		OrderResponse orderResponse = orderDao.saveOrder(request, OrderStatus.PENDING.getValue());
+		OrderEntity orderEntity = mapper.map(request, OrderEntity.class);
+		orderEntity.setStatus(OrderStatus.PENDING);
+
+		return saveOrUpdateOrder(orderEntity);
+	}
+
+
+	@Override
+	public OrderResponse updateOrder(UUID orderId, OrderUpdateRequest request) {
+		OrderEntity orderEntity = orderRepo.findById(orderId)
+				.orElseThrow(() -> ServiceUtils.wrongIdException("Order", orderId));
 
 		request.getSales().forEach(sale -> {
-			int quantityToRemove = sale.getQuantity() * -1;
-			orderDao.updateProductStock(sale.getProduct().getId(), quantityToRemove);
+			if (!saleRepo.existsById(sale.getId()))
+				ServiceUtils.throwWrongIdException("Sale", sale.getId());
+
+			productStockService.validateProductAndStock(
+					request.getOrganisation().getId(),
+					sale.getProduct().getId(),
+					sale.getQuantity());
 		});
 
-		return orderResponse;
+		addPreviousOrderBackToProductStock(orderEntity.getSales());
+
+		request.getSales().forEach(sale ->
+				deductFromProductStock(sale.getProduct().getId(), sale.getQuantity()));
+
+		mapper.map(request, orderEntity);
+
+		return saveOrUpdateOrder(orderEntity);
 	}
 
+
 	@Override
-	@Transactional
-	public OrderResponse updateOrder(@Valid final OrderUpdateRequest request) {
-		OrderResponse oldOrder = orderDao.getOrder(request.getId())
-				.orElseThrow(() -> ServiceUtils.wrongIdException("Order", request.getId()));
+	public OrderResponse approveOrder(UUID orderId) {
+		return updateOrderStatus(orderId, OrderStatus.APPROVED);
+	}
 
-		addSaleProductsBackToStock(oldOrder.getSales());
 
-		validateProductAndStock(request.getSales(), request.getOrganisation().getId());
+	@Override
+	public OrderResponse cancelOrder(UUID orderId) {
+		return updateOrderStatus(orderId, OrderStatus.CANCELLED);
+	}
 
-		updateTotalPrice(request);
 
-		OrderResponse orderResponse = orderDao.updateOrder(request, OrderStatus.PENDING.getValue());
-
-		request.getSales().forEach(sale -> {
-			int quantityToRemove = sale.getQuantity() * -1;
-			orderDao.updateProductStock(sale.getProduct().getId(), quantityToRemove);
+	@Override
+	public List<OrderResponse> getOrdersByOrganisationIds(Set<UUID> organisationIds) {
+		organisationIds.forEach(organisationId -> {
+			if (!orgRepo.existsById(organisationId))
+				throw ServiceUtils.wrongIdException("Order", organisationId);
 		});
 
-		return orderResponse;
-	}
+		List<OrderEntity> orderEntities = orderRepo.findByOrganisationIdIn(organisationIds);
 
-	private void addSaleProductsBackToStock(Set<SaleOutputDto> oldSales) {
-		oldSales.forEach(oldSale -> {
-			orderDao.updateProductStock(oldSale.getProduct().getId(), oldSale.getQuantity());
-		});
-	}
-
-	private <T extends SaleRequestDto> void validateProductAndStock(Set<T> sales, long organisationId) {
-		for (T sale : sales) {
-			ProductDto productDto = orderDao.getProduct(sale.getProduct().getId())
-					.orElseThrow(() -> ServiceUtils.wrongIdException("Order", sale.getProduct().getId()));
-
-			if (sale.getQuantity() < 0)
-				throw new YSellRuntimeException(String.format("Cannot order for negative (%d) amount of %s", sale.getQuantity(), productDto.getName()));
-			else if (productDto == null)
-				throw ServiceUtils.wrongIdException("Product", sale.getProduct().getId());
-			else if (productDto.getOrganisation().getId() != organisationId)
-				throw new YSellRuntimeException(String.format("Product with id %d does not belong to Organisation with id %d", sale.getProduct().getId(), organisationId));
-			else if (productDto.getCurrentStock() < sale.getQuantity())
-				throw new YSellRuntimeException(String.format("%s has only %d items left. Cannot order %d", productDto.getName(), productDto.getCurrentStock(), sale.getQuantity()));
-		}
-	}
-
-	private void updateTotalPrice(OrderRequest request) {
-		request.getSales().forEach(sale -> sale = updateSalePrice(sale));
-
-		BigDecimal totalDiscountPrice = getDiscountedPrice(
-				request.getSales().stream().map(s -> s.getTotalPrice()),
-				request.getPercentageDiscount());
-		request.setTotalPrice(totalDiscountPrice);
-	}
-
-	private void updateTotalPrice(OrderUpdateRequest request) {
-		request.getSales().forEach(sale -> sale = updateSalePrice(sale));
-
-		BigDecimal totalDiscountPrice = getDiscountedPrice(
-				request.getSales().stream().map(s -> s.getTotalPrice()),
-				request.getPercentageDiscount());
-		request.setTotalPrice(totalDiscountPrice);
-	}
-
-	private BigDecimal getDiscountedPrice(Stream<BigDecimal> prices, double percentageDiscount) {
-		BigDecimal totalPrice = prices.parallel()
-				.reduce(new BigDecimal(0),
-						(a, b) -> a.add(b),
-						(u, v) -> u.add(v));
-
-		return applyDiscount(totalPrice, percentageDiscount);
-	}
-
-	private <T extends SaleRequestDto> T updateSalePrice(T sale) {
-		ProductDto productDto = orderDao.getProduct(sale.getProduct().getId())
-				.orElseThrow(() -> ServiceUtils.wrongIdException("Product", sale.getProduct().getId()));
-
-		BigDecimal quantity = new BigDecimal(sale.getQuantity());
-		BigDecimal price = productDto.getPrice().multiply(quantity);
-		BigDecimal discountPrice = applyDiscount(price, sale.getPercentageDiscount());
-		sale.setTotalPrice(discountPrice);
-
-		return sale;
-	}
-
-	private BigDecimal applyDiscount(BigDecimal price, double percentageDiscount) {
-		BigDecimal decimalDiscount = new BigDecimal(percentageDiscount);
-		BigDecimal discount = price.multiply(decimalDiscount).divide(new BigDecimal(100));
-		return price.subtract(discount);
-	}
-
-	@Override
-	public OrderResponse approveOrder(@Valid OrderIdRequest request) {
-		return orderDao.updateOrderStatus(request.getId(), OrderStatus.CANCELLED);
-	}
-
-	@Override
-	public OrderResponse cancelOrder(@Valid OrderIdRequest request) {
-		return orderDao.updateOrderStatus(request.getId(), OrderStatus.CANCELLED);
-	}
-
-	private OrderResponse updateOrderStatus(UUID id, OrderStatus status) {
-		if (!orderDao.getOrder(id).isPresent())
-			throw ServiceUtils.wrongIdException("Order", id);
-
-		return orderDao.updateOrderStatus(id, status);
-	}
-
-	@Override
-	public List<OrderResponse> getOrdersByOrganisation(@Valid OrderByOrganisationRequest request) {
-		for (LookupDto organisation : request.getOrganisations()) {
-			if (!orderDao.hasOrganisation(organisation.getId()))
-				throw ServiceUtils.wrongIdException("Order", organisation.getId());
-		}
-
-		return request.getOrganisations().stream()
-				.flatMap(org -> orderDao.getOrderByOrganisation(org.getId()).stream())
+		return orderEntities.stream()
+				.map(entity -> mapper.map(entity, OrderResponse.class))
 				.collect(Collectors.toList());
+	}
+
+
+	private void deductFromProductStock(UUID productId, int quantityUsed) {
+		int quantityToRemove = quantityUsed * -1;
+		productStockService.updateProductStock(productId, quantityToRemove);
+	}
+
+
+	private void addPreviousOrderBackToProductStock(Set<SaleEntity> saleEntities) {
+		saleEntities.forEach(sale -> productStockService.updateProductStock(sale.getProduct().getId(), sale.getQuantity()));
+	}
+
+
+	private OrderResponse saveOrUpdateOrder(OrderEntity entity) {
+		entity.getSales().forEach(sale -> sale.setOrder(entity));
+		OrderEntity order = orderRepo.save(entity);
+
+		OrderResponse response = mapper.map(entity, OrderResponse.class);
+
+		return enrichResponseWithNames(response);
+	}
+
+
+	private OrderResponse updateOrderStatus(UUID orderId, OrderStatus status) {
+		OrderEntity entity = orderRepo.findById(orderId)
+				.orElseThrow(() -> ServiceUtils.wrongIdException("Order", orderId));
+		entity.setStatus(status);
+		entity = orderRepo.save(entity);
+
+		OrderResponse response = mapper.map(entity, OrderResponse.class);
+
+		return enrichResponseWithNames(response);
+	}
+
+
+	private OrderResponse enrichResponseWithNames(OrderResponse response) {
+		String orgName = orgRepo.getOne(response.getOrganisation().getId()).getName();
+		response.getOrganisation().setName(orgName);
+
+		response.getSales().forEach(sale -> {
+			String productName = productRepo.getOne(sale.getProduct().getId()).getName();
+			sale.getProduct().setName(productName);
+		});
+
+		return response;
 	}
 }

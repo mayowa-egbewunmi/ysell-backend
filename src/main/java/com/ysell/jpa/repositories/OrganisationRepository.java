@@ -1,15 +1,17 @@
 package com.ysell.jpa.repositories;
 
-import java.util.List;
-
-import org.springframework.data.jpa.repository.JpaRepository;
-
 import com.ysell.jpa.entities.OrganisationEntity;
-import com.ysell.jpa.entities.UserEntity;
+import com.ysell.jpa.repositories.base.ActiveJpaRepository;
+import com.ysell.jpa.repositories.base.EmailRepository;
+import com.ysell.jpa.repositories.base.NameRepository;
+import org.springframework.data.querydsl.QuerydslPredicateExecutor;
 
-public interface OrganisationRepository extends JpaRepository<OrganisationEntity, Long> {
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 
-	List<OrganisationEntity> findByEmailIgnoreCase(String email);
-	
-	List<OrganisationEntity> findByUsers(UserEntity userEntity);
+public interface OrganisationRepository
+		extends ActiveJpaRepository<OrganisationEntity>, NameRepository<OrganisationEntity>, EmailRepository<OrganisationEntity> {
+
+	List<OrganisationEntity> findByUsersIdIn(Set<UUID> userIds);
 }

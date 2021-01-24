@@ -1,44 +1,41 @@
 package com.ysell.jpa.entities;
 
+import com.ysell.jpa.entities.base.ActiveAuditableEntity;
+import com.ysell.jpa.entities.base.NamedEntity;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+import javax.persistence.*;
 import java.util.HashSet;
 import java.util.Set;
-
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.Index;
-import javax.persistence.ManyToMany;
-import javax.persistence.OneToMany;
-import javax.persistence.Table;
-
-import com.ysell.jpa.entities.base.AuditableEntity;
-
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
-import lombok.Getter;
-import lombok.Setter;
 
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
 @Setter
 @Entity
-@Table(name = "Organisations", indexes = { @Index(columnList = "email", unique = true) })
-public class OrganisationEntity extends AuditableEntity<Long> {
+@Table(name = "organisations")
+public class OrganisationEntity extends ActiveAuditableEntity implements NamedEntity {
 
+    @Column(nullable = false)
     private String email;
-	
+
+    @Column(nullable = false)
     private String name;
-    
+
+    @Column(nullable = false)
     private String address;
     
     private String logo; 
 
-    @ManyToMany(mappedBy = "organisations", fetch = FetchType.LAZY)
+    @ManyToMany(mappedBy = "organisations")
     private Set<UserEntity> users = new HashSet<>();
 
-    @OneToMany(mappedBy = "organisation", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "organisation")
     private Set<ProductEntity> products = new HashSet<>();
 
-    @OneToMany(mappedBy = "organisation", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "organisation")
     private Set<OrderEntity> orders = new HashSet<>();
 }

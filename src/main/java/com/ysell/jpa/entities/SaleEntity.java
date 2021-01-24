@@ -1,39 +1,33 @@
 package com.ysell.jpa.entities;
 
-import java.math.BigDecimal;
-
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.Table;
-
-import com.ysell.jpa.entities.base.AuditableClientEntity;
-
+import com.ysell.jpa.entities.base.ActiveAuditableEntity;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+
+import javax.persistence.*;
+import java.math.BigDecimal;
 
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
 @Setter
 @Entity
-@Table(name = "Sales")
-public class SaleEntity extends AuditableClientEntity<Long> {
+@Table(name = "sales")
+public class SaleEntity extends ActiveAuditableEntity {
 	
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "Order_Id", nullable = false)
+    @ManyToOne
+    @JoinColumn(nullable = false)  //name = "Order_Id",
     private OrderEntity order;
 
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "Product_Id", nullable = false)
+    @ManyToOne
+    @JoinColumn(nullable = false)   //name = "Product_Id",
     private ProductEntity product;
-    
-    private int quantity;
-    
-    private double percentageDiscount;
-    
+
+    @Column(nullable = false)
+    private Integer quantity;
+
+    @Column(nullable = false)
     private BigDecimal totalPrice;
 }

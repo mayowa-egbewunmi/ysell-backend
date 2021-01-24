@@ -1,29 +1,37 @@
 package com.ysell.modules.user.domain;
 
+import com.ysell.config.jwt.models.AppUserDetails;
+import com.ysell.config.jwt.service.JwtTokenUtil;
+import com.ysell.jpa.entities.ResetCodeEntity;
+import com.ysell.jpa.entities.UserEntity;
+import com.ysell.jpa.repositories.OrganisationRepository;
+import com.ysell.jpa.repositories.ResetCodeRepository;
+import com.ysell.jpa.repositories.UserRepository;
+import com.ysell.modules.common.dto.LookupDto;
+import com.ysell.modules.common.dto.PageWrapper;
+import com.ysell.modules.common.dto.response.SimpleMessageResponse;
 import com.ysell.modules.common.exceptions.YSellRuntimeException;
-import com.ysell.modules.common.models.LookupDto;
 import com.ysell.modules.common.utilities.ServiceUtils;
 import com.ysell.modules.common.utilities.email.EmailSender;
 import com.ysell.modules.common.utilities.email.models.EmailModel;
-import com.ysell.modules.user.domain.abstractions.UserDao;
-import com.ysell.modules.user.domain.abstractions.UserService;
-import com.ysell.modules.user.models.dto.input.CreateResetCodeDto;
-import com.ysell.modules.user.models.dto.output.ActiveUserDto;
-import com.ysell.modules.user.models.dto.output.ResetCodeDto;
-import com.ysell.modules.user.models.dto.output.UserPasswordDto;
 import com.ysell.modules.user.models.request.*;
-import com.ysell.modules.user.models.response.PasswordChangeResponse;
 import com.ysell.modules.user.models.response.UserResponse;
+import com.ysell.modules.user.models.response.UserTokenResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.modelmapper.ModelMapper;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Pageable;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.DisabledException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.validation.Valid;
-import java.util.Date;
-import java.util.List;
-import java.util.Random;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -31,118 +39,228 @@ import static java.lang.String.format;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
+@Transactional
 public class AppUserService implements UserService {
 
-	private final UserDao userDao;
+	private final UserRepository userRepo;
+
+	private final OrganisationRepository orgRepo;
+
+	private final ResetCodeRepository resetCodeRepo;
+
 	private final PasswordEncoder passwordEncoder;
+
 	private final EmailSender emailSender;
-	private final int resetCodeDelayInMinutes = 30;
+
+	private final AuthenticationManager authenticationManager;
+
+	private final JwtTokenUtil jwtTokenUtil;
+
+	private final ModelMapper mapper = new ModelMapper();
+
+	@Value("${ysell.constants.user-activation.reset-code-delay-in-minutes:30}")
+	private int resetCodeDelayInMinutes;
 
 
-	@Override
-	public List<UserResponse> getAllUsers() {
-		return userDao.getAllUsers();
+	public UserTokenResponse authenticate(LoginRequest request) {
+		AppUserDetails userDetails;
+		try {
+			UsernamePasswordAuthenticationToken usernamePasswordAuthToken = new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword());
+			Authentication auth = authenticationManager.authenticate(usernamePasswordAuthToken);
+			userDetails = (AppUserDetails) auth.getPrincipal();
+		} catch (BadCredentialsException e) {
+			throw new YSellRuntimeException("Invalid Username/Password");
+		} catch (DisabledException e) {
+			throw new YSellRuntimeException(String.format("User %s is Disabled", request.getEmail()));
+		}
+
+		final String token = jwtTokenUtil.generateToken(userDetails.getUsername(), userDetails.getUserId());
+
+		return new UserTokenResponse(token);
 	}
 
+
 	@Override
-	public UserResponse getUserById(long id) {
-		return userDao.getUserDetailsById(id)
-				.orElseThrow(() -> ServiceUtils.wrongIdException("User", id));
+	public PageWrapper<UserResponse> getAllPaged(Pageable page) {
+		return PageWrapper.from(
+				userRepo.findAll(page)
+						.map(userEntity -> mapper.map(userEntity, UserResponse.class))
+		);
 	}
 
-	@Override
-	@Transactional
-	public UserResponse createUser(@Valid CreateUserRequest request) {
-		userDao.getUserByUsername(request.getEmail())
-				.ifPresent(existingUser -> {
-					String msg = existingUser.isActive() ? format("User with email %s already exists", request.getEmail()) :
-							"Email linked to an unsubscribed account";
-					throw new YSellRuntimeException(msg);
-				});
 
-		validateOrganisationIds(request.getOrganisations());
+	@Override
+	public UserResponse getById(UUID userId) {
+		return userRepo.findById(userId)
+				.map(user -> mapper.map(user, UserResponse.class))
+				.orElseThrow(() -> ServiceUtils.wrongIdException("User", userId));
+	}
+
+
+	@Override
+	public List<UserResponse> getUsersByOrganisation(Set<UUID> organisationIds) {
+		validateOrganisationIds(organisationIds);
+
+		return organisationIds.stream()
+				.flatMap(organisationId -> userRepo.findByOrganisationsId(organisationId).stream())
+				.map(user -> mapper.map(user, UserResponse.class))
+				.collect(Collectors.toList());
+	}
+
+
+	@Override
+	public UserResponse createUser(CreateUserRequest request) {
+		if (request.getOrganisations().size() == 0)
+			throw new YSellRuntimeException("A user must belong to an organisation");
+
+		if (userRepo.existsByEmailIgnoreCase(request.getEmail()))
+			throw new YSellRuntimeException(format("User with email %s already exists", request.getEmail()));
+
+		Set<UUID> organisationIds = request.getOrganisations().stream()
+				.map(LookupDto::getId)
+				.collect(Collectors.toSet());
+		validateOrganisationIds(organisationIds);
 
 		String hash = passwordEncoder.encode(request.getPassword());
 
-		return userDao.createUser(request, hash);
+		return performUserCreation(request, hash);
 	}
 
-	@Override
-	@Transactional
-	public UserResponse updateUser(@Valid UpdateUserRequest request) {
-		ActiveUserDto existingUser = userDao.getUserById(request.getId())
-				.orElseThrow(() -> ServiceUtils.wrongIdException("User", request.getId()));
-		if (!existingUser.isActive())
-			throw new YSellRuntimeException("Id linked to an unsubscribed account");
 
-		userDao.getUserByUsername(request.getEmail())
+	@Override
+	public UserResponse updateUser(UpdateUserRequest request) {
+		userRepo.findByEmailIgnoreCase(request.getEmail())
 				.ifPresent(sameOrOtherUser -> {
-					if (!sameOrOtherUser.getUsername().equals(existingUser.getUsername()))
+					if (!sameOrOtherUser.getEmail().equals(request.getEmail()))
 						throw new YSellRuntimeException(format("Another user with email %s already exists", request.getEmail()));
 				});
 
-		validateOrganisationIds(request.getOrganisations());
+		Set<UUID> organisationIds = request.getOrganisations().stream()
+				.map(LookupDto::getId)
+				.collect(Collectors.toSet());
+		validateOrganisationIds(organisationIds);
 
-		return userDao.updateUser(request);
+		return performUserUpdate(request);
 	}
 
-	private void validateOrganisationIds(Set<LookupDto> orgDtos) {
-		if (orgDtos == null || orgDtos.size() == 0)
-			return;
-
-		for (LookupDto orgDto : orgDtos) {
-			if (!userDao.hasOrganisation(orgDto.getId()))
-				throw ServiceUtils.wrongIdException("Organisation", orgDto.getId());
-		}
-	}
 
 	@Override
-	@Transactional
-	public UserResponse unsubscribe(@Valid SubscriptionRequest request) {
-		validateSubscribingUserId(request.getUserId());
-		return userDao.unsubscribeUser(request.getUserId());
+	public UserResponse unsubscribe(SubscriptionRequest request) {
+		UserEntity user = userRepo.findById(request.getUserId())
+				.orElseThrow(() -> ServiceUtils.wrongIdException("User", request.getUserId()));
+
+		if(!user.isActive())
+			throw new YSellRuntimeException(format("Account with Id %s already unsubscribed", request.getUserId()));
+
+		user.setActive(false);
+		user = userRepo.save(user);
+
+		return mapper.map(user, UserResponse.class);
 	}
+
 
 	@Override
-	@Transactional
-	public UserResponse resubscribe(@Valid SubscriptionRequest request) {
-		validateSubscribingUserId(request.getUserId());
-		return userDao.resubscribeUser(request.getUserId());
+	public UserResponse resubscribe(SubscriptionRequest request) {
+		//todo: use entity manager to update inactive record
+		UserEntity user = userRepo.findById(request.getUserId())
+				.orElseThrow(() -> ServiceUtils.wrongIdException("User", request.getUserId()));
+
+		if(user.isActive())
+			throw new YSellRuntimeException(format("Account with Id %s already subscribed", request.getUserId()));
+
+		user.setActive(true);
+		user = userRepo.save(user);
+
+		return mapper.map(user, UserResponse.class);
 	}
 
-	private void validateSubscribingUserId(long userId) {
-		ActiveUserDto existingUser = userDao.getUserById(userId)
-				.orElseThrow(() -> ServiceUtils.wrongIdException("User", userId));
-		if (!existingUser.isActive()) {
-			throw new YSellRuntimeException(format("Account with Id %s already unsubscribed", userId));
-		}
-	}
 
 	@Override
-	@Transactional
-	public PasswordChangeResponse resetCodeInitiate(@Valid ResetInitiateRequest request) {
-		UserPasswordDto existingUser = userDao.getUsernameAndPassword(request.getEmail())
-				.orElseThrow(() -> new YSellRuntimeException(format("User with email %s does not exist", request.getEmail())));
-		if (!existingUser.isActive()) {
-			throw new YSellRuntimeException(format("Email linked to an unsubscribed account", request.getEmail()));
-		}
+	public SimpleMessageResponse resetCodeInitiate(ResetInitiateRequest request) {
+		UserEntity userEntity = getUser(request.getEmail());
 
 		String resetCode = getResetCode();
 		Date expiryTimestamp = getExpiryTime();
-		CreateResetCodeDto resetDto = new CreateResetCodeDto(resetCode, expiryTimestamp, LookupDto.create(existingUser.getId()));
-		userDao.saveResetCode(resetDto);
 
-		String msg = format("Your password reset code is %s.\r\nIt will expire in %d minutes", resetCode, resetCodeDelayInMinutes);
+		ResetCodeEntity resetCodeEntity = new ResetCodeEntity(resetCode, expiryTimestamp, userEntity);
+		resetCodeRepo.save(resetCodeEntity);
+
+		String msg = format("Your password reset code is %s. It will expire in %d minutes", resetCode, resetCodeDelayInMinutes);
 		EmailModel model = new EmailModel(request.getEmail(), "YSell Password Reset Code", msg, null);
 
 		try {
 			emailSender.Send(model);
 		} catch (Exception ex) {
-			throw new YSellRuntimeException("An error occurred while sending reset code");
+			log.error("Error occurred while sending reset code email: ", ex);
+			throw new YSellRuntimeException("Error occurred while sending reset code. Please meet administrator");
 		}
 
-		return new PasswordChangeResponse(format("Reset code has been sent to your email. It will expire in %d minutes", resetCodeDelayInMinutes));
+		return new SimpleMessageResponse(format("Reset code has been sent to your email. It will expire in %d minutes", resetCodeDelayInMinutes));
 	}
+
+
+	@Override
+	public SimpleMessageResponse resetCodeVerify(ResetVerifyRequest request) {
+		verifyCode(request.getEmail(), request.getResetCode());
+		return new SimpleMessageResponse("Valid reset code");
+	}
+
+
+	@Override
+	public SimpleMessageResponse resetPassword(ResetPasswordRequest request) {
+		ResetCodeEntity resetCodeEntity = verifyCode(request.getEmail(), request.getResetCode());
+		resetCodeRepo.delete(resetCodeEntity);
+
+		updateUserPassword(request.getNewPassword(), request.getEmail());
+
+		return new SimpleMessageResponse("Password successfully reset");
+	}
+
+
+	@Override
+	public SimpleMessageResponse changePassword(ChangePasswordRequest request) {
+		UserEntity userEntity = getUser(request.getEmail());
+
+		if (!passwordEncoder.matches(request.getOldPassword(), userEntity.getHash()))
+			throw new YSellRuntimeException("Old password does not match current password");
+
+		updateUserPassword(request.getNewPassword(), request.getEmail());
+
+		return new SimpleMessageResponse("Password successfully changed");
+	}
+
+
+	private UserResponse performUserCreation(CreateUserRequest userDetails, String hash) {
+		UserEntity user = mapper.map(userDetails, UserEntity.class);
+		user.setHash(hash);
+		user = userRepo.save(user);
+
+		UserResponse response = mapper.map(user, UserResponse.class);
+		response.getOrganisations().forEach(org -> org.setName(orgRepo.getOne(org.getId()).getName()));
+
+		return response;
+	}
+
+
+	private UserResponse performUserUpdate(UpdateUserRequest userDetails) {
+		UserEntity user = userRepo.findById(userDetails.getId()).get();
+
+		mapper.map(userDetails, user);
+		user = userRepo.save(user);
+
+		return mapper.map(user, UserResponse.class);
+	}
+
+
+	private void updateUserPassword(String email, String clearPassword) {
+		String hash = passwordEncoder.encode(clearPassword);
+
+		UserEntity userEntity = getUser(email);
+		userEntity.setHash(hash);
+		userRepo.save(userEntity);
+	}
+
 
 	private String getResetCode() {
 		StringBuilder code = new StringBuilder();
@@ -154,10 +272,12 @@ public class AppUserService implements UserService {
 		return code.toString();
 	}
 
+
 	private char randomUpperCaseCharacter() {
 		int salt = (int) Math.floor(new Random().nextDouble() * 26);
 		return (char) (salt + (int) 'A');
 	}
+
 
 	private Date getExpiryTime() {
 		Date now = new Date();
@@ -166,69 +286,30 @@ public class AppUserService implements UserService {
 		return expiryTime;
 	}
 
-	@Override
-	public PasswordChangeResponse resetCodeVerify(@Valid ResetVerifyRequest request) {
-		verifyCode(request.getEmail(), request.getResetCode());
-		return new PasswordChangeResponse("Valid reset code");
+
+	private void validateOrganisationIds(Set<UUID> organisationIds) {
+		organisationIds.forEach(organisationId -> {
+			if (!orgRepo.existsById(organisationId))
+				ServiceUtils.throwWrongIdException("Organisation", organisationId);
+		});
 	}
 
-	@Override
-	@Transactional
-	public PasswordChangeResponse resetPassword(@Valid ResetPasswordRequest request) {
-		ResetCodeDto resetCodeDto = verifyCode(request.getEmail(), request.getResetCode());
-		userDao.deactivateResetCode(resetCodeDto.getId());
 
-		String hash = passwordEncoder.encode(request.getNewPassword());
-		userDao.updateUserPassword(request.getEmail(), hash);
+	private ResetCodeEntity verifyCode(String email, String resetCode) {
+		UserEntity userEntity = getUser(email);
 
-		return new PasswordChangeResponse("Password successfully reset");
-	}
-
-	private ResetCodeDto verifyCode(String email, String resetCode) {
-		UserPasswordDto existingUser = validateEmailUnique(email);
-
-		ResetCodeDto resetCodeDto = userDao.getResetCodeDto(existingUser.getId(), resetCode);
-		if (resetCodeDto == null)
+		ResetCodeEntity resetCodeEntity = resetCodeRepo.findByUserIdAndResetCode(userEntity.getId(), resetCode);
+		if (resetCodeEntity == null)
 			throw new YSellRuntimeException("Invalid reset code", null);
-		if (!resetCodeDto.isActive())
-			throw new YSellRuntimeException("Reset code has already been used", null);
-		if (resetCodeDto.getExpiryTimestamp().before(new Date()))
+		if (resetCodeEntity.getExpiryTimestamp().before(new Date()))
 			throw new YSellRuntimeException("Reset code has expired", null);
 
-		return resetCodeDto;
+		return resetCodeEntity;
 	}
 
-	private UserPasswordDto validateEmailUnique(String email) {
-		UserPasswordDto existingUser = userDao.getUsernameAndPassword(email)
-				.orElseThrow(() -> new YSellRuntimeException(format("User with email %s does not exist", email)));
-		if (!existingUser.isActive()) {
-			throw new YSellRuntimeException("Email linked to an unsubscribed account");
-		}
 
-		return existingUser;
-	}
-
-	@Override
-	@Transactional
-	public PasswordChangeResponse changePassword(@Valid ChangePasswordRequest request) {
-		UserPasswordDto existingUser = validateEmailUnique(request.getEmail());
-
-		if (!passwordEncoder.matches(request.getOldPassword(), existingUser.getHashedPassword()))
-			throw new YSellRuntimeException("Old password does not match current password");
-
-		String hash = passwordEncoder.encode(request.getNewPassword());
-		userDao.updateUserPassword(request.getEmail(), hash);
-
-		return new PasswordChangeResponse("Password successfully changed");
-	}
-
-	@Override
-	@Transactional
-	public List<UserResponse> getUsersByOrganisation(@Valid UsersByOrganisationRequest request) {
-		validateOrganisationIds(request.getOrganisations());
-
-		return request.getOrganisations().stream()
-				.flatMap(organisation -> userDao.getUsersByOrganisation(organisation.getId()).stream())
-				.collect(Collectors.toList());
+	private UserEntity getUser(String email) {
+		return userRepo.findByEmailIgnoreCase(email)
+				.orElseThrow(() -> ServiceUtils.wrongEmailException("User", email));
 	}
 }

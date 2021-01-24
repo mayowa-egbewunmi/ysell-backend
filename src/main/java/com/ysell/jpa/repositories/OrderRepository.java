@@ -1,19 +1,19 @@
 package com.ysell.jpa.repositories;
 
+import com.ysell.jpa.entities.OrderEntity;
+import com.ysell.jpa.repositories.base.ActiveJpaRepository;
+
+import java.time.LocalDate;
 import java.util.Collection;
-import java.util.Date;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
-import org.springframework.data.jpa.repository.JpaRepository;
+public interface OrderRepository extends ActiveJpaRepository<OrderEntity> {
 
-import com.ysell.jpa.entities.OrderEntity;
+	List<OrderEntity> findByOrganisationIdIn(Set<UUID> organisationId);
 
-public interface OrderRepository extends JpaRepository<OrderEntity, UUID> {
+	List<OrderEntity> findByCreatedAtGreaterThanAndOrganisationIdIn(LocalDate lastSyncDate, Collection<UUID> organisationIds);
 
-	List<OrderEntity> findByOrganisationId(long organisationId);
-
-	List<OrderEntity> findByCreatedAtGreaterThanAndOrganisationIdIn(Date lastSyncDate, Collection<Long> organisationIds);
-
-	List<OrderEntity> findByUpdatedAtGreaterThanAndCreatedAtLessThanAndOrganisationIdIn(Date lastSyncDate, Date lastCreatedSyncDate, Collection<Long> organisationIds);
+	List<OrderEntity> findByUpdatedAtGreaterThanAndCreatedAtLessThanAndOrganisationIdIn(LocalDate lastSyncDate, LocalDate lastCreatedSyncDate, Collection<UUID> organisationIds);
 }

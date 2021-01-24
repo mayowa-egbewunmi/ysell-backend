@@ -1,11 +1,13 @@
 package com.ysell.modules.user.models.request;
 
-import com.ysell.modules.common.models.LookupDto;
+import com.ysell.modules.common.dto.LookupDto;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 import java.util.Set;
 
 @AllArgsConstructor
@@ -21,6 +23,8 @@ public class CreateUserRequest {
 
 	@NotEmpty
 	private String password;
-    
+
+	@NotNull
+	@Valid
     private Set<LookupDto> organisations;
 }

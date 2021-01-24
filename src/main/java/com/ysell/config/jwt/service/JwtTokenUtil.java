@@ -1,20 +1,22 @@
 package com.ysell.config.jwt.service;
 
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
+import org.springframework.beans.factory.annotation.Value;
+
 import java.io.Serializable;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 import java.util.function.Function;
-import org.springframework.beans.factory.annotation.Value;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
 
 public class JwtTokenUtil implements Serializable {
 	
 	private static final long serialVersionUID = -2550185165626007488L;
 	
-	public static final long JWT_TOKEN_VALIDITY = 5 * 60 * 60;
+	private static final long TIMEOUT_IN_SECONDS = 5 * 60 * 60;
 	
 	@Value("${jwt.secret}")
 	private String secret;
@@ -25,15 +27,15 @@ public class JwtTokenUtil implements Serializable {
 		return getClaimFromToken(token, Claims::getSubject);
 	}
 	
-	public Long getUserIdFromToken(String token) {
-		return getClaimFromToken(token, claims -> claims.get(userIdKey, Long.class));
+	public UUID getUserIdFromToken(String token) {
+		return getClaimFromToken(token, claims -> claims.get(userIdKey, UUID.class));
 	}
 
-	public Date getExpirationDateFromToken(String token) {
+	private Date getExpirationDateFromToken(String token) {
 		return getClaimFromToken(token, Claims::getExpiration);
 	}
 
-	public <T> T getClaimFromToken(String token, Function<Claims, T> claimsResolver) {
+    private <T> T getClaimFromToken(String token, Function<Claims, T> claimsResolver) {
 		final Claims claims = getAllClaimsFromToken(token);
 		return claimsResolver.apply(claims);
 	}
@@ -47,7 +49,7 @@ public class JwtTokenUtil implements Serializable {
 		return expiration.before(new Date());
 	}
 
-	public String generateToken(String username, long userId) {
+	public String generateToken(String username, UUID userId) {
 		Map<String, Object> claims = new HashMap<>();
 		claims.put(userIdKey, userId);
 		return doGenerateToken(claims, username);
@@ -60,7 +62,7 @@ public class JwtTokenUtil implements Serializable {
 	//   compaction of the JWT to a URL-safe string 
 	private String doGenerateToken(Map<String, Object> claims, String subject) {
 		return Jwts.builder().setClaims(claims).setSubject(subject).setIssuedAt(new Date(System.currentTimeMillis()))
-				.setExpiration(new Date(System.currentTimeMillis() + JWT_TOKEN_VALIDITY * 1000))
+				.setExpiration(new Date(System.currentTimeMillis() + TIMEOUT_IN_SECONDS * 1000))
 				.signWith(SignatureAlgorithm.HS512, secret).compact();
 	}
 

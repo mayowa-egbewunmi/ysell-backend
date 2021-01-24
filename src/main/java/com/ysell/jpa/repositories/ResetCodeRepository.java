@@ -1,11 +1,12 @@
 package com.ysell.jpa.repositories;
 
-import org.springframework.data.jpa.repository.JpaRepository;
-
 import com.ysell.jpa.entities.ResetCodeEntity;
+import com.ysell.jpa.repositories.base.ActiveJpaRepository;
 
-public interface ResetCodeRepository extends JpaRepository<ResetCodeEntity, Long> {
+import java.util.UUID;
+
+public interface ResetCodeRepository extends ActiveJpaRepository<ResetCodeEntity> {
 	
-	ResetCodeEntity findByUserIdAndResetCode(long userId, String resetCode);
+	ResetCodeEntity findByUserIdAndResetCode(UUID userId, String resetCode);
 }
 

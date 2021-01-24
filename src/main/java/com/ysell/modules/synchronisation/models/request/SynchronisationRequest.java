@@ -1,25 +1,34 @@
 package com.ysell.modules.synchronisation.models.request;
 
-import com.ysell.modules.common.models.LookupDto;
-import com.ysell.modules.synchronisation.models.dto.input.OrderInputDto;
+import com.ysell.modules.common.dto.LookupDto;
+import com.ysell.modules.synchronisation.models.dto.OrderDto;
+import com.ysell.modules.synchronisation.models.dto.ProductDto;
+import com.ysell.modules.synchronisation.models.dto.StockDto;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 import javax.validation.Valid;
-import java.util.Date;
+import javax.validation.constraints.NotNull;
+import java.time.LocalDate;
 import java.util.Set;
 
 @AllArgsConstructor
-@NoArgsConstructor
 @Getter
 public class SynchronisationRequest {
 
+	@NotNull
 	@Valid
 	private Set<LookupDto> userOrganisations;
 
-	private Date lastSyncTime;
+	@NotNull
+	private LocalDate lastSyncTime;
 
 	@Valid
-	private Set<OrderInputDto> orders;
+	private Set<StockDto> newClientStocks;
+
+	@Valid
+	private Set<ProductDto> newClientProducts;
+
+	@Valid
+	private Set<OrderDto> newClientOrders;
 }

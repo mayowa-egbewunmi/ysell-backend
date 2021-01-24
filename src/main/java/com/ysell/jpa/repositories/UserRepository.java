@@ -1,15 +1,15 @@
 package com.ysell.jpa.repositories;
 
-import java.util.List;
-import java.util.Optional;
-
 import com.ysell.jpa.entities.OrganisationEntity;
 import com.ysell.jpa.entities.UserEntity;
 import com.ysell.jpa.repositories.base.ActiveJpaRepository;
+import com.ysell.jpa.repositories.base.EmailRepository;
+import com.ysell.jpa.repositories.base.NameRepository;
 
-public interface UserRepository extends ActiveJpaRepository<UserEntity, Long> {
+import java.util.List;
+import java.util.UUID;
 
-	Optional<UserEntity> findByEmailIgnoreCase(String email);
+public interface UserRepository extends ActiveJpaRepository<UserEntity>, NameRepository<UserEntity>, EmailRepository<UserEntity> {
 	
-	List<UserEntity> findByOrganisations(OrganisationEntity organisationEntity);
+	List<UserEntity> findByOrganisationsId(UUID organisationId);
 }

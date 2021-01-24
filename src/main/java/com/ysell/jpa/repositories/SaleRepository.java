@@ -1,9 +1,7 @@
 package com.ysell.jpa.repositories;
 
-import org.springframework.data.jpa.repository.JpaRepository;
-
 import com.ysell.jpa.entities.SaleEntity;
+import com.ysell.jpa.repositories.base.ActiveJpaRepository;
 
-public interface SaleRepository extends JpaRepository<SaleEntity, Long> {
-	
+public interface SaleRepository extends ActiveJpaRepository<SaleEntity> {
 }
