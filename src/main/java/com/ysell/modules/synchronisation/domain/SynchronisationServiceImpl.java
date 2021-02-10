@@ -28,7 +28,7 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 @Transactional
-public class AppSynchronisationService implements SynchronisationService {
+public class SynchronisationServiceImpl implements SynchronisationService {
 
 	private final OrganisationRepository orgRepo;
 

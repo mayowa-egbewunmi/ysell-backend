@@ -24,7 +24,7 @@ import java.time.LocalDate;
 @Service
 @RequiredArgsConstructor
 @Transactional
-public class AppStockService implements StockService {
+public class StockServiceImpl implements StockService {
 
 	private final StockRepository stockRepo;
 

@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 @Transactional
-public class AppOrderService implements OrderService {
+public class OrderServiceImpl implements OrderService {
 
 	private final OrderRepository orderRepo;
 
@@ -86,7 +86,7 @@ public class AppOrderService implements OrderService {
 
 	@Override
 	public OrderResponse approveOrder(UUID orderId) {
-		return updateOrderStatus(orderId, OrderStatus.APPROVED);
+		return updateOrderStatus(orderId, OrderStatus.OPEN);
 	}
 
 

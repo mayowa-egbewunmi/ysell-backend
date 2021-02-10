@@ -9,6 +9,7 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import javax.persistence.*;
+import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.util.UUID;
 
@@ -27,15 +28,13 @@ public abstract class AuditableEntity {
 	private UUID createdBy;
 
 	@CreatedDate
-    @Temporal(TemporalType.TIMESTAMP)
-	private LocalDate createdAt;
+	private Timestamp createdAt;
 
 	@LastModifiedBy
 	@Column(columnDefinition = "BINARY(16)")
 	private UUID updatedBy;
 
 	@LastModifiedDate
-	@Temporal(TemporalType.TIMESTAMP)
 	private LocalDate updatedAt;
 
 	@Version
@@ -44,12 +43,25 @@ public abstract class AuditableEntity {
     private LocalDate clientCreatedAt;
 
     private LocalDate clientUpdatedAt;
-	
+
+
 	@PrePersist
 	public void validateUuid() {
 		if(id == null) 
 			id = UUID.randomUUID();
 	}
+
+
+	public String getTableName() {
+		return getTableName(getClass());
+	}
+
+
+	public static <T extends AuditableEntity> String getTableName(Class<T> entityClass) {
+		Table table = entityClass.getAnnotation(Table.class);
+		return table == null ? null : table.name();
+	}
+
 	
 	@Override
 	public boolean equals(Object obj) {
@@ -63,6 +75,7 @@ public abstract class AuditableEntity {
 		
 		return isEqual;
 	}
+
 
 	@Override
 	public int hashCode() {

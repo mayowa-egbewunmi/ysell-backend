@@ -1,14 +1,12 @@
 package com.ysell.jpa.entities;
 
 import com.ysell.jpa.entities.base.ActiveAuditableEntity;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import javax.persistence.*;
 import java.math.BigDecimal;
 
+@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
@@ -18,11 +16,11 @@ import java.math.BigDecimal;
 public class SaleEntity extends ActiveAuditableEntity {
 	
     @ManyToOne
-    @JoinColumn(nullable = false)  //name = "Order_Id",
+    @JoinColumn(nullable = false)
     private OrderEntity order;
 
     @ManyToOne
-    @JoinColumn(nullable = false)   //name = "Product_Id",
+    @JoinColumn(nullable = false)
     private ProductEntity product;
 
     @Column(nullable = false)

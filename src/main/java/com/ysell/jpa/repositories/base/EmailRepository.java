@@ -12,5 +12,5 @@ public interface EmailRepository<TEntity extends AuditableEntity> extends JpaRep
 
 	boolean existsByEmailIgnoreCase(String email);
 
-	Optional<TEntity> findByEmailIgnoreCase(String email);
+	Optional<TEntity> findFirstByEmailIgnoreCase(String email);
 }

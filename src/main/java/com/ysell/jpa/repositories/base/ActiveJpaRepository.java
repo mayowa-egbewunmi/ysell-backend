@@ -12,7 +12,8 @@ import javax.annotation.Nonnull;
 import java.util.UUID;
 
 @NoRepositoryBean
-public interface ActiveJpaRepository<TEntity extends ActiveAuditableEntity> extends JpaRepository<TEntity, UUID> {
+public interface ActiveJpaRepository<TEntity extends ActiveAuditableEntity>
+		extends JpaRepository<TEntity, UUID> {
 
 	@Override
 	@Transactional
@@ -20,6 +21,7 @@ public interface ActiveJpaRepository<TEntity extends ActiveAuditableEntity> exte
 		entity.setActive(false);
 		save(entity);
 	}
+
 
 	@Override
 	@Transactional
@@ -29,6 +31,7 @@ public interface ActiveJpaRepository<TEntity extends ActiveAuditableEntity> exte
 		delete(entity);
 	}
 
+
 	@Override
 	@Transactional
 	default void deleteAll(@Nonnull Iterable<? extends TEntity> entities) {
@@ -36,11 +39,13 @@ public interface ActiveJpaRepository<TEntity extends ActiveAuditableEntity> exte
 			delete(entity);
 	}
 
+
 	@Override
 	@Transactional
 	default void deleteAll() {
 		deleteAll(findAll());
 	}
+
 
 	@Transactional
 	@Modifying

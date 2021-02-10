@@ -1,6 +1,5 @@
 package com.ysell.modules.orders;
 
-import com.ysell.common.annotations.WrapResponse;
 import com.ysell.modules.common.constants.ControllerConstants;
 import com.ysell.modules.orders.domain.OrderService;
 import com.ysell.modules.orders.models.request.OrderCreateRequest;
@@ -17,7 +16,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping(OrderController.PATH)
 @RequiredArgsConstructor
-@WrapResponse   //todo :use wrapresponse by default
+//todo :use wrapresponse by default
 public class OrderController {
 
     public static final String PATH = ControllerConstants.VERSION_URL + "/orders";
@@ -53,4 +52,6 @@ public class OrderController {
     public List<OrderResponse> getOrdersByOrganisation(@RequestParam("organisationId") Set<UUID> organisationIds) {
         return orderService.getOrdersByOrganisationIds(organisationIds);
     }
+
+    //todo: get sales for organisation
 }

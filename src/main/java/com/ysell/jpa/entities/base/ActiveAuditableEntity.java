@@ -17,6 +17,6 @@ import javax.persistence.MappedSuperclass;
 @Where(clause = "is_active=1")
 public class ActiveAuditableEntity extends AuditableEntity {
 
-    @Column(name="is_active", nullable = false, columnDefinition = "tinyint(1) default 1")
+    @Column(name="is_active", nullable = false)
     protected boolean active = true;
 }

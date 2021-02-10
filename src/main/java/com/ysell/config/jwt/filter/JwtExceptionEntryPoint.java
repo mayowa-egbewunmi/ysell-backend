@@ -1,4 +1,4 @@
-package com.ysell.config.jwt.dependencies;
+package com.ysell.config.jwt.filter;
 
 import java.io.IOException;
 import java.io.Serializable;

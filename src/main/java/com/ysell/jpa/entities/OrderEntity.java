@@ -21,7 +21,7 @@ public class OrderEntity extends ActiveAuditableEntity {
     private Set<SaleEntity> sales = new HashSet<>();
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(nullable = false) //name = "Organisation_Id",
+    @JoinColumn(nullable = false)
     private OrganisationEntity organisation;
 
     @Column(nullable = false)

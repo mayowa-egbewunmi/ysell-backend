@@ -2,14 +2,12 @@ package com.ysell.jpa.entities;
 
 import com.ysell.jpa.entities.base.ActiveAuditableEntity;
 import com.ysell.jpa.entities.base.NamedEntity;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import javax.persistence.*;
 import java.math.BigDecimal;
 
+@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
@@ -18,11 +16,12 @@ import java.math.BigDecimal;
 @Table(name = "products")
 public class ProductEntity extends ActiveAuditableEntity implements NamedEntity {
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
 	private String name;
 
     private String description;
-    
+
+    @Column(nullable = false)
     private Integer currentStock;
 
     @Column(nullable = false)
@@ -32,10 +31,10 @@ public class ProductEntity extends ActiveAuditableEntity implements NamedEntity 
     private BigDecimal sellingPrice;
 
     @ManyToOne
-    @JoinColumn(nullable = false)    //name = "organisation_Id"
+    @JoinColumn(nullable = false)
     private OrganisationEntity organisation;
 
     @ManyToOne
-    @JoinColumn(nullable = false)   //name = "product_category_Id"
+    @JoinColumn(nullable = false)
     private ProductCategoryEntity productCategory;	
 }

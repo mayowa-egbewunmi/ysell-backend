@@ -1,4 +1,4 @@
-package com.ysell.config.converters.date;
+package com.ysell.common.converters.date;
 
 import com.ysell.modules.common.exceptions.YSellRuntimeException;
 import lombok.extern.slf4j.Slf4j;

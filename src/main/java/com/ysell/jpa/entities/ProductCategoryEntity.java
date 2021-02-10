@@ -2,10 +2,7 @@ package com.ysell.jpa.entities;
 
 import com.ysell.jpa.entities.base.ActiveAuditableEntity;
 import com.ysell.jpa.entities.base.NamedEntity;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -14,6 +11,7 @@ import javax.persistence.Table;
 import java.util.HashSet;
 import java.util.Set;
 
+@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
@@ -22,7 +20,7 @@ import java.util.Set;
 @Table(name = "product_categories")
 public class ProductCategoryEntity extends ActiveAuditableEntity implements NamedEntity {
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
 	private String name;
 	
 	private String description;

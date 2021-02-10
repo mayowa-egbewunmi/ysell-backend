@@ -31,6 +31,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -41,7 +44,7 @@ import static java.lang.String.format;
 @RequiredArgsConstructor
 @Slf4j
 @Transactional
-public class AppUserService implements UserService {
+public class UserServiceImpl implements UserService {
 
 	private final UserRepository userRepo;
 
@@ -59,25 +62,26 @@ public class AppUserService implements UserService {
 
 	private final ModelMapper mapper = new ModelMapper();
 
+	@PersistenceContext
+	private EntityManager entityManager;
+
 	@Value("${ysell.constants.user-activation.reset-code-delay-in-minutes:30}")
 	private int resetCodeDelayInMinutes;
 
 
 	public UserTokenResponse authenticate(LoginRequest request) {
-		AppUserDetails userDetails;
 		try {
 			UsernamePasswordAuthenticationToken usernamePasswordAuthToken = new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword());
 			Authentication auth = authenticationManager.authenticate(usernamePasswordAuthToken);
-			userDetails = (AppUserDetails) auth.getPrincipal();
+			AppUserDetails userDetails = (AppUserDetails) auth.getPrincipal();
+			final String token = jwtTokenUtil.generateToken(userDetails.getUsername(), userDetails.getUserId());
+
+			return new UserTokenResponse(token);
 		} catch (BadCredentialsException e) {
-			throw new YSellRuntimeException("Invalid Username/Password");
+			throw new YSellRuntimeException("Invalid username/password");
 		} catch (DisabledException e) {
 			throw new YSellRuntimeException(String.format("User %s is Disabled", request.getEmail()));
 		}
-
-		final String token = jwtTokenUtil.generateToken(userDetails.getUsername(), userDetails.getUserId());
-
-		return new UserTokenResponse(token);
 	}
 
 
@@ -115,7 +119,7 @@ public class AppUserService implements UserService {
 			throw new YSellRuntimeException("A user must belong to an organisation");
 
 		if (userRepo.existsByEmailIgnoreCase(request.getEmail()))
-			throw new YSellRuntimeException(format("User with email %s already exists", request.getEmail()));
+			ServiceUtils.throwWrongEmailException("User", request.getEmail());
 
 		Set<UUID> organisationIds = request.getOrganisations().stream()
 				.map(LookupDto::getId)
@@ -130,11 +134,10 @@ public class AppUserService implements UserService {
 
 	@Override
 	public UserResponse updateUser(UpdateUserRequest request) {
-		userRepo.findByEmailIgnoreCase(request.getEmail())
-				.ifPresent(sameOrOtherUser -> {
-					if (!sameOrOtherUser.getEmail().equals(request.getEmail()))
-						throw new YSellRuntimeException(format("Another user with email %s already exists", request.getEmail()));
-				});
+		userRepo.findFirstByEmailIgnoreCase(request.getEmail()).ifPresent(existingUser -> {
+			if (existingUser.getId() != request.getId())
+				ServiceUtils.throwWrongEmailException("User", request.getEmail());
+		});
 
 		Set<UUID> organisationIds = request.getOrganisations().stream()
 				.map(LookupDto::getId)
@@ -151,8 +154,9 @@ public class AppUserService implements UserService {
 				.orElseThrow(() -> ServiceUtils.wrongIdException("User", request.getUserId()));
 
 		if(!user.isActive())
-			throw new YSellRuntimeException(format("Account with Id %s already unsubscribed", request.getUserId()));
+			throw new YSellRuntimeException(format("Account with Id %s is already unsubscribed", request.getUserId()));
 
+		mapper.ty
 		user.setActive(false);
 		user = userRepo.save(user);
 
@@ -162,15 +166,17 @@ public class AppUserService implements UserService {
 
 	@Override
 	public UserResponse resubscribe(SubscriptionRequest request) {
-		//todo: use entity manager to update inactive record
-		UserEntity user = userRepo.findById(request.getUserId())
-				.orElseThrow(() -> ServiceUtils.wrongIdException("User", request.getUserId()));
+		UserEntity user = entityManager.find(UserEntity.class, request.getUserId());
+		if (user == null)
+			ServiceUtils.throwWrongIdException("User", request.getUserId());
 
-		if(user.isActive())
-			throw new YSellRuntimeException(format("Account with Id %s already subscribed", request.getUserId()));
+		if (user.isActive())
+			throw new YSellRuntimeException(format("Account with Id %s is already subscribed", request.getUserId()));
 
-		user.setActive(true);
-		user = userRepo.save(user);
+		Query query = entityManager.createNativeQuery("update :tableName set is_active = 1 where id = :id");
+		query.setParameter("tableName", user.getTableName());
+		query.setParameter("id", request.getUserId());
+		query.executeUpdate();
 
 		return mapper.map(user, UserResponse.class);
 	}
@@ -183,7 +189,7 @@ public class AppUserService implements UserService {
 		String resetCode = getResetCode();
 		Date expiryTimestamp = getExpiryTime();
 
-		ResetCodeEntity resetCodeEntity = new ResetCodeEntity(resetCode, expiryTimestamp, userEntity);
+		ResetCodeEntity resetCodeEntity = new ResetCodeEntity(userEntity, resetCode, expiryTimestamp);
 		resetCodeRepo.save(resetCodeEntity);
 
 		String msg = format("Your password reset code is %s. It will expire in %d minutes", resetCode, resetCodeDelayInMinutes);
@@ -309,7 +315,7 @@ public class AppUserService implements UserService {
 
 
 	private UserEntity getUser(String email) {
-		return userRepo.findByEmailIgnoreCase(email)
+		return userRepo.findFirstByEmailIgnoreCase(email)
 				.orElseThrow(() -> ServiceUtils.wrongEmailException("User", email));
 	}
 }

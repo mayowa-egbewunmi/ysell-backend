@@ -1,12 +1,12 @@
 package com.ysell.jpa.auditor;
 
+import com.ysell.config.constants.AppConstants;
 import com.ysell.config.jwt.models.AppUserDetails;
 import org.springframework.data.domain.AuditorAware;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
-import java.util.Arrays;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -16,10 +16,12 @@ public class AppAuditorAware implements AuditorAware<UUID> {
 
 	@Override
 	public Optional<UUID> getCurrentAuditor() {
-		Object obj = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-		AppUserDetails userDetails = obj instanceof AppUserDetails ? (AppUserDetails) obj : null;
+		Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
-		return Optional.ofNullable(userDetails)
+		if (!(principal instanceof AppUserDetails))
+			return Optional.of(AppConstants.SYSTEM_ID);
+
+		return Optional.of((AppUserDetails) principal)
 				.map(AppUserDetails::getUserId);
 	}
 }

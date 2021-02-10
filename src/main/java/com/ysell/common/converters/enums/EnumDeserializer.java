@@ -1,4 +1,4 @@
-package com.ysell.config.converters.enums;
+package com.ysell.common.converters.enums;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;

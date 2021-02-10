@@ -1,4 +1,4 @@
-package com.ysell.config.converters.date;
+package com.ysell.common.converters.date;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;

@@ -15,26 +15,29 @@ import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
 import java.util.Set;
 
+import static com.ysell.common.models.YsellResponse.createError;
+
 @RestControllerAdvice
 @Slf4j
 public class GlobalControllerAdvice {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public YsellResponse handleMethodArgumentNotValidException(MethodArgumentNotValidException e, HttpServletRequest httpServletRequest) {
+    public YsellResponse<Object> handleMethodArgumentNotValidException(MethodArgumentNotValidException e, HttpServletRequest httpServletRequest) {
         log.error("Invalid request", e);
         if (e.getBindingResult().getFieldError() == null) {
-            return YsellResponse.createError("invalid arguments");
+            return createError("invalid arguments");
         }
 
         FieldError error = e.getBindingResult().getFieldError();
 
-        return YsellResponse.createError(String.format("Field %s %s", error.getField(), error.getDefaultMessage()));
+        return createError(String.format("Field %s %s", error.getField(), error.getDefaultMessage()));
     }
+
 
     @ExceptionHandler(ConstraintViolationException.class)
     @ResponseStatus(value = HttpStatus.BAD_REQUEST)
-    public YsellResponse handleConstraintViolationException(ConstraintViolationException e, HttpServletRequest httpServletRequest) {
+    public YsellResponse<Object> handleConstraintViolationException(ConstraintViolationException e, HttpServletRequest httpServletRequest) {
         Set<ConstraintViolation<?>> violations = e.getConstraintViolations();
         StringBuilder strBuilder = new StringBuilder();
         for (ConstraintViolation<?> violation : violations) {
@@ -42,20 +45,21 @@ public class GlobalControllerAdvice {
             strBuilder.append("\n");
         }
 
-        return YsellResponse.createError(strBuilder.toString());
+        return createError(strBuilder.toString());
     }
 
+
     @ExceptionHandler(YSellRuntimeException.class)
-    @ResponseStatus(value = HttpStatus.FAILED_DEPENDENCY)
-    public YsellResponse handleYSellRuntimeException(YSellRuntimeException e, HttpServletRequest httpServletRequest) {
-        return YsellResponse.createError(e.getMessage());
+    @ResponseStatus(value = HttpStatus.BAD_REQUEST)
+    public YsellResponse<Object> handleYSellRuntimeException(YSellRuntimeException e, HttpServletRequest httpServletRequest) {
+        return createError(e.getMessage());
     }
 
 
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public YsellResponse handleGeneralException(Exception e, HttpServletRequest httpServletRequest) {
+    public YsellResponse<Object> handleGeneralException(Exception e, HttpServletRequest httpServletRequest) {
         log.error("Unknown server error", e);
-        return YsellResponse.createError(e.getMessage());
+        return createError(e.getMessage());
     }
 }

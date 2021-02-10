@@ -1,0 +1,336 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.6.xsd">
+
+    <changeSet id="1612695447-01-create-users-table" author="tobenna">
+        <createTable tableName="users">
+            <column name="id" type="BINARY(16)">
+                <constraints primaryKey="true"/>
+            </column>
+
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="email" type="VARCHAR(255)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="hash" type="VARCHAR(255)">
+                <constraints nullable="false" />
+            </column>
+
+            <column name="created_by" type="BINARY(16)" defaultValue="d41d8cd98f003204a9800998ecf8427e"/>
+            <column name="created_at" type="DATETIME" defaultValueComputed="CURRENT_TIMESTAMP"/>
+            <column name="updated_by" type="BINARY(16)" defaultValue="d41d8cd98f003204a9800998ecf8427e"/>
+            <column name="updated_at" type="DATETIME" defaultValueComputed="CURRENT_TIMESTAMP"/>
+            <column name="client_created_at" type="DATETIME"/>
+            <column name="client_updated_at" type="DATETIME"/>
+            <column name="version" type="INT" defaultValueNumeric="0">
+                <constraints nullable="false" />
+            </column>
+            <column name="is_active" type="TINYINT(1)" defaultValue="1">
+                <constraints nullable="false" />
+            </column>
+        </createTable>
+    </changeSet>
+
+
+    <changeSet id="1612695447-02-create-organisations-table" author="tobenna">
+        <createTable tableName="organisations">
+            <column name="id" type="BINARY(16)">
+                <constraints primaryKey="true"/>
+            </column>
+
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="email" type="VARCHAR(255)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="address" type="VARCHAR(255)">
+                <constraints nullable="false" />
+            </column>
+            <column name="logo" type="VARCHAR(255)" />
+
+            <column name="created_by" type="BINARY(16)" defaultValue="d41d8cd98f003204a9800998ecf8427e"/>
+            <column name="created_at" type="DATETIME" defaultValueComputed="CURRENT_TIMESTAMP"/>
+            <column name="updated_by" type="BINARY(16)" defaultValue="d41d8cd98f003204a9800998ecf8427e"/>
+            <column name="updated_at" type="DATETIME" defaultValueComputed="CURRENT_TIMESTAMP"/>
+            <column name="client_created_at" type="DATETIME"/>
+            <column name="client_updated_at" type="DATETIME"/>
+            <column name="version" type="INT" defaultValueNumeric="0">
+                <constraints nullable="false" />
+            </column>
+            <column name="is_active" type="TINYINT(1)" defaultValue="1">
+                <constraints nullable="false" />
+            </column>
+        </createTable>
+    </changeSet>
+
+
+    <changeSet id="1612695447-03-create-orders-table" author="tobenna">
+        <createTable tableName="orders">
+            <column name="id" type="BINARY(16)">
+                <constraints primaryKey="true"/>
+            </column>
+
+            <column name="organisation_id" type="BINARY(16)">
+                <constraints nullable="false" />
+            </column>
+            <column name="discount" type="DECIMAL">
+                <constraints nullable="false"/>
+            </column>
+            <column name="amount_paid" type="DECIMAL">
+                <constraints nullable="false"/>
+            </column>
+            <column name="status" type="VARCHAR(31)">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="created_by" type="BINARY(16)" defaultValue="d41d8cd98f003204a9800998ecf8427e"/>
+            <column name="created_at" type="DATETIME" defaultValueComputed="CURRENT_TIMESTAMP"/>
+            <column name="updated_by" type="BINARY(16)" defaultValue="d41d8cd98f003204a9800998ecf8427e"/>
+            <column name="updated_at" type="DATETIME" defaultValueComputed="CURRENT_TIMESTAMP"/>
+            <column name="client_created_at" type="DATETIME"/>
+            <column name="client_updated_at" type="DATETIME"/>
+            <column name="version" type="INT" defaultValueNumeric="0">
+                <constraints nullable="false" />
+            </column>
+            <column name="is_active" type="TINYINT(1)" defaultValue="1">
+                <constraints nullable="false" />
+            </column>
+        </createTable>
+    </changeSet>
+
+
+    <changeSet id="1612695447-04-add-orders-foreign-keys" author="tobenna">
+        <addForeignKeyConstraint baseTableName="orders" baseColumnNames="organisation_id"
+                                 referencedTableName="organisations" referencedColumnNames="id"
+                                 constraintName="FK_order_to_organisation_id" />
+    </changeSet>
+
+
+    <changeSet id="1612695447-05-create-product_categories-table" author="tobenna">
+        <createTable tableName="product_categories">
+            <column name="id" type="BINARY(16)">
+                <constraints primaryKey="true"/>
+            </column>
+
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="description" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="created_by" type="BINARY(16)" defaultValue="d41d8cd98f003204a9800998ecf8427e"/>
+            <column name="created_at" type="DATETIME" defaultValueComputed="CURRENT_TIMESTAMP"/>
+            <column name="updated_by" type="BINARY(16)" defaultValue="d41d8cd98f003204a9800998ecf8427e"/>
+            <column name="updated_at" type="DATETIME" defaultValueComputed="CURRENT_TIMESTAMP"/>
+            <column name="client_created_at" type="DATETIME"/>
+            <column name="client_updated_at" type="DATETIME"/>
+            <column name="version" type="INT" defaultValueNumeric="0">
+                <constraints nullable="false" />
+            </column>
+            <column name="is_active" type="TINYINT(1)" defaultValue="1">
+                <constraints nullable="false" />
+            </column>
+        </createTable>
+    </changeSet>
+
+
+    <changeSet id="1612695447-06-create-products-table" author="tobenna">
+        <createTable tableName="products">
+            <column name="id" type="BINARY(16)">
+                <constraints primaryKey="true"/>
+            </column>
+
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false" />
+            </column>
+            <column name="description" type="VARCHAR(255)">
+                <constraints nullable="false" />
+            </column>
+            <column name="current_stock" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="cost_price" type="DECIMAL">
+                <constraints nullable="false"/>
+            </column>
+            <column name="selling_price" type="DECIMAL">
+                <constraints nullable="false"/>
+            </column>
+            <column name="organisation_id" type="BINARY(16)">
+                <constraints nullable="false" />
+            </column>
+            <column name="product_category_id" type="BINARY(16)">
+                <constraints nullable="false" />
+            </column>
+
+            <column name="created_by" type="BINARY(16)" defaultValue="d41d8cd98f003204a9800998ecf8427e"/>
+            <column name="created_at" type="DATETIME" defaultValueComputed="CURRENT_TIMESTAMP"/>
+            <column name="updated_by" type="BINARY(16)" defaultValue="d41d8cd98f003204a9800998ecf8427e"/>
+            <column name="updated_at" type="DATETIME" defaultValueComputed="CURRENT_TIMESTAMP"/>
+            <column name="client_created_at" type="DATETIME"/>
+            <column name="client_updated_at" type="DATETIME"/>
+            <column name="version" type="INT" defaultValueNumeric="0">
+                <constraints nullable="false" />
+            </column>
+            <column name="is_active" type="TINYINT(1)" defaultValue="1">
+                <constraints nullable="false" />
+            </column>
+        </createTable>
+    </changeSet>
+
+
+    <changeSet id="1612695447-07-add-products-constraints" author="tobenna">
+        <addForeignKeyConstraint baseTableName="products" baseColumnNames="organisation_id"
+                                 referencedTableName="organisations" referencedColumnNames="id"
+                                 constraintName="FK_product_to_organisation_id" />
+
+        <addForeignKeyConstraint baseTableName="products" baseColumnNames="product_category_id"
+                                 referencedTableName="product_categories" referencedColumnNames="id"
+                                 constraintName="FK_product_to_product_category_id" />
+
+        <addUniqueConstraint tableName="products" columnNames="name, organisation_id" />
+    </changeSet>
+
+
+    <changeSet id="1612695447-08-create-stocks-table" author="tobenna">
+        <createTable tableName="stocks">
+            <column name="id" type="BINARY(16)">
+                <constraints primaryKey="true"/>
+            </column>
+
+            <column name="product_id" type="BINARY(16)">
+                <constraints nullable="false" />
+            </column>
+            <column name="quantity" type="INT">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="created_by" type="BINARY(16)" defaultValue="d41d8cd98f003204a9800998ecf8427e"/>
+            <column name="created_at" type="DATETIME" defaultValueComputed="CURRENT_TIMESTAMP"/>
+            <column name="updated_by" type="BINARY(16)" defaultValue="d41d8cd98f003204a9800998ecf8427e"/>
+            <column name="updated_at" type="DATETIME" defaultValueComputed="CURRENT_TIMESTAMP"/>
+            <column name="client_created_at" type="DATETIME"/>
+            <column name="client_updated_at" type="DATETIME"/>
+            <column name="version" type="INT" defaultValueNumeric="0">
+                <constraints nullable="false" />
+            </column>
+            <column name="is_active" type="TINYINT(1)" defaultValue="1">
+                <constraints nullable="false" />
+            </column>
+        </createTable>
+    </changeSet>
+
+
+    <changeSet id="1612695447-09-add-stocks-foreign-keys" author="tobenna">
+        <addForeignKeyConstraint baseTableName="stocks" baseColumnNames="product_id"
+                                 referencedTableName="products" referencedColumnNames="id"
+                                 constraintName="FK_stock_to_product_id" />
+    </changeSet>
+
+
+    <changeSet id="1612695447-10-create-sales-table" author="tobenna" >
+        <createTable tableName="sales">
+            <column name="id" type="BINARY(16)">
+                <constraints primaryKey="true"/>
+            </column>
+
+            <column name="order_id" type="BINARY(16)">
+                <constraints nullable="false" />
+            </column>
+            <column name="product_id" type="BINARY(16)">
+                <constraints nullable="false" />
+            </column>
+            <column name="quantity" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="total_price" type="DECIMAL">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="created_by" type="BINARY(16)" defaultValue="d41d8cd98f003204a9800998ecf8427e"/>
+            <column name="created_at" type="DATETIME" defaultValueComputed="CURRENT_TIMESTAMP"/>
+            <column name="updated_by" type="BINARY(16)" defaultValue="d41d8cd98f003204a9800998ecf8427e"/>
+            <column name="updated_at" type="DATETIME" defaultValueComputed="CURRENT_TIMESTAMP"/>
+            <column name="client_created_at" type="DATETIME"/>
+            <column name="client_updated_at" type="DATETIME"/>
+            <column name="version" type="INT" defaultValueNumeric="0">
+                <constraints nullable="false" />
+            </column>
+            <column name="is_active" type="TINYINT(1)" defaultValue="1">
+                <constraints nullable="false" />
+            </column>
+        </createTable>
+    </changeSet>
+
+
+    <changeSet id="1612695447-11-add-sales-foreign-keys" author="tobenna" >
+        <addForeignKeyConstraint baseTableName="sales" baseColumnNames="order_id"
+                                 referencedTableName="orders" referencedColumnNames="id"
+                                 constraintName="FK_sale_to_order_id" />
+
+        <addForeignKeyConstraint baseTableName="sales" baseColumnNames="product_id"
+                                 referencedTableName="products" referencedColumnNames="id"
+                                 constraintName="FK_sale_to_product_id" />
+    </changeSet>
+
+
+    <changeSet id="1612695447-12-create-reset_codes-table" author="tobenna" >
+        <createTable tableName="reset_codes">
+            <column name="id" type="BINARY(16)">
+                <constraints primaryKey="true"/>
+            </column>
+
+            <column name="user_id" type="BINARY(16)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="reset_code" type="VARCHAR(63)">
+                <constraints nullable="false" />
+            </column>
+            <column name="expiry_timestamp" type="DATETIME">
+                <constraints nullable="false" />
+            </column>
+
+            <column name="created_by" type="BINARY(16)" defaultValue="d41d8cd98f003204a9800998ecf8427e"/>
+            <column name="created_at" type="DATETIME" defaultValueComputed="CURRENT_TIMESTAMP"/>
+            <column name="updated_by" type="BINARY(16)" defaultValue="d41d8cd98f003204a9800998ecf8427e"/>
+            <column name="updated_at" type="DATETIME" defaultValueComputed="CURRENT_TIMESTAMP"/>
+            <column name="client_created_at" type="DATETIME"/>
+            <column name="client_updated_at" type="DATETIME"/>
+            <column name="version" type="INT" defaultValueNumeric="0">
+                <constraints nullable="false" />
+            </column>
+            <column name="is_active" type="TINYINT(1)" defaultValue="1">
+                <constraints nullable="false" />
+            </column>
+        </createTable>
+    </changeSet>
+
+
+    <changeSet id="1612695447-12-add-reset_codes-foreign-keys" author="tobenna" >
+        <addForeignKeyConstraint baseTableName="reset_codes" baseColumnNames="user_id"
+                                 referencedTableName="users" referencedColumnNames="id"
+                                 constraintName="FK_reset_code_to_user_id" />
+    </changeSet>
+
+
+    <changeSet id="1612871208-01-create-users-organisations-table" author="tobenna">
+        <createTable tableName="users_organisations">
+            <column name="user_id" type="BINARY(16)">
+                <constraints nullable="false" />
+            </column>
+            <column name="organisation_id" type="BINARY(16)">
+                <constraints nullable="false" />
+            </column>
+        </createTable>
+    </changeSet>
+
+
+    <changeSet id="1612871208-012-add-composite-key-users-organisations" author="tobenna">
+        <addPrimaryKey tableName="users_organisations" columnNames="user_id, organisation_id" constraintName="PK_user_id_and_organisation_id" />
+    </changeSet>
+
+</databaseChangeLog>

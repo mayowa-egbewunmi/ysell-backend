@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
 
 @Service
 @Transactional
-public class AppOrganisationService
+public class OrganisationServiceImpl
 		extends BaseCrudService<OrganisationEntity, OrganisationRequest, OrganisationRequest, OrganisationResponse>
 		implements OrganisationService {
 
@@ -29,24 +29,11 @@ public class AppOrganisationService
 	private final ModelMapper mapper = new ModelMapper();
 
 
-	public AppOrganisationService(OrganisationRepository organisationRepo, UserRepository userRepo) {
+	public OrganisationServiceImpl(OrganisationRepository organisationRepo, UserRepository userRepo) {
 		super(organisationRepo, OrganisationEntity.class, OrganisationResponse.class);
 
 		this.organisationRepo = organisationRepo;
 		this.userRepo = userRepo;
-	}
-
-
-	@Override
-	public List<OrganisationResponse> getOrganisationsByUserIds(Set<UUID> userIds) {
-		userIds.forEach(userId -> {
-			if(!userRepo.existsById(userId))
-				ServiceUtils.throwWrongIdException("User", userId);
-		});
-
-		return organisationRepo.findByUsersIdIn(userIds).stream()
-				.map(organisationEntity -> mapper.map(organisationEntity, OrganisationResponse.class))
-				.collect(Collectors.toList());
 	}
 
 
@@ -61,13 +48,26 @@ public class AppOrganisationService
 
 	@Override
 	protected void beforeUpdate(UUID organisationId, OrganisationRequest request) {
-		organisationRepo.findByEmailIgnoreCase(request.getEmail()).ifPresent(organisationEntity -> {
-			if (organisationEntity.getId() != organisationId)
+		organisationRepo.findFirstByEmailIgnoreCase(request.getEmail()).ifPresent(existingOrganisation -> {
+			if (existingOrganisation.getId() != organisationId)
 				ServiceUtils.throwWrongEmailException("Organisation", request.getEmail());
 		});
-		organisationRepo.findByNameIgnoreCase(request.getName()).ifPresent(organisationEntity -> {
-			if (organisationEntity.getId() != organisationId)
+		organisationRepo.findFirstByNameIgnoreCase(request.getName()).ifPresent(existingOrganisation -> {
+			if (existingOrganisation.getId() != organisationId)
 				ServiceUtils.throwWrongNameException("Organisation", request.getName());
 		});
+	}
+
+
+	@Override
+	public List<OrganisationResponse> getOrganisationsByUserIds(Set<UUID> userIds) {
+		userIds.forEach(userId -> {
+			if(!userRepo.existsById(userId))
+				ServiceUtils.throwWrongIdException("User", userId);
+		});
+
+		return organisationRepo.findByUsersIdIn(userIds).stream()
+				.map(organisationEntity -> mapper.map(organisationEntity, OrganisationResponse.class))
+				.collect(Collectors.toList());
 	}
 }

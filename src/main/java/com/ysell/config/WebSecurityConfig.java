@@ -1,5 +1,9 @@
 package com.ysell.config;
 
+import com.ysell.config.jwt.filter.JwtExceptionEntryPoint;
+import com.ysell.config.jwt.filter.JwtRequestFilter;
+import com.ysell.modules.common.constants.ControllerConstants;
+import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -14,12 +18,6 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-import com.ysell.config.jwt.dependencies.JwtExceptionEntryPoint;
-import com.ysell.config.jwt.filter.JwtRequestFilter;
-import com.ysell.modules.common.constants.ControllerConstants;
-
-import lombok.AllArgsConstructor;
-
 @Configuration
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true)
@@ -32,18 +30,19 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 	private final JwtRequestFilter jwtRequestFilter;
 	
 	public static final String[] ALLOWED_URLS = {
-			ControllerConstants.VERSION_URL + "/users/authenticate", 
-			ControllerConstants.VERSION_URL + "/users/code/initiate", 
-			ControllerConstants.VERSION_URL + "/users/code/verify", 
+			ControllerConstants.VERSION_URL + "/users/authenticate",
+			ControllerConstants.VERSION_URL + "/users/code/initiate",
+			ControllerConstants.VERSION_URL + "/users/code/verify",
 			ControllerConstants.VERSION_URL + "/users/password/reset",
 			"/h2/**",
+			"/swagger-resources/**",
+			"/webjars/**",
 			"/v2/api-docs",
-            "/configuration/ui",
-            "/swagger-resources/**",
-            "/configuration/security",
-            "/swagger-ui.html",
-            "/webjars/**"
-			};
+			"/configuration/ui",
+			"/configuration/security",
+			"/swagger-ui.html",
+			"/favicon.ico"
+	};
 
 	@Autowired
 	public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {

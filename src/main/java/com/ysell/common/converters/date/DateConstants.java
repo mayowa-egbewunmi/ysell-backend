@@ -1,4 +1,4 @@
-package com.ysell.config.converters.date;
+package com.ysell.common.converters.date;
 
 /**
  * @author created by Tobenna

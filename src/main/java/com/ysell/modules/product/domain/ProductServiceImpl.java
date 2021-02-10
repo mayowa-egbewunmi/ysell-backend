@@ -18,7 +18,6 @@ import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.validation.Valid;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -26,7 +25,7 @@ import java.util.stream.Collectors;
 
 @Service
 @Transactional
-public class AppProductService
+public class ProductServiceImpl
         extends BaseCrudService<ProductEntity, ProductRequest, ProductRequest, ProductResponse>
         implements ProductService {
 
@@ -39,7 +38,7 @@ public class AppProductService
     private final ModelMapper modelMapper = new ModelMapper();
 
 
-    public AppProductService(ProductRepository productRepo, ProductCategoryRepository productCategoryRepo, OrganisationRepository orgRepo) {
+    public ProductServiceImpl(ProductRepository productRepo, ProductCategoryRepository productCategoryRepo, OrganisationRepository orgRepo) {
         super(productRepo, ProductEntity.class, ProductResponse.class);
 
         this.productRepo = productRepo;
@@ -89,12 +88,10 @@ public class AppProductService
 
     @Override
     protected void beforeUpdate(UUID productId, ProductRequest request) {
-        List<ProductEntity> existingProducts = productRepo.findByNameIgnoreCaseAndOrganisationId(request.getName(), request.getOrganisation().getId());
-
-        boolean productNameExists = existingProducts.stream()
-                .anyMatch(productEntity -> productEntity.getId() != productId);
-        if(productNameExists)
-            throw new YSellRuntimeException(String.format("Product With Name %s Already Exists For Organisation", request.getName()));
+        productRepo.findFirstByNameIgnoreCaseAndOrganisationId(request.getName(), request.getOrganisation().getId()).ifPresent(productEntity -> {
+            if(productEntity.getId() != productId)
+                ServiceUtils.throwWrongNameException("Product", request.getName());
+        });
 
         validateOrganisationAndCategory(request.getOrganisation().getId(), request.getProductCategory().getId());
     }

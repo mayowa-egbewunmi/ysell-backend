@@ -1,13 +1,11 @@
 package com.ysell.jpa.entities;
 
 import com.ysell.jpa.entities.base.ActiveAuditableEntity;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import javax.persistence.*;
 
+@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
@@ -17,7 +15,7 @@ import javax.persistence.*;
 public class StockEntity extends ActiveAuditableEntity {
 
     @ManyToOne
-    @JoinColumn(nullable = false)   //name = "Product_Id",
+    @JoinColumn(nullable = false)
     private ProductEntity product;
 
     @Column(nullable = false)

@@ -4,6 +4,7 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -12,6 +13,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.function.Function;
 
+@Component
 public class JwtTokenUtil implements Serializable {
 	
 	private static final long serialVersionUID = -2550185165626007488L;
@@ -28,7 +30,7 @@ public class JwtTokenUtil implements Serializable {
 	}
 	
 	public UUID getUserIdFromToken(String token) {
-		return getClaimFromToken(token, claims -> claims.get(userIdKey, UUID.class));
+		return getClaimFromToken(token, claims -> UUID.fromString(claims.get(userIdKey, String.class)));
 	}
 
 	private Date getExpirationDateFromToken(String token) {

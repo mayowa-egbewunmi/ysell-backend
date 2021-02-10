@@ -1,4 +1,4 @@
-package com.ysell.config.converters.enums;
+package com.ysell.common.converters.enums;
 
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.convert.converter.ConverterFactory;

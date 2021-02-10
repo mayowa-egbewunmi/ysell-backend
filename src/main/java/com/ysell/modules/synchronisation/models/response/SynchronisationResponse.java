@@ -11,6 +11,7 @@ import lombok.Setter;
 import java.time.LocalDate;
 import java.util.Set;
 
+//todo: use camel case for json response
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
