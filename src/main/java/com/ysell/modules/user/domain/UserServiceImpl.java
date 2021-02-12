@@ -156,7 +156,6 @@ public class UserServiceImpl implements UserService {
 		if(!user.isActive())
 			throw new YSellRuntimeException(format("Account with Id %s is already unsubscribed", request.getUserId()));
 
-		mapper.ty
 		user.setActive(false);
 		user = userRepo.save(user);
 
