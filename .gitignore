@@ -14,3 +14,4 @@ mvnw
 mvnw.cmd
 target/
 src/main/resources/db/h2db
+!target/ysell-*.jar
