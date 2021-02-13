@@ -24,15 +24,18 @@ import java.util.Date;
 @Configuration
 public class ObjectMapperConfig  implements WebMvcConfigurer {
 
-    private final ObjectMapper objectMapper;
+    @Autowired
+    private ObjectMapper objectMapper;
 
 
-    public ObjectMapperConfig(@Autowired ObjectMapper objectMapper) {
-        this.objectMapper = objectMapper;
-        addDeserializers();
+    @Override
+    public void addFormatters(FormatterRegistry registry) {
+        addEnumFormatters(registry);
+        addDateFormatters(registry);
     }
 
 
+    @PostConstruct
     public void addDeserializers() {
         SimpleModule module = new SimpleModule();
         addEnumDeserializers(module);
@@ -41,13 +44,6 @@ public class ObjectMapperConfig  implements WebMvcConfigurer {
         addDateDeserializers(module);
 
         objectMapper.registerModule(module);
-    }
-
-
-    @Override
-    public void addFormatters(FormatterRegistry registry) {
-        addEnumFormatters(registry);
-        addDateFormatters(registry);
     }
 
 
