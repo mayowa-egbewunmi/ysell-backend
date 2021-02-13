@@ -1,0 +1,62 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.6.xsd">
+
+    <changeSet id="1612707369-01-seed-users" author="tobenna">
+        <sql>
+            INSERT INTO users (id, name, email, hash, created_by, updated_by) VALUES (('1b63e5256162429e96233c8a56045b31'), 'Tobenna', 'chineketobenna@gmail.com', '$2a$10$4a0pl5Twxk4spAux0oN/4ezUxm4XopO./00/t55j6LC93bHZejExu', ('d41d8cd98f003204a9800998ecf8427e'), ('d41d8cd98f003204a9800998ecf8427e'));
+            INSERT INTO users (id, name, email, hash, created_by, updated_by) VALUES (('1b63e5256162429e96233c8a56045b32'), 'Mayor', 'mayowaegbewunmi@gmail.com', '$2a$10$4a0pl5Twxk4spAux0oN/4ezUxm4XopO./00/t55j6LC93bHZejExu', ('d41d8cd98f003204a9800998ecf8427e'), ('d41d8cd98f003204a9800998ecf8427e'));
+            INSERT INTO users (id, name, email, hash, created_by, updated_by) VALUES (('1b63e5256162429e96233c8a56045b33'), 'YSell', 'ysell@fake.com', '$2a$10$FOxS/aqf9VoKyeJVmVjUleiOsI1LKixsH2vFtG6kKW4Cu36ah5tLC', ('d41d8cd98f003204a9800998ecf8427e'), ('d41d8cd98f003204a9800998ecf8427e'));
+        </sql>
+    </changeSet>
+
+
+    <changeSet id="1612707369-02-seed-organisations" author="tobenna">
+        <sql>
+            insert into organisations (id, name, email, address, created_by, updated_by) VALUES (('1b63e5256162429e96233c8a56045b31'), 'Nexus Alliance Limited', '289B Corporation Drive', 'nexus@yahoo.com', ('d41d8cd98f003204a9800998ecf8427e'), ('d41d8cd98f003204a9800998ecf8427e'));
+            insert into organisations (id, name, email, address, created_by, updated_by) VALUES (('1b63e5256162429e96233c8a56045b32'), 'Test Corporation', 'Test Corporation Address', 'testcorporation@yahoo.com', ('d41d8cd98f003204a9800998ecf8427e'), ('d41d8cd98f003204a9800998ecf8427e'));
+        </sql>
+    </changeSet>
+
+
+    <changeSet id="1612707369-03-seed-product_categories" author="tobenna">
+        <sql>
+            insert into product_categories (id, name, description, created_by, updated_by) VALUES (('1b63e5256162429e96233c8a56045b31'), 'Snacks', 'Wonderful Snacky Food', ('d41d8cd98f003204a9800998ecf8427e'), ('d41d8cd98f003204a9800998ecf8427e'));
+            insert into product_categories (id, name, description, created_by, updated_by) VALUES (('1b63e5256162429e96233c8a56045b32'), 'Cooked Food', 'Wonderful Prepared Meal', ('d41d8cd98f003204a9800998ecf8427e'), ('d41d8cd98f003204a9800998ecf8427e'));
+        </sql>
+    </changeSet>
+
+
+    <changeSet id="1612707369-04-seed-products" author="tobenna">
+        <sql>
+            insert into products (id, name, description, current_stock, cost_price, selling_price, organisation_id, product_category_id, created_by, updated_by)
+            values (('1b63e5256162429e96233c8a56045b31'), 'Bread', 'Edible soft bread', 50, 80, 100, ('1b63e5256162429e96233c8a56045b31'), ('1b63e5256162429e96233c8a56045b31'), ('d41d8cd98f003204a9800998ecf8427e'), ('d41d8cd98f003204a9800998ecf8427e'));
+            insert into products (id, name, description, current_stock, cost_price, selling_price, organisation_id, product_category_id, created_by, updated_by)
+            values (('1b63e5256162429e96233c8a56045b32'), 'Ewa Goin', 'Wonderful local beans', 10, 50, 100, ('1b63e5256162429e96233c8a56045b31'), ('1b63e5256162429e96233c8a56045b32'), ('d41d8cd98f003204a9800998ecf8427e'), ('d41d8cd98f003204a9800998ecf8427e'));
+            insert into products (id, name, description, current_stock, cost_price, selling_price, organisation_id, product_category_id, created_by, updated_by)
+            values (('1b63e5256162429e96233c8a56045b33'), 'Bread', 'Wonderful soft bread', 50, 80, 100, ('1b63e5256162429e96233c8a56045b32'), ('1b63e5256162429e96233c8a56045b31'), ('d41d8cd98f003204a9800998ecf8427e'), ('d41d8cd98f003204a9800998ecf8427e'));
+            insert into products (id, name, description, current_stock, cost_price, selling_price, organisation_id, product_category_id, created_by, updated_by)
+            values (('1b63e5256162429e96233c8a56045b34'), 'Rice', 'Sweet edible rice', 20, 20, 100, ('1b63e5256162429e96233c8a56045b32'), ('1b63e5256162429e96233c8a56045b32'), ('d41d8cd98f003204a9800998ecf8427e'), ('d41d8cd98f003204a9800998ecf8427e'));
+        </sql>
+    </changeSet>
+
+
+    <changeSet id="1612707369-05-seed-stocks" author="tobenna">
+        <sql>
+            insert into stocks (id, product_id, quantity, created_by, updated_by) VALUES (('1b63e5256162429e96233c8a56045b31'), ('1b63e5256162429e96233c8a56045b31'), 50, ('d41d8cd98f003204a9800998ecf8427e'), ('d41d8cd98f003204a9800998ecf8427e'));
+            insert into stocks (id, product_id, quantity, created_by, updated_by) VALUES (('1b63e5256162429e96233c8a56045b32'), ('1b63e5256162429e96233c8a56045b32'), 10, ('d41d8cd98f003204a9800998ecf8427e'), ('d41d8cd98f003204a9800998ecf8427e'));
+            insert into stocks (id, product_id, quantity, created_by, updated_by) VALUES (('1b63e5256162429e96233c8a56045b33'), ('1b63e5256162429e96233c8a56045b33'), 50, ('d41d8cd98f003204a9800998ecf8427e'), ('d41d8cd98f003204a9800998ecf8427e'));
+            insert into stocks (id, product_id, quantity, created_by, updated_by) VALUES (('1b63e5256162429e96233c8a56045b34'), ('1b63e5256162429e96233c8a56045b34'), 20, ('d41d8cd98f003204a9800998ecf8427e'), ('d41d8cd98f003204a9800998ecf8427e'));
+        </sql>
+    </changeSet>
+
+
+    <changeSet id="1612707369-06-seed-users-organisation" author="tobenna">
+        <sql>
+            INSERT INTO users_organisations VALUES (('1b63e5256162429e96233c8a56045b31'), ('1b63e5256162429e96233c8a56045b31'));
+            INSERT INTO users_organisations VALUES (('1b63e5256162429e96233c8a56045b32'), ('1b63e5256162429e96233c8a56045b32'));
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>
