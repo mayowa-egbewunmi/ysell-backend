@@ -19,7 +19,7 @@ import static com.ysell.common.models.YsellResponse.createError;
 
 @RestControllerAdvice
 @Slf4j
-public class GlobalControllerAdvice {
+public class ControllerExceptionAdvice {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)

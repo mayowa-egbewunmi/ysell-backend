@@ -10,7 +10,6 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import javax.persistence.*;
 import java.sql.Timestamp;
-import java.time.LocalDate;
 import java.util.UUID;
 
 @MappedSuperclass
@@ -35,14 +34,14 @@ public abstract class AuditableEntity {
 	private UUID updatedBy;
 
 	@LastModifiedDate
-	private LocalDate updatedAt;
+	private Timestamp updatedAt;
 
 	@Version
 	private int version;
 	
-    private LocalDate clientCreatedAt;
+    private Timestamp clientCreatedAt;
 
-    private LocalDate clientUpdatedAt;
+    private Timestamp clientUpdatedAt;
 
 
 	@PrePersist

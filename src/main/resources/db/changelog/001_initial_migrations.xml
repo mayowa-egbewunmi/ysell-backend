@@ -19,10 +19,18 @@
                 <constraints nullable="false" />
             </column>
 
-            <column name="created_by" type="BINARY(16)" defaultValue="d41d8cd98f003204a9800998ecf8427e"/>
-            <column name="created_at" type="DATETIME" defaultValueComputed="CURRENT_TIMESTAMP"/>
-            <column name="updated_by" type="BINARY(16)" defaultValue="d41d8cd98f003204a9800998ecf8427e"/>
-            <column name="updated_at" type="DATETIME" defaultValueComputed="CURRENT_TIMESTAMP"/>
+            <column name="created_by" type="BINARY(16)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="DATETIME" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_by" type="BINARY(16)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="DATETIME" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
             <column name="client_created_at" type="DATETIME"/>
             <column name="client_updated_at" type="DATETIME"/>
             <column name="version" type="INT" defaultValueNumeric="0">
@@ -52,10 +60,18 @@
             </column>
             <column name="logo" type="VARCHAR(255)" />
 
-            <column name="created_by" type="BINARY(16)" defaultValue="d41d8cd98f003204a9800998ecf8427e"/>
-            <column name="created_at" type="DATETIME" defaultValueComputed="CURRENT_TIMESTAMP"/>
-            <column name="updated_by" type="BINARY(16)" defaultValue="d41d8cd98f003204a9800998ecf8427e"/>
-            <column name="updated_at" type="DATETIME" defaultValueComputed="CURRENT_TIMESTAMP"/>
+            <column name="created_by" type="BINARY(16)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="DATETIME" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_by" type="BINARY(16)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="DATETIME" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
             <column name="client_created_at" type="DATETIME"/>
             <column name="client_updated_at" type="DATETIME"/>
             <column name="version" type="INT" defaultValueNumeric="0">
@@ -87,10 +103,18 @@
                 <constraints nullable="false"/>
             </column>
 
-            <column name="created_by" type="BINARY(16)" defaultValue="d41d8cd98f003204a9800998ecf8427e"/>
-            <column name="created_at" type="DATETIME" defaultValueComputed="CURRENT_TIMESTAMP"/>
-            <column name="updated_by" type="BINARY(16)" defaultValue="d41d8cd98f003204a9800998ecf8427e"/>
-            <column name="updated_at" type="DATETIME" defaultValueComputed="CURRENT_TIMESTAMP"/>
+            <column name="created_by" type="BINARY(16)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="DATETIME" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_by" type="BINARY(16)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="DATETIME" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
             <column name="client_created_at" type="DATETIME"/>
             <column name="client_updated_at" type="DATETIME"/>
             <column name="version" type="INT" defaultValueNumeric="0">
@@ -123,10 +147,18 @@
                 <constraints nullable="false"/>
             </column>
 
-            <column name="created_by" type="BINARY(16)" defaultValue="d41d8cd98f003204a9800998ecf8427e"/>
-            <column name="created_at" type="DATETIME" defaultValueComputed="CURRENT_TIMESTAMP"/>
-            <column name="updated_by" type="BINARY(16)" defaultValue="d41d8cd98f003204a9800998ecf8427e"/>
-            <column name="updated_at" type="DATETIME" defaultValueComputed="CURRENT_TIMESTAMP"/>
+            <column name="created_by" type="BINARY(16)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="DATETIME" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_by" type="BINARY(16)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="DATETIME" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
             <column name="client_created_at" type="DATETIME"/>
             <column name="client_updated_at" type="DATETIME"/>
             <column name="version" type="INT" defaultValueNumeric="0">
@@ -167,10 +199,18 @@
                 <constraints nullable="false" />
             </column>
 
-            <column name="created_by" type="BINARY(16)" defaultValue="d41d8cd98f003204a9800998ecf8427e"/>
-            <column name="created_at" type="DATETIME" defaultValueComputed="CURRENT_TIMESTAMP"/>
-            <column name="updated_by" type="BINARY(16)" defaultValue="d41d8cd98f003204a9800998ecf8427e"/>
-            <column name="updated_at" type="DATETIME" defaultValueComputed="CURRENT_TIMESTAMP"/>
+            <column name="created_by" type="BINARY(16)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="DATETIME" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_by" type="BINARY(16)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="DATETIME" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
             <column name="client_created_at" type="DATETIME"/>
             <column name="client_updated_at" type="DATETIME"/>
             <column name="version" type="INT" defaultValueNumeric="0">
@@ -209,10 +249,18 @@
                 <constraints nullable="false"/>
             </column>
 
-            <column name="created_by" type="BINARY(16)" defaultValue="d41d8cd98f003204a9800998ecf8427e"/>
-            <column name="created_at" type="DATETIME" defaultValueComputed="CURRENT_TIMESTAMP"/>
-            <column name="updated_by" type="BINARY(16)" defaultValue="d41d8cd98f003204a9800998ecf8427e"/>
-            <column name="updated_at" type="DATETIME" defaultValueComputed="CURRENT_TIMESTAMP"/>
+            <column name="created_by" type="BINARY(16)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="DATETIME" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_by" type="BINARY(16)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="DATETIME" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
             <column name="client_created_at" type="DATETIME"/>
             <column name="client_updated_at" type="DATETIME"/>
             <column name="version" type="INT" defaultValueNumeric="0">
@@ -251,10 +299,18 @@
                 <constraints nullable="false"/>
             </column>
 
-            <column name="created_by" type="BINARY(16)" defaultValue="d41d8cd98f003204a9800998ecf8427e"/>
-            <column name="created_at" type="DATETIME" defaultValueComputed="CURRENT_TIMESTAMP"/>
-            <column name="updated_by" type="BINARY(16)" defaultValue="d41d8cd98f003204a9800998ecf8427e"/>
-            <column name="updated_at" type="DATETIME" defaultValueComputed="CURRENT_TIMESTAMP"/>
+            <column name="created_by" type="BINARY(16)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="DATETIME" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_by" type="BINARY(16)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="DATETIME" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
             <column name="client_created_at" type="DATETIME"/>
             <column name="client_updated_at" type="DATETIME"/>
             <column name="version" type="INT" defaultValueNumeric="0">
@@ -294,10 +350,18 @@
                 <constraints nullable="false" />
             </column>
 
-            <column name="created_by" type="BINARY(16)" defaultValue="d41d8cd98f003204a9800998ecf8427e"/>
-            <column name="created_at" type="DATETIME" defaultValueComputed="CURRENT_TIMESTAMP"/>
-            <column name="updated_by" type="BINARY(16)" defaultValue="d41d8cd98f003204a9800998ecf8427e"/>
-            <column name="updated_at" type="DATETIME" defaultValueComputed="CURRENT_TIMESTAMP"/>
+            <column name="created_by" type="BINARY(16)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="DATETIME" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_by" type="BINARY(16)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="DATETIME" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
             <column name="client_created_at" type="DATETIME"/>
             <column name="client_updated_at" type="DATETIME"/>
             <column name="version" type="INT" defaultValueNumeric="0">
@@ -331,6 +395,15 @@
 
     <changeSet id="1612871208-012-add-composite-key-users-organisations" author="tobenna">
         <addPrimaryKey tableName="users_organisations" columnNames="user_id, organisation_id" constraintName="PK_user_id_and_organisation_id" />
+    </changeSet>
+
+
+    <changeSet id="1613188384-01-update-users-table" author="tobenna">
+        <addColumn tableName="users">
+            <column name="bank_name" type="VARCHAR(255)" />
+            <column name="account_number" type="VARCHAR(255)" />
+            <column name="account_name" type="VARCHAR(255)" />
+        </addColumn>
     </changeSet>
 
 </databaseChangeLog>

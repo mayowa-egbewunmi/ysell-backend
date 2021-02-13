@@ -1,10 +1,10 @@
 package com.ysell.modules.common.utilities;
 
+import org.modelmapper.ModelMapper;
+
 import java.util.Collection;
 import java.util.function.BiFunction;
 import java.util.stream.Stream;
-
-import org.modelmapper.ModelMapper;
 
 public class MapperUtils {
 
@@ -21,5 +21,9 @@ public class MapperUtils {
 					value = afterEachMap.apply(element, value);
 					return value;
 				});
+	}
+
+	public static <TSource, TDestination> TDestination map(TSource source, Class<TDestination> targetClass) {
+		return new ModelMapper().map(source, targetClass);
 	}
 }
