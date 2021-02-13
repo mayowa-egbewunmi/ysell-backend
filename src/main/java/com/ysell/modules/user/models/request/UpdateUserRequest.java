@@ -25,6 +25,12 @@ public class UpdateUserRequest {
 	@NotEmpty
 	private String email;
 
+	private String bankName;
+
+	private String accountNumber;
+
+	private String accountName;
+
 	@NotNull
 	@Valid
     private Set<LookupDto> organisations;

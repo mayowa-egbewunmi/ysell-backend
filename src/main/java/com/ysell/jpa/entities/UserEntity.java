@@ -24,7 +24,13 @@ public class UserEntity extends ActiveAuditableEntity implements NamedEntity {
 	private String email;
 
     @Column(nullable = false)
-    private String hash;   
+    private String hash;
+
+    private String bankName;
+
+    private String accountNumber;
+
+    private String accountName;
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(

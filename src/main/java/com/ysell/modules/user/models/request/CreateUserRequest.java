@@ -24,6 +24,12 @@ public class CreateUserRequest {
 	@NotEmpty
 	private String password;
 
+	private String bankName;
+
+	private String accountNumber;
+
+	private String accountName;
+
 	@NotNull
 	@Valid
     private Set<LookupDto> organisations;
