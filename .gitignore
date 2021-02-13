@@ -6,8 +6,6 @@
 .settings
 =======
 bin
-.project
-.classpath
 .settings/
 HELP.md
 mvnw

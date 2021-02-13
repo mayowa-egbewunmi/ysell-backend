@@ -7,7 +7,8 @@
     <property name="now" value="now()" dbms="mysql,h2"/>
 
     <include file="classpath:db/changelog/001_initial_migrations.xml" relativeToChangelogFile="false" />
-    <include file="classpath:db/changelog/002_seed_database.xml" relativeToChangelogFile="false" />
+    <!-- <include file="classpath:db/changelog/002_seed_database.xml" relativeToChangelogFile="false" />-->
+     <include file="classpath:db/h2db/seed_h2_database.xml" relativeToChangelogFile="false" />
 
 </databaseChangeLog>
 
