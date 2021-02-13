@@ -48,6 +48,7 @@ public class UserController {
 
 
     @PostMapping
+    //registration verify email
     @ResponseStatus(HttpStatus.CREATED)
     public UserResponse createUser(@RequestBody @Valid CreateUserRequest request) {
         return userService.createUser(request);

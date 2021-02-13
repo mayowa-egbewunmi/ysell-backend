@@ -12,6 +12,8 @@ RUN mvn package -DskipTests
 
 FROM gcr.io/distroless/java
 
+EXPOSE 3306
+
 COPY --from=builder /app/target/ysell-*.jar /ysell.jar
 
 ENTRYPOINT ["java","-jar","ysell.jar"]
