@@ -10,7 +10,9 @@ import lombok.Getter;
 @Getter
 public enum YsellErrorCode {
 
-    COMMON_ERROR("0001");
+    COMMON_ERROR("0001"),
+
+    UNAUTHORIZED_ERROR("0010");
 
 
     private String code;
