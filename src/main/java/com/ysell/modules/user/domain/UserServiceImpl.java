@@ -11,7 +11,6 @@ import com.ysell.modules.common.dto.LookupDto;
 import com.ysell.modules.common.dto.PageWrapper;
 import com.ysell.modules.common.dto.response.SimpleMessageResponse;
 import com.ysell.modules.common.exceptions.YSellRuntimeException;
-import com.ysell.modules.common.services.LoggedInUserService;
 import com.ysell.modules.common.utilities.ServiceUtils;
 import com.ysell.modules.common.utilities.email.EmailSender;
 import com.ysell.modules.common.utilities.email.models.EmailModel;
@@ -58,8 +57,6 @@ public class UserServiceImpl implements UserService {
 	private final AuthenticationManager authenticationManager;
 
 	private final JwtTokenUtil jwtTokenUtil;
-
-	private final LoggedInUserService loggedInUserService;
 
 	private final ModelMapper mapper = new ModelMapper();
 
@@ -145,10 +142,9 @@ public class UserServiceImpl implements UserService {
 
 	@Override
 	public UserResponse completeRegistration(ValidateEmailRequest request) {
-		UserEntity userEntity = loggedInUserService.getLoggedInUser();
-
-		ResetCodeEntity resetCodeEntity = verifyCode(userEntity.getEmail(), request.getCode());
+		ResetCodeEntity resetCodeEntity = verifyCode(request.getEmail(), request.getCode());
 		resetCodeRepo.deleteByUserId(resetCodeEntity.getUser().getId());
+		UserEntity userEntity = getUser(request.getEmail());
 
 		return resubscribe(new SubscriptionRequest(userEntity.getId()));
 	}
