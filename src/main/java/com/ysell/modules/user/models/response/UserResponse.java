@@ -20,6 +20,8 @@ public class UserResponse {
 	private String name;
     
 	private String email;
+
+	private boolean activated;
     
     private Set<LookupDto> organisations;
 }

@@ -1,9 +1,9 @@
 package com.ysell.modules.user.domain;
 
-import com.ysell.common.models.YsellResponse;
 import com.ysell.modules.common.dto.PageWrapper;
 import com.ysell.modules.common.dto.response.SimpleMessageResponse;
 import com.ysell.modules.user.models.request.*;
+import com.ysell.modules.user.models.response.UserRegistrationResponse;
 import com.ysell.modules.user.models.response.UserResponse;
 import com.ysell.modules.user.models.response.UserTokenResponse;
 import org.springframework.data.domain.Pageable;
@@ -22,7 +22,7 @@ public interface UserService {
 
 	List<UserResponse> getUsersByOrganisation(Set<UUID> organisationIds);
 
-	YsellResponse<String> registerUser(CreateUserRequest userDetails);
+	UserRegistrationResponse registerUser(CreateUserRequest userDetails);
 
 	UserResponse updateUser(UpdateUserRequest userDetails);
 

@@ -1,12 +1,12 @@
 package com.ysell.modules.user;
 
-import com.ysell.common.models.YsellResponse;
 import com.ysell.config.constants.AppConstants;
 import com.ysell.modules.common.constants.ControllerConstants;
 import com.ysell.modules.common.dto.PageWrapper;
 import com.ysell.modules.common.dto.response.SimpleMessageResponse;
 import com.ysell.modules.user.domain.UserService;
 import com.ysell.modules.user.models.request.*;
+import com.ysell.modules.user.models.response.UserRegistrationResponse;
 import com.ysell.modules.user.models.response.UserResponse;
 import com.ysell.modules.user.models.response.UserTokenResponse;
 import lombok.RequiredArgsConstructor;
@@ -49,7 +49,7 @@ public class UserController {
 
 
     @PostMapping(value = "/register")
-    public YsellResponse<String> registerUser(@RequestBody @Valid CreateUserRequest request) {
+    public UserRegistrationResponse registerUser(@RequestBody @Valid CreateUserRequest request) {
         return userService.registerUser(request);
     }
 

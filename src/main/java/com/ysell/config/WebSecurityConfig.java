@@ -31,6 +31,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 	
 	public static final String[] ALLOWED_URLS = {
 			ControllerConstants.VERSION_URL + "/users/authenticate",
+			ControllerConstants.VERSION_URL + "/users/register",
+			ControllerConstants.VERSION_URL + "/users/complete-registration",
 			ControllerConstants.VERSION_URL + "/users/code/initiate",
 			ControllerConstants.VERSION_URL + "/users/code/verify",
 			ControllerConstants.VERSION_URL + "/users/password/reset",

@@ -1,6 +1,5 @@
 package com.ysell.modules.user.domain;
 
-import com.ysell.common.models.YsellResponse;
 import com.ysell.config.jwt.models.AppUserDetails;
 import com.ysell.config.jwt.service.JwtTokenUtil;
 import com.ysell.jpa.entities.ResetCodeEntity;
@@ -16,6 +15,7 @@ import com.ysell.modules.common.utilities.ServiceUtils;
 import com.ysell.modules.common.utilities.email.EmailSender;
 import com.ysell.modules.common.utilities.email.models.EmailModel;
 import com.ysell.modules.user.models.request.*;
+import com.ysell.modules.user.models.response.UserRegistrationResponse;
 import com.ysell.modules.user.models.response.UserResponse;
 import com.ysell.modules.user.models.response.UserTokenResponse;
 import lombok.RequiredArgsConstructor;
@@ -109,7 +109,7 @@ public class UserServiceImpl implements UserService {
 
 
 	@Override
-	public YsellResponse<String> registerUser(CreateUserRequest request) {
+	public UserRegistrationResponse registerUser(CreateUserRequest request) {
 		if (request.getOrganisations().size() == 0)
 			throw new YSellRuntimeException("A user must belong to an organisation");
 
@@ -126,13 +126,17 @@ public class UserServiceImpl implements UserService {
 		UserEntity userEntity = performUserCreation(request, hash);
 
 		String resetCode = generateResetCode(userEntity);
-		String msg = format("Your validation token is: %s. It expires in %d minutes", resetCode, resetCodeDelayInMinutes);
+		String msg = format("Your validation code is: %s. It expires in %d minutes", resetCode, resetCodeDelayInMinutes);
 		EmailModel emailModel = new EmailModel(request.getEmail(), "Ysell Email Validation", msg, null);
-		sendEmail(emailModel, "user validation token");
+		sendEmail(emailModel, "user validation code");
 
 		unsubscribe(new SubscriptionRequest(userEntity.getId()));
 
-		return YsellResponse.createSuccess("Validation token has been sent to your email - " + request.getEmail());
+		final String token = jwtTokenUtil.generateToken(userEntity.getEmail(), userEntity.getId());
+
+		return new UserRegistrationResponse(
+				"Validation code has been sent to your email - " + request.getEmail(), token, false
+		);
 	}
 
 
