@@ -8,5 +8,7 @@ import java.util.UUID;
 public interface ResetCodeRepository extends ActiveJpaRepository<ResetCodeEntity> {
 	
 	ResetCodeEntity findByUserIdAndResetCode(UUID userId, String resetCode);
+
+	void deleteByUserId(UUID userId);
 }
 

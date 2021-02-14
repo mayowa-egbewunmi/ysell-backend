@@ -1,5 +1,6 @@
 package com.ysell.modules.user.domain;
 
+import com.ysell.common.models.YsellResponse;
 import com.ysell.config.jwt.models.AppUserDetails;
 import com.ysell.config.jwt.service.JwtTokenUtil;
 import com.ysell.jpa.entities.ResetCodeEntity;
@@ -31,9 +32,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
-import javax.persistence.Query;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -61,9 +59,6 @@ public class UserServiceImpl implements UserService {
 	private final JwtTokenUtil jwtTokenUtil;
 
 	private final ModelMapper mapper = new ModelMapper();
-
-	@PersistenceContext
-	private EntityManager entityManager;
 
 	@Value("${ysell.constants.user-activation.reset-code-delay-in-minutes:30}")
 	private int resetCodeDelayInMinutes;
@@ -114,7 +109,7 @@ public class UserServiceImpl implements UserService {
 
 
 	@Override
-	public UserResponse createUser(CreateUserRequest request) {
+	public YsellResponse<String> registerUser(CreateUserRequest request) {
 		if (request.getOrganisations().size() == 0)
 			throw new YSellRuntimeException("A user must belong to an organisation");
 
@@ -128,7 +123,26 @@ public class UserServiceImpl implements UserService {
 
 		String hash = passwordEncoder.encode(request.getPassword());
 
-		return performUserCreation(request, hash);
+		UserEntity userEntity = performUserCreation(request, hash);
+
+		String resetCode = generateResetCode(userEntity);
+		String msg = format("Your validation token is: %s. It expires in %d minutes", resetCode, resetCodeDelayInMinutes);
+		EmailModel emailModel = new EmailModel(request.getEmail(), "Ysell Email Validation", msg, null);
+		sendEmail(emailModel, "user validation token");
+
+		unsubscribe(new SubscriptionRequest(userEntity.getId()));
+
+		return YsellResponse.createSuccess("Validation token has been sent to your email - " + request.getEmail());
+	}
+
+
+	@Override
+	public UserResponse completeRegistration(ValidateEmailRequest request) {
+		ResetCodeEntity resetCodeEntity = verifyCode(request.getEmail(), request.getToken());
+		resetCodeRepo.deleteByUserId(resetCodeEntity.getUser().getId());
+		UserEntity userEntity = getUser(request.getEmail());
+
+		return resubscribe(new SubscriptionRequest(userEntity.getId()));
 	}
 
 
@@ -153,10 +167,10 @@ public class UserServiceImpl implements UserService {
 		UserEntity user = userRepo.findById(request.getUserId())
 				.orElseThrow(() -> ServiceUtils.wrongIdException("User", request.getUserId()));
 
-		if(!user.isActive())
+		if (!user.getActivated())
 			throw new YSellRuntimeException(format("Account with Id %s is already unsubscribed", request.getUserId()));
 
-		user.setActive(false);
+		user.setActivated(false);
 		user = userRepo.save(user);
 
 		return mapper.map(user, UserResponse.class);
@@ -165,17 +179,14 @@ public class UserServiceImpl implements UserService {
 
 	@Override
 	public UserResponse resubscribe(SubscriptionRequest request) {
-		UserEntity user = entityManager.find(UserEntity.class, request.getUserId());
-		if (user == null)
-			ServiceUtils.throwWrongIdException("User", request.getUserId());
+		UserEntity user = userRepo.findById(request.getUserId())
+				.orElseThrow(() -> ServiceUtils.wrongIdException("User", request.getUserId()));
 
-		if (user.isActive())
+		if (user.getActivated())
 			throw new YSellRuntimeException(format("Account with Id %s is already subscribed", request.getUserId()));
 
-		Query query = entityManager.createNativeQuery("update :tableName set is_active = 1 where id = :id");
-		query.setParameter("tableName", user.getTableName());
-		query.setParameter("id", request.getUserId());
-		query.executeUpdate();
+		user.setActivated(true);
+		user = userRepo.save(user);
 
 		return mapper.map(user, UserResponse.class);
 	}
@@ -185,21 +196,11 @@ public class UserServiceImpl implements UserService {
 	public SimpleMessageResponse resetCodeInitiate(ResetInitiateRequest request) {
 		UserEntity userEntity = getUser(request.getEmail());
 
-		String resetCode = getResetCode();
-		Date expiryTimestamp = getExpiryTime();
-
-		ResetCodeEntity resetCodeEntity = new ResetCodeEntity(userEntity, resetCode, expiryTimestamp);
-		resetCodeRepo.save(resetCodeEntity);
+		String resetCode = generateResetCode(userEntity);
 
 		String msg = format("Your password reset code is %s. It will expire in %d minutes", resetCode, resetCodeDelayInMinutes);
-		EmailModel model = new EmailModel(request.getEmail(), "YSell Password Reset Code", msg, null);
-
-		try {
-			emailSender.Send(model);
-		} catch (Exception ex) {
-			log.error("Error occurred while sending reset code email: ", ex);
-			throw new YSellRuntimeException("Error occurred while sending reset code. Please meet administrator");
-		}
+		EmailModel emailModel = new EmailModel(request.getEmail(), "YSell Password Reset Code", msg, null);
+		sendEmail(emailModel, "reset code");
 
 		return new SimpleMessageResponse(format("Reset code has been sent to your email. It will expire in %d minutes", resetCodeDelayInMinutes));
 	}
@@ -215,7 +216,7 @@ public class UserServiceImpl implements UserService {
 	@Override
 	public SimpleMessageResponse resetPassword(ResetPasswordRequest request) {
 		ResetCodeEntity resetCodeEntity = verifyCode(request.getEmail(), request.getResetCode());
-		resetCodeRepo.delete(resetCodeEntity);
+		resetCodeRepo.deleteByUserId(resetCodeEntity.getUser().getId());
 
 		updateUserPassword(request.getNewPassword(), request.getEmail());
 
@@ -236,15 +237,30 @@ public class UserServiceImpl implements UserService {
 	}
 
 
-	private UserResponse performUserCreation(CreateUserRequest userDetails, String hash) {
+	private String generateResetCode(UserEntity userEntity) {
+		String resetCode = composeResetCode();
+
+		ResetCodeEntity resetCodeEntity = new ResetCodeEntity(userEntity, resetCode, getExpiryTime());
+		resetCodeRepo.save(resetCodeEntity);
+
+		return resetCode;
+	}
+
+
+	private void sendEmail(EmailModel emailModel, String emailType) {
+		try {
+			emailSender.Send(emailModel);
+		} catch (Exception ex) {
+			log.error(format("Error occurred while sending %s email: ", emailType), ex);
+			throw new YSellRuntimeException(format("Error occurred while sending %s email. Please meet administrator", emailType));
+		}
+	}
+
+
+	private UserEntity performUserCreation(CreateUserRequest userDetails, String hash) {
 		UserEntity user = mapper.map(userDetails, UserEntity.class);
 		user.setHash(hash);
-		user = userRepo.save(user);
-
-		UserResponse response = mapper.map(user, UserResponse.class);
-		response.getOrganisations().forEach(org -> org.setName(orgRepo.getOne(org.getId()).getName()));
-
-		return response;
+		return userRepo.save(user);
 	}
 
 
@@ -267,7 +283,7 @@ public class UserServiceImpl implements UserService {
 	}
 
 
-	private String getResetCode() {
+	private String composeResetCode() {
 		StringBuilder code = new StringBuilder();
 
 		int codeLength = 6;

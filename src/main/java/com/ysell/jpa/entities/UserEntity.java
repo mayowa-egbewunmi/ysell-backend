@@ -32,6 +32,8 @@ public class UserEntity extends ActiveAuditableEntity implements NamedEntity {
 
     private String accountName;
 
+    private Boolean activated = true;
+
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "users_organisations",

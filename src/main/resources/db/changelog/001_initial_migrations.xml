@@ -406,4 +406,13 @@
         </addColumn>
     </changeSet>
 
+
+    <changeSet id="1613188384-02-added-activation-status-to-users-table" author="tobenna">
+        <addColumn tableName="users">
+            <column name="activated" type="TINYINT(1)" defaultValue="1" >
+                <constraints nullable="false" />
+            </column>
+        </addColumn>
+    </changeSet>
+
 </databaseChangeLog>

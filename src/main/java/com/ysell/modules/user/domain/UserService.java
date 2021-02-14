@@ -1,5 +1,6 @@
 package com.ysell.modules.user.domain;
 
+import com.ysell.common.models.YsellResponse;
 import com.ysell.modules.common.dto.PageWrapper;
 import com.ysell.modules.common.dto.response.SimpleMessageResponse;
 import com.ysell.modules.user.models.request.*;
@@ -21,7 +22,7 @@ public interface UserService {
 
 	List<UserResponse> getUsersByOrganisation(Set<UUID> organisationIds);
 
-	UserResponse createUser(CreateUserRequest userDetails);
+	YsellResponse<String> registerUser(CreateUserRequest userDetails);
 
 	UserResponse updateUser(UpdateUserRequest userDetails);
 
@@ -36,4 +37,6 @@ public interface UserService {
 	SimpleMessageResponse resetPassword(ResetPasswordRequest request);
 
 	SimpleMessageResponse changePassword(ChangePasswordRequest request);
+
+	UserResponse completeRegistration(ValidateEmailRequest request);
 }

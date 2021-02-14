@@ -1,5 +1,6 @@
 package com.ysell.modules.user;
 
+import com.ysell.common.models.YsellResponse;
 import com.ysell.config.constants.AppConstants;
 import com.ysell.modules.common.constants.ControllerConstants;
 import com.ysell.modules.common.dto.PageWrapper;
@@ -47,11 +48,16 @@ public class UserController {
     }
 
 
-    @PostMapping
-    //registration verify email
+    @PostMapping(value = "/register")
+    public YsellResponse<String> registerUser(@RequestBody @Valid CreateUserRequest request) {
+        return userService.registerUser(request);
+    }
+
+
+    @PostMapping("/complete-registration")
     @ResponseStatus(HttpStatus.CREATED)
-    public UserResponse createUser(@RequestBody @Valid CreateUserRequest request) {
-        return userService.createUser(request);
+    public UserResponse completeRegistration(@RequestBody @Valid ValidateEmailRequest request) {
+        return userService.completeRegistration(request);
     }
 
 
