@@ -12,9 +12,9 @@ import java.util.stream.Collectors;
 @JsonInclude(value = JsonInclude.Include.NON_NULL)
 public class YsellResponse<T> {
 
-    private boolean successful;
+    private boolean success;
 
-    private List<Error> errorMessages;
+    private List<Error> errors;
 
     private final T body;
 

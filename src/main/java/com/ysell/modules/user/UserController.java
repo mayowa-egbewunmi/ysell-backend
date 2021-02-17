@@ -1,5 +1,6 @@
 package com.ysell.modules.user;
 
+import com.ysell.common.models.YsellResponse;
 import com.ysell.config.constants.AppConstants;
 import com.ysell.modules.common.constants.ControllerConstants;
 import com.ysell.modules.common.dto.PageWrapper;
