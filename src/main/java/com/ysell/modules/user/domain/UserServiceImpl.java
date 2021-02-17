@@ -325,9 +325,9 @@ public class UserServiceImpl implements UserService {
 
 		ResetCodeEntity resetCodeEntity = resetCodeRepo.findByUserIdAndResetCode(userEntity.getId(), resetCode);
 		if (resetCodeEntity == null)
-			throw new YSellRuntimeException("Invalid reset code", null);
+			throw new YSellRuntimeException("Invalid reset code");
 		if (resetCodeEntity.getExpiryTimestamp().before(new Date()))
-			throw new YSellRuntimeException("Reset code has expired", null);
+			throw new YSellRuntimeException("Reset code has expired");
 
 		return resetCodeEntity;
 	}
