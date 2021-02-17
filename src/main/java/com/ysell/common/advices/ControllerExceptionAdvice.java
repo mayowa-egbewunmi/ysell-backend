@@ -52,7 +52,7 @@ public class ControllerExceptionAdvice {
     @ExceptionHandler(YSellRuntimeException.class)
     @ResponseStatus(value = HttpStatus.BAD_REQUEST)
     public YsellResponse<Object> handleYSellRuntimeException(YSellRuntimeException e, HttpServletRequest httpServletRequest) {
-        return createError(e.getMessage());
+        return createError(e.getErrors());
     }
 
 
