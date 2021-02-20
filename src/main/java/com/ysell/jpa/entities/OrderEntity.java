@@ -42,7 +42,7 @@ public class OrderEntity extends ActiveAuditableEntity {
 
 
     public BigDecimal getAmountPaid() {
-        return payments.stream().reduce(BigDecimal.ZERO, (sum, payment) -> sum.add(payment.getAmountPaid()), BigDecimal::add);
+        return payments.stream().reduce(BigDecimal.ZERO, (sum, payment) -> sum.add(payment.getAmount()), BigDecimal::add);
     }
 
 
