@@ -27,4 +27,4 @@
     </changeSet>
 
 </databaseChangeLog>
-<!--todo: update api request response, test endpoints and synchronisation, update schema, merge with fromt end-->
+<!--todo: update api request response, test endpoints and synchronisation, update schema, merge with front end-->

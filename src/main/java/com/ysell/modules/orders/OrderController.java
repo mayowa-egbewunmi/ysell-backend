@@ -16,7 +16,6 @@ import java.util.UUID;
 @RestController
 @RequestMapping(OrderController.PATH)
 @RequiredArgsConstructor
-//todo :use wrapresponse by default
 public class OrderController {
 
     public static final String PATH = ControllerConstants.VERSION_URL + "/orders";
@@ -52,6 +51,4 @@ public class OrderController {
     public List<OrderResponse> getOrdersByOrganisation(@RequestParam("organisationId") Set<UUID> organisationIds) {
         return orderService.getOrdersByOrganisationIds(organisationIds);
     }
-
-    //todo: get sales for organisation
 }
