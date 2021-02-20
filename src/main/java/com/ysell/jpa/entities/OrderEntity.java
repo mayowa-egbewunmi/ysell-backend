@@ -9,6 +9,7 @@ import java.math.BigDecimal;
 import java.util.HashSet;
 import java.util.Set;
 
+@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
@@ -17,6 +18,9 @@ import java.util.Set;
 @Table(name = "orders")
 public class OrderEntity extends ActiveAuditableEntity {
 
+    @Column(nullable = false)
+    private String title;
+
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private Set<SaleEntity> sales = new HashSet<>();
 
@@ -24,13 +28,30 @@ public class OrderEntity extends ActiveAuditableEntity {
     @JoinColumn(nullable = false)
     private OrganisationEntity organisation;
 
-    @Column(nullable = false)
-    private BigDecimal discount;
-
-    @Column(nullable = false)
-    private BigDecimal amountPaid;
-
-    @Column(nullable = false)
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private OrderStatus status;
+
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    private Set<PaymentEntity> payments = new HashSet<>();
+
+
+    public BigDecimal getTotalPrice() {
+        return sales.stream().reduce(BigDecimal.ZERO, (sum, sale) -> sum.add(sale.getTotalPrice()), BigDecimal::add);
+    }
+
+
+    public BigDecimal getAmountPaid() {
+        return payments.stream().reduce(BigDecimal.ZERO, (sum, payment) -> sum.add(payment.getAmountPaid()), BigDecimal::add);
+    }
+
+
+    public BigDecimal getAmountDue() {
+        return getTotalPrice().subtract(getAmountPaid());
+    }
+
+
+    public boolean paymentComplete() {
+        return getAmountPaid().compareTo(getTotalPrice()) >= 0;
+    }
 }

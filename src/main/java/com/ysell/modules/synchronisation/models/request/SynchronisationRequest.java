@@ -7,10 +7,11 @@ import com.ysell.modules.synchronisation.models.dto.ProductSyncRequestDto;
 import com.ysell.modules.synchronisation.models.dto.SaleSyncRequestDto;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.Setter;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
-import java.security.Timestamp;
+import java.time.Instant;
 import java.util.Set;
 
 @AllArgsConstructor
@@ -19,11 +20,11 @@ public class SynchronisationRequest {
 
 	@NotNull
 	@Valid
-	private OrderData orderData;
+	private ProductData productData;
 
 	@NotNull
 	@Valid
-	private PaymentData paymentData;
+	private OrderData orderData;
 
 	@NotNull
 	@Valid
@@ -31,64 +32,48 @@ public class SynchronisationRequest {
 
 	@NotNull
 	@Valid
-	private ProductData productData;
+	private PaymentData paymentData;
 
 
 	@Getter
-	public static class OrderData extends SyncData {
-
-		private Set<OrderSyncRequestDto> unsyncedOrders;
-
-		public OrderData(Set<OrderSyncRequestDto> unsyncedOrders, Timestamp mostRecentlySyncedTimestamp) {
-			super(unsyncedOrders.size(), mostRecentlySyncedTimestamp);
-			this.unsyncedOrders = unsyncedOrders;
-		}
-	}
-
-
-	@Getter
-	public static class PaymentData extends SyncData {
-
-		private Set<PaymentSyncRequestDto> unsyncedPayments;
-
-		public PaymentData(Set<PaymentSyncRequestDto> unsyncedPayments, Timestamp mostRecentlySyncedTimestamp) {
-			super(unsyncedPayments.size(), mostRecentlySyncedTimestamp);
-			this.unsyncedPayments = unsyncedPayments;
-		}
-	}
-
-
-	@Getter
-	public static class SalesData extends SyncData {
-
-		private Set<SaleSyncRequestDto> unsyncedSales;
-
-		public SalesData(Set<SaleSyncRequestDto> unsyncedSales, Timestamp mostRecentlySyncedTimestamp) {
-			super(unsyncedSales.size(), mostRecentlySyncedTimestamp);
-			this.unsyncedSales = unsyncedSales;
-		}
-	}
-
-
-	@Getter
+	@Setter
 	public static class ProductData extends SyncData {
 
 		private Set<ProductSyncRequestDto> unsyncedProducts;
-
-		public ProductData(Set<ProductSyncRequestDto> unsyncedProducts, Timestamp mostRecentlySyncedTimestamp) {
-			super(unsyncedProducts.size(), mostRecentlySyncedTimestamp);
-			this.unsyncedProducts = unsyncedProducts;
-		}
 	}
 
 
-	@AllArgsConstructor
 	@Getter
+	@Setter
+	public static class OrderData extends SyncData {
+
+		private Set<OrderSyncRequestDto> unsyncedOrders;
+	}
+
+
+	@Getter
+	@Setter
+	public static class SalesData extends SyncData {
+
+		private Set<SaleSyncRequestDto> unsyncedSales;
+	}
+
+
+	@Getter
+	@Setter
+	public static class PaymentData extends SyncData {
+
+		private Set<PaymentSyncRequestDto> unsyncedPayments;
+	}
+
+
+	@Getter
+	@Setter
 	public static class SyncData {
 
 		private long count;
 
 		@JsonProperty("most_recently_synced_timestamp")
-		private Timestamp mostRecentlySyncedTimestamp;
+		private Instant mostRecentlySyncedTimestamp;
 	}
 }

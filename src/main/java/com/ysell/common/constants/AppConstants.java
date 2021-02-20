@@ -1,4 +1,4 @@
-package com.ysell.config.constants;
+package com.ysell.common.constants;
 
 import java.util.UUID;
 

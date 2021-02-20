@@ -9,7 +9,7 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import javax.persistence.*;
-import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.UUID;
 
 @MappedSuperclass
@@ -27,21 +27,21 @@ public abstract class AuditableEntity {
 	private UUID createdBy;
 
 	@CreatedDate
-	private Timestamp createdAt;
+	private Instant createdAt;
 
 	@LastModifiedBy
 	@Column(columnDefinition = "BINARY(16)")
 	private UUID updatedBy;
 
 	@LastModifiedDate
-	private Timestamp updatedAt;
+	private Instant updatedAt;
 
 	@Version
 	private int version;
 	
-    private Timestamp clientCreatedAt;
+    private Instant clientCreatedAt;
 
-    private Timestamp clientUpdatedAt;
+    private Instant clientUpdatedAt;
 
 
 	@PrePersist

@@ -1,15 +1,17 @@
 package com.ysell.modules.synchronisation.models.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.ysell.jpa.entities.PaymentEntity;
 import com.ysell.jpa.entities.enums.PaymentMode;
+import com.ysell.modules.common.utilities.MapperUtils;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.util.UUID;
 
+@AllArgsConstructor
 @Getter
-@Setter
 public class PaymentSyncResponseDto extends BaseSyncResponseDto {
 
 	@JsonProperty("order_id")
@@ -17,5 +19,14 @@ public class PaymentSyncResponseDto extends BaseSyncResponseDto {
 
 	private PaymentMode mode;
 
-	private BigDecimal amount;
+	private BigDecimal amountPaid;
+
+
+	public static PaymentSyncResponseDto from(PaymentEntity paymentEntity) {
+		PaymentSyncResponseDto responseDto = MapperUtils.allArgsMap(paymentEntity, PaymentSyncResponseDto.class);
+		responseDto.orderId = paymentEntity.getOrder().getId();
+		responseDto.setOrganisationId(paymentEntity.getOrder().getOrganisation().getId());
+		responseDto.setDeleted(!paymentEntity.isActive());
+		return responseDto;
+	}
 }

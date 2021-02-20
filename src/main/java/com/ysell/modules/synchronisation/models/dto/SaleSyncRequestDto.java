@@ -21,13 +21,9 @@ public class SaleSyncRequestDto extends BaseSyncRequestDto {
 	private UUID productId;
 
 	@NotNull
-	private Long quantity;
+	private Integer quantity;
 
 	@NotNull
 	@JsonProperty("total_price")
 	private BigDecimal totalPrice;
-
-	@NotNull
-	@JsonProperty("total_cost")
-	private BigDecimal totalCost;
 }

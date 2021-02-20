@@ -35,6 +35,5 @@ public class ProductEntity extends ActiveAuditableEntity implements NamedEntity 
     private OrganisationEntity organisation;
 
     @ManyToOne
-    @JoinColumn(nullable = false)
     private ProductCategoryEntity productCategory;	
 }

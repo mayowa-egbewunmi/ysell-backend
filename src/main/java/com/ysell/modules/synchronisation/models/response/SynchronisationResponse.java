@@ -1,36 +1,72 @@
 package com.ysell.modules.synchronisation.models.response;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.ysell.modules.synchronisation.models.dto.OrderSyncResponseDto;
-import com.ysell.modules.synchronisation.models.dto.PaymentSyncResponseDto;
-import com.ysell.modules.synchronisation.models.dto.UpdatedSyncResponseDto;
-import lombok.AllArgsConstructor;
+import com.ysell.modules.synchronisation.models.dto.*;
+import lombok.Builder;
 import lombok.Getter;
 
 import java.util.Set;
 
-@AllArgsConstructor
+@Builder
 @Getter
 public class SynchronisationResponse {
+
+	private ProductData productData;
 	
 	private OrderData orderData;
 
-	private PaymentData paymentData;
-
 	private SalesData salesData;
 
-	private ProductData productData;
+	private PaymentData paymentData;
 
 
-	@AllArgsConstructor
+	@Builder
+	@Getter
+	public static class ProductData {
+
+		@JsonProperty("synced_products")
+		private Set<UpdatedSyncResponseDto> syncedProducts;
+
+		@JsonProperty("updated_products")
+		private Set<ProductSyncResponseDto> updatedProducts;
+
+		@JsonProperty("new_products")
+		private Set<ProductSyncResponseDto> newProducts;
+
+		@JsonProperty("synced_products_count")
+		public int getSyncedProductsCount() {
+			return syncedProducts.size();
+		}
+
+		@JsonProperty("new_products_count")
+		public int getNewProductsCount() {
+			return newProducts.size();
+		}
+
+		@JsonProperty("updated_products_count")
+		public int getUpdatedProductsCount() {
+			return updatedProducts.size();
+		}
+	}
+
+
+	@Builder
 	@Getter
 	public static class OrderData {
 
+		@JsonProperty("synced_orders")
+		private Set<UpdatedSyncResponseDto> syncedOrders;
+
 		@JsonProperty("updated_orders")
-		private Set<UpdatedSyncResponseDto> updatedOrders;
+		private Set<OrderSyncResponseDto> updatedOrders;
 
 		@JsonProperty("new_orders")
 		private Set<OrderSyncResponseDto> newOrders;
+
+		@JsonProperty("synced_orders_count")
+		public int getSyncedOrdersCount() {
+			return syncedOrders.size();
+		}
 
 		@JsonProperty("new_orders_count")
 		public int getNewOrdersCount() {
@@ -44,33 +80,23 @@ public class SynchronisationResponse {
 	}
 
 
-	public static class PaymentData {
-
-		@JsonProperty("updated_payments")
-		private Set<UpdatedSyncResponseDto> updatedPayments;
-
-		@JsonProperty("new_payments")
-		private Set<PaymentSyncResponseDto> newPayments;
-
-		@JsonProperty("new_payments_count")
-		public int getNewPaymentsCount() {
-			return newPayments.size();
-		}
-
-		@JsonProperty("updated_payments_count")
-		public int getUpdatedPaymentsCount() {
-			return updatedPayments.size();
-		}
-	}
-
-
+	@Builder
+	@Getter
 	public static class SalesData {
 
+		@JsonProperty("synced_sales")
+		private Set<UpdatedSyncResponseDto> syncedSales;
+
 		@JsonProperty("updated_sales")
-		private Set<UpdatedSyncResponseDto> updatedSales;
+		private Set<SaleSyncResponseDto> updatedSales;
 
 		@JsonProperty("new_sales")
-		private Set<OrderSyncResponseDto> newSales;
+		private Set<SaleSyncResponseDto> newSales;
+
+		@JsonProperty("synced_sales_count")
+		public int getSyncedSalesCount() {
+			return syncedSales.size();
+		}
 
 		@JsonProperty("new_sales_count")
 		public int getNewSalesCount() {
@@ -84,22 +110,32 @@ public class SynchronisationResponse {
 	}
 
 
-	public static class ProductData {
+	@Builder
+	@Getter
+	public static class PaymentData {
 
-		@JsonProperty("updated_products")
-		private Set<UpdatedSyncResponseDto> updatedProducts;
+		@JsonProperty("synced_payments")
+		private Set<UpdatedSyncResponseDto> syncedPayments;
 
-		@JsonProperty("new_products")
-		private Set<OrderSyncResponseDto> newProducts;
+		@JsonProperty("updated_payments")
+		private Set<PaymentSyncResponseDto> updatedPayments;
 
-		@JsonProperty("new_products_count")
-		public int getNewProductsCount() {
-			return newProducts.size();
+		@JsonProperty("new_payments")
+		private Set<PaymentSyncResponseDto> newPayments;
+
+		@JsonProperty("synced_payments_count")
+		public int getSyncedPaymentsCount() {
+			return syncedPayments.size();
 		}
 
-		@JsonProperty("updated_products_count")
-		public int getUpdatedProductsCount() {
-			return updatedProducts.size();
+		@JsonProperty("new_payments_count")
+		public int getNewPaymentsCount() {
+			return newPayments.size();
+		}
+
+		@JsonProperty("updated_payments_count")
+		public int getUpdatedPaymentsCount() {
+			return updatedPayments.size();
 		}
 	}
 }

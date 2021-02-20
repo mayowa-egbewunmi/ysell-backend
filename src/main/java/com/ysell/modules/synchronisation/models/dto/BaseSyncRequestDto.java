@@ -5,7 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import javax.validation.constraints.NotNull;
-import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.UUID;
 
 /**
@@ -31,11 +31,11 @@ public abstract class BaseSyncRequestDto {
 
     @NotNull
     @JsonProperty("client_created_at")
-    private Timestamp clientCreatedAt;
+    private Instant clientCreatedAt;
 
     @NotNull
     @JsonProperty("client_updated_at")
-    private Timestamp clientUpdatedAt;
+    private Instant clientUpdatedAt;
 
     @NotNull
     private Boolean deleted;

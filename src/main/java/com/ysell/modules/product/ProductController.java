@@ -1,6 +1,6 @@
 package com.ysell.modules.product;
 
-import com.ysell.config.constants.AppConstants;
+import com.ysell.common.constants.AppConstants;
 import com.ysell.modules.common.constants.ControllerConstants;
 import com.ysell.modules.common.dto.PageWrapper;
 import com.ysell.modules.product.domain.ProductService;
@@ -19,6 +19,10 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+/**
+ * @author tchineke
+ * @since 10 February, 2021
+ */
 @RestController
 @RequestMapping(ProductController.PATH)
 @RequiredArgsConstructor

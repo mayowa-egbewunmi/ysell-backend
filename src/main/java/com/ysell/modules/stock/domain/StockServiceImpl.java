@@ -19,7 +19,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
+import java.time.Instant;
 
 @Service
 @RequiredArgsConstructor
@@ -60,16 +60,9 @@ public class StockServiceImpl implements StockService {
 	}
 
 
-	private ProductEntity updateProductStock(ProductEntity productEntity, int quantity) {
-		int newStockQuantity = productEntity.getCurrentStock() + quantity;
-		productEntity.setCurrentStock(newStockQuantity);
-		return productRepo.save(productEntity);
-	}
-
-
 	@Override
-	public PageWrapper<StockResponse> getStockByDate(LocalDate earliestCreatedDate, Pageable pageable) {
-		earliestCreatedDate = earliestCreatedDate == null ? LocalDate.MIN : earliestCreatedDate;
+	public PageWrapper<StockResponse> getStockByDate(Instant earliestCreatedDate, Pageable pageable) {
+		earliestCreatedDate = earliestCreatedDate == null ? Instant.MIN : earliestCreatedDate;
 
 		Page<StockResponse> stocks = stockRepo.findByCreatedAtGreaterThanEqual(earliestCreatedDate, pageable)
 				.map(stockEntity -> mapper.map(stockEntity, StockResponse.class));

@@ -22,4 +22,6 @@ public class PaymentSyncRequestDto extends BaseSyncRequestDto {
 
 	@NotNull
 	private BigDecimal amount;
+
+	private String narration;
 }

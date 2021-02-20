@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.security.Timestamp;
+import java.time.Instant;
 import java.util.UUID;
 
 /**
@@ -27,16 +27,16 @@ public abstract class BaseSyncResponseDto {
     private UUID updatedBy;
 
     @JsonProperty("created_at")
-    private Timestamp createdAt;
+    private Instant createdAt;
 
     @JsonProperty("updated_at")
-    private Timestamp updatedAt;
+    private Instant updatedAt;
 
     @JsonProperty("client_created_at")
-    private Timestamp clientCreatedAt;
+    private Instant clientCreatedAt;
 
     @JsonProperty("client_updated_at")
-    private Timestamp clientUpdatedAt;
+    private Instant clientUpdatedAt;
 
     private Boolean deleted;
 }

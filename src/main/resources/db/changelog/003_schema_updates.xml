@@ -1,0 +1,30 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.6.xsd">
+
+    <changeSet id="1613815252-01-remove-amount-paid-and-discount-from-orders" author="tobenna">
+        <dropColumn tableName="orders" columnName="amount_paid" />
+        <dropColumn tableName="orders" columnName="discount" />
+    </changeSet>
+
+
+    <changeSet id="1613815252-02-add-title-to-orders" author="tobenna">
+        <addColumn tableName="orders">
+            <column name="title" type="VARCHAR(255)" />
+        </addColumn>
+
+        <sql>
+            update orders set title = 'Default title'
+        </sql>
+
+        <addNotNullConstraint tableName="orders" columnName="title" columnDataType="VARCHAR(255" constraintName="NN_orders_to_title" />
+    </changeSet>
+
+
+    <changeSet id="1613815252-03-make-product-product-category-nullable" author="tobenna">
+        <dropNotNullConstraint tableName="products" columnName="product_category_id" columnDataType="BINARY(16)" />
+    </changeSet>
+
+</databaseChangeLog>
+<!--todo: update api request response, test endpoints and synchronisation, update schema, merge with fromt end-->

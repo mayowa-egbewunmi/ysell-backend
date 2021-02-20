@@ -1,10 +1,11 @@
 package com.ysell.modules.synchronisation.models.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.ysell.jpa.entities.base.AuditableEntity;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
-import java.security.Timestamp;
+import java.time.Instant;
 import java.util.UUID;
 
 /**
@@ -18,8 +19,13 @@ public class UpdatedSyncResponseDto {
     private UUID id;
 
     @JsonProperty("created_at")
-    private Timestamp createdAt;
+    private Instant createdAt;
 
     @JsonProperty("updated_at")
-    private Timestamp updatedAt;
+    private Instant updatedAt;
+
+
+    public static UpdatedSyncResponseDto from(AuditableEntity entity) {
+        return new UpdatedSyncResponseDto(entity.getId(), entity.getCreatedAt(), entity.getUpdatedAt());
+    }
 }

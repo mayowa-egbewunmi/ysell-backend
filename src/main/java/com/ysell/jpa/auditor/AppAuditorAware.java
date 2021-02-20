@@ -1,6 +1,6 @@
 package com.ysell.jpa.auditor;
 
-import com.ysell.config.constants.AppConstants;
+import com.ysell.common.constants.AppConstants;
 import com.ysell.config.jwt.models.AppUserDetails;
 import org.springframework.data.domain.AuditorAware;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;

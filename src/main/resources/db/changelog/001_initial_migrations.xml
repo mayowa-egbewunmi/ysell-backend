@@ -374,7 +374,7 @@
     </changeSet>
 
 
-    <changeSet id="1612695447-12-add-reset_codes-foreign-keys" author="tobenna" >
+    <changeSet id="1612695447-13-add-reset_codes-foreign-keys" author="tobenna" >
         <addForeignKeyConstraint baseTableName="reset_codes" baseColumnNames="user_id"
                                  referencedTableName="users" referencedColumnNames="id"
                                  constraintName="FK_reset_code_to_user_id" />
@@ -393,8 +393,20 @@
     </changeSet>
 
 
-    <changeSet id="1612871208-012-add-composite-key-users-organisations" author="tobenna">
-        <addPrimaryKey tableName="users_organisations" columnNames="user_id, organisation_id" constraintName="PK_user_id_and_organisation_id" />
+    <changeSet id="1612871208-02-add-composite-key-users-organisations" author="tobenna">
+        <addPrimaryKey tableName="users_organisations" columnNames="user_id, organisation_id"
+                       constraintName="PK_user_id_and_organisation_id" />
+    </changeSet>
+
+
+    <changeSet id="1612871208-03-add-foreign-keys-for-users-organisations" author="tobenna">
+        <addForeignKeyConstraint baseTableName="users_organisations" baseColumnNames="user_id"
+                                 referencedTableName="users" referencedColumnNames="id"
+                                 constraintName="FK_users_organisations_to_user_id" />
+
+        <addForeignKeyConstraint baseTableName="users_organisations" baseColumnNames="organisation_id"
+                                 referencedTableName="organisations" referencedColumnNames="id"
+                                 constraintName="FK_users_organisations_to_organisation_id" />
     </changeSet>
 
 
@@ -413,6 +425,47 @@
                 <constraints nullable="false" />
             </column>
         </addColumn>
+    </changeSet>
+
+
+    <changeSet id="1613188384-03-create-payments-table" author="tobenna" >
+        <createTable tableName="payments">
+            <column name="id" type="BINARY(16)">
+                <constraints primaryKey="true"/>
+            </column>
+
+            <column name="order_id" type="BINARY(16)">
+                <constraints nullable="false" />
+            </column>
+            <column name="amount" type="DECIMAL">
+                <constraints nullable="false" />
+            </column>
+            <column name="mode" type="VARCHAR(31)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="narration" type="TEXT" />
+
+            <column name="created_by" type="BINARY(16)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="DATETIME" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_by" type="BINARY(16)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="DATETIME" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="client_created_at" type="DATETIME"/>
+            <column name="client_updated_at" type="DATETIME"/>
+            <column name="version" type="INT" defaultValueNumeric="0">
+                <constraints nullable="false" />
+            </column>
+            <column name="is_active" type="TINYINT(1)" defaultValue="1">
+                <constraints nullable="false" />
+            </column>
+        </createTable>
     </changeSet>
 
 </databaseChangeLog>
