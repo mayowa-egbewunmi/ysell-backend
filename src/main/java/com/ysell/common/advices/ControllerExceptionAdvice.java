@@ -24,9 +24,9 @@ public class ControllerExceptionAdvice {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public YsellResponse<Object> handleMethodArgumentNotValidException(MethodArgumentNotValidException e, HttpServletRequest httpServletRequest) {
-        log.error("Invalid request", e);
+        log.error("Invalid request arguments: ", e);
         if (e.getBindingResult().getFieldError() == null) {
-            return createError("invalid arguments");
+            return createError("Invalid request arguments");
         }
 
         FieldError error = e.getBindingResult().getFieldError();
@@ -60,6 +60,8 @@ public class ControllerExceptionAdvice {
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public YsellResponse<Object> handleGeneralException(Exception e, HttpServletRequest httpServletRequest) {
         log.error("Unknown server error", e);
-        return createError(e.getMessage());
+        Throwable throwable = e.getCause() != null && e.getCause().getMessage() != null ? e.getCause() : e;
+        String errorMessage = throwable.getMessage() != null ? throwable.getMessage() :  "Exception type: " + e.getClass().getName();
+        return createError(errorMessage);
     }
 }
