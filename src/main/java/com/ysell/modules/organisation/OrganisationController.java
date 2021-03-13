@@ -1,7 +1,7 @@
 package com.ysell.modules.organisation;
 
 import com.ysell.modules.common.constants.ControllerConstants;
-import com.ysell.modules.common.response.PageWrapper;
+import com.ysell.modules.common.models.PageWrapper;
 import com.ysell.modules.organisation.domain.OrganisationService;
 import com.ysell.modules.organisation.models.request.OrganisationRequest;
 import com.ysell.modules.organisation.models.response.OrganisationResponse;

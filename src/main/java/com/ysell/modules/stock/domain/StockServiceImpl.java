@@ -5,7 +5,7 @@ import com.ysell.jpa.entities.StockEntity;
 import com.ysell.jpa.repositories.ProductRepository;
 import com.ysell.jpa.repositories.StockRepository;
 import com.ysell.modules.common.dtos.LookupDto;
-import com.ysell.modules.common.response.PageWrapper;
+import com.ysell.modules.common.models.PageWrapper;
 import com.ysell.modules.common.exceptions.YSellRuntimeException;
 import com.ysell.modules.common.services.ProductStockService;
 import com.ysell.modules.common.utilities.ServiceUtils;

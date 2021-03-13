@@ -1,4 +1,4 @@
-package com.ysell.modules.common.response;
+package com.ysell.modules.common.models;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

@@ -1,5 +1,6 @@
 package com.ysell.modules.user.domain;
 
+import com.ysell.common.models.YsellResponse;
 import com.ysell.config.jwt.models.AppUserDetails;
 import com.ysell.config.jwt.service.JwtTokenUtil;
 import com.ysell.jpa.entities.ResetCodeEntity;
@@ -9,8 +10,7 @@ import com.ysell.jpa.repositories.ResetCodeRepository;
 import com.ysell.jpa.repositories.UserRepository;
 import com.ysell.modules.common.dtos.LookupDto;
 import com.ysell.modules.common.exceptions.YSellRuntimeException;
-import com.ysell.modules.common.response.PageWrapper;
-import com.ysell.modules.common.response.SimpleMessageResponse;
+import com.ysell.modules.common.models.PageWrapper;
 import com.ysell.modules.common.utilities.ServiceUtils;
 import com.ysell.modules.common.utilities.email.EmailSender;
 import com.ysell.modules.common.utilities.email.models.EmailModel;
@@ -107,12 +107,7 @@ public class UserServiceImpl implements UserService {
 
 	@Override
 	public UserRegistrationResponse registerUser(CreateUserRequest request) {
-		if (userRepo.existsByEmailIgnoreCase(request.getEmail()))
-			ServiceUtils.throwWrongEmailException("User", request.getEmail());
-		if (userRepo.existsByNameIgnoreCase(request.getName()))
-			ServiceUtils.throwWrongNameException("User", request.getName());
-
-		validateOrganisations(request.getOrganisations());
+		validateUserRegistrationRequest(request);
 
 		String hash = passwordEncoder.encode(request.getPassword());
 
@@ -189,7 +184,7 @@ public class UserServiceImpl implements UserService {
 
 
 	@Override
-	public SimpleMessageResponse resetCodeInitiate(InitiateResetPasswordRequest request) {
+	public YsellResponse<String> initiatePasswordReset(InitiateResetPasswordRequest request) {
 		UserEntity userEntity = getUser(request.getEmail());
 
 		String resetCode = generateResetCode(userEntity);
@@ -198,30 +193,39 @@ public class UserServiceImpl implements UserService {
 		EmailModel emailModel = new EmailModel(request.getEmail(), "YSell Password Reset Code", msg, null);
 		emailSender.send(emailModel, "reset code");
 
-		return new SimpleMessageResponse(format("Reset code has been sent to your email. It will expire in %d minutes", resetCodeDelayInMinutes));
+		return YsellResponse.createSuccess(format("Reset code has been sent to your email. It will expire in %d minutes", resetCodeDelayInMinutes));
 	}
 
 
 	@Override
-	public SimpleMessageResponse resetCodeVerify(ResetCodeValidateRequest request) {
+	public YsellResponse<String> resendResetCode(ResendResetCodeRequest request) {
+		UserEntity userEntity = getUser(request.getEmail());
+		resetCodeRepo.deleteByUserId(userEntity.getId());
+
+		return initiatePasswordReset(new InitiateResetPasswordRequest(request.getEmail()));
+	}
+
+
+	@Override
+	public YsellResponse<String> verifyResetCode(VerifyResetCodeRequest request) {
 		verifyCode(request.getEmail(), request.getResetCode());
-		return new SimpleMessageResponse("Valid reset code");
+		return YsellResponse.createSuccess("Valid reset code");
 	}
 
 
 	@Override
-	public SimpleMessageResponse resetPassword(ResetPasswordRequest request) {
+	public YsellResponse<String> resetPassword(ResetPasswordRequest request) {
 		ResetCodeEntity resetCodeEntity = verifyCode(request.getEmail(), request.getResetCode());
 		resetCodeRepo.deleteByUserId(resetCodeEntity.getUser().getId());
 
 		updateUserPassword(request.getNewPassword(), request.getEmail());
 
-		return new SimpleMessageResponse("Password successfully reset");
+		return YsellResponse.createSuccess("Password successfully reset");
 	}
 
 
 	@Override
-	public SimpleMessageResponse changePassword(ChangePasswordRequest request) {
+	public YsellResponse<String> changePassword(ChangePasswordRequest request) {
 		UserEntity userEntity = getUser(request.getEmail());
 
 		if (!passwordEncoder.matches(request.getOldPassword(), userEntity.getHash()))
@@ -229,7 +233,17 @@ public class UserServiceImpl implements UserService {
 
 		updateUserPassword(request.getNewPassword(), request.getEmail());
 
-		return new SimpleMessageResponse("Password successfully changed");
+		return YsellResponse.createSuccess("Password successfully changed");
+	}
+
+
+	private void validateUserRegistrationRequest(CreateUserRequest request) {
+		if (userRepo.existsByEmailIgnoreCase(request.getEmail()))
+			ServiceUtils.throwWrongEmailException("User", request.getEmail());
+		if (userRepo.existsByNameIgnoreCase(request.getName()))
+			ServiceUtils.throwWrongNameException("User", request.getName());
+
+		validateOrganisations(request.getOrganisations());
 	}
 
 

@@ -1,7 +1,7 @@
 package com.ysell.modules.user.domain;
 
-import com.ysell.modules.common.response.PageWrapper;
-import com.ysell.modules.common.response.SimpleMessageResponse;
+import com.ysell.common.models.YsellResponse;
+import com.ysell.modules.common.models.PageWrapper;
 import com.ysell.modules.user.models.request.*;
 import com.ysell.modules.user.models.response.UserRegistrationResponse;
 import com.ysell.modules.user.models.response.UserResponse;
@@ -30,13 +30,15 @@ public interface UserService {
 
 	UserResponse resubscribe(SubscriptionRequest subscribeRequest);
 
-	SimpleMessageResponse resetCodeInitiate(InitiateResetPasswordRequest request);
+	YsellResponse<String> initiatePasswordReset(InitiateResetPasswordRequest request);
 
-	SimpleMessageResponse resetCodeVerify(ResetCodeValidateRequest request);
+	YsellResponse<String> resendResetCode(ResendResetCodeRequest request);
 
-	SimpleMessageResponse resetPassword(ResetPasswordRequest request);
+	YsellResponse<String> verifyResetCode(VerifyResetCodeRequest request);
 
-	SimpleMessageResponse changePassword(ChangePasswordRequest request);
+	YsellResponse<String> resetPassword(ResetPasswordRequest request);
+
+	YsellResponse<String> changePassword(ChangePasswordRequest request);
 
 	UserResponse completeRegistration(ValidateEmailRequest request);
 }

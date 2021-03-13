@@ -7,7 +7,7 @@ import javax.validation.constraints.NotEmpty;
 
 @AllArgsConstructor
 @Getter
-public class ResetCodeValidateRequest {
+public class VerifyResetCodeRequest {
 
 	@NotEmpty
 	private String email;

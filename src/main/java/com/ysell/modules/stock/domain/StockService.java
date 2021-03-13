@@ -1,6 +1,6 @@
 package com.ysell.modules.stock.domain;
 
-import com.ysell.modules.common.response.PageWrapper;
+import com.ysell.modules.common.models.PageWrapper;
 import com.ysell.modules.stock.models.request.StockCreateRequest;
 import com.ysell.modules.stock.models.response.StockCreateResponse;
 import com.ysell.modules.stock.models.response.StockResponse;

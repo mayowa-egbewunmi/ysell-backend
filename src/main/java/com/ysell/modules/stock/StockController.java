@@ -2,7 +2,7 @@ package com.ysell.modules.stock;
 
 import com.ysell.common.constants.AppConstants;
 import com.ysell.modules.common.constants.ControllerConstants;
-import com.ysell.modules.common.response.PageWrapper;
+import com.ysell.modules.common.models.PageWrapper;
 import com.ysell.modules.stock.domain.StockService;
 import com.ysell.modules.stock.models.request.StockCreateRequest;
 import com.ysell.modules.stock.models.response.StockCreateResponse;

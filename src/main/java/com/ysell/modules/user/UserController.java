@@ -1,9 +1,9 @@
 package com.ysell.modules.user;
 
 import com.ysell.common.constants.AppConstants;
+import com.ysell.common.models.YsellResponse;
 import com.ysell.modules.common.constants.ControllerConstants;
-import com.ysell.modules.common.response.PageWrapper;
-import com.ysell.modules.common.response.SimpleMessageResponse;
+import com.ysell.modules.common.models.PageWrapper;
 import com.ysell.modules.user.domain.UserService;
 import com.ysell.modules.user.models.request.*;
 import com.ysell.modules.user.models.response.UserRegistrationResponse;
@@ -80,25 +80,31 @@ public class UserController {
 
 
     @PostMapping("/code/initiate")
-    public SimpleMessageResponse resetCodeInitiate(@RequestBody @Valid InitiateResetPasswordRequest request) {
-        return userService.resetCodeInitiate(request);
+    public YsellResponse<String> initiatePasswordReset(@RequestBody @Valid InitiateResetPasswordRequest request) {
+        return userService.initiatePasswordReset(request);
+    }
+
+
+    @PostMapping("/code/resend")
+    public YsellResponse<String> resendResetCode(ResendResetCodeRequest request){
+        return userService.resendResetCode(request);
     }
 
 
     @PostMapping("/code/verify")
-    public SimpleMessageResponse resetCodeVerify(@RequestBody @Valid ResetCodeValidateRequest request) {
-        return userService.resetCodeVerify(request);
+    public YsellResponse<String> verifyResetCode(@RequestBody @Valid VerifyResetCodeRequest request) {
+        return userService.verifyResetCode(request);
     }
 
 
     @PostMapping("/password/reset")
-    public SimpleMessageResponse resetPassword(@RequestBody @Valid ResetPasswordRequest request) {
+    public YsellResponse<String> resetPassword(@RequestBody @Valid ResetPasswordRequest request) {
         return userService.resetPassword(request);
     }
 
 
     @PostMapping("/password/change")
-    public SimpleMessageResponse changePassword(@RequestBody @Valid ChangePasswordRequest request) {
+    public YsellResponse<String> changePassword(@RequestBody @Valid ChangePasswordRequest request) {
         return userService.changePassword(request);
     }
 
