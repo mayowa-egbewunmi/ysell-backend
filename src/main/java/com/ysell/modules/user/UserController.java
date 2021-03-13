@@ -54,6 +54,12 @@ public class UserController {
     }
 
 
+    @PostMapping("/register/resend-code")
+    public YsellResponse<String> resendVerificationCode(ResendResetCodeRequest request){
+        return userService.resendVerificationCode(request);
+    }
+
+
     @PostMapping("/complete-registration")
     @ResponseStatus(HttpStatus.CREATED)
     public UserResponse completeRegistration(@RequestBody @Valid ValidateEmailRequest request) {
@@ -61,33 +67,27 @@ public class UserController {
     }
 
 
-    @PutMapping
-    public UserResponse updateUser(@RequestBody @Valid UpdateUserRequest request) {
-        return userService.updateUser(request);
+    @PutMapping("/{id}")
+    public UserResponse updateUser(@PathVariable("id") UUID userId, @RequestBody @Valid UpdateUserRequest request) {
+        return userService.updateUser(userId, request);
     }
 
 
-    @PostMapping("/unsubscribe")
-    public UserResponse unsubscribe(@RequestBody @Valid SubscriptionRequest request) {
-        return userService.unsubscribe(request);
+    @PostMapping("/deactivate")
+    public UserResponse deactivate(@RequestBody @Valid SubscriptionRequest request) {
+        return userService.deactivate(request);
     }
 
 
-    @PostMapping("/resubscribe")
-    public UserResponse resubscribe(@RequestBody @Valid SubscriptionRequest request) {
-        return userService.resubscribe(request);
+    @PostMapping("/reactivate")
+    public UserResponse reactivate(@RequestBody @Valid SubscriptionRequest request) {
+        return userService.reactivate(request);
     }
 
 
     @PostMapping("/code/initiate")
     public YsellResponse<String> initiatePasswordReset(@RequestBody @Valid InitiateResetPasswordRequest request) {
         return userService.initiatePasswordReset(request);
-    }
-
-
-    @PostMapping("/code/resend")
-    public YsellResponse<String> resendResetCode(ResendResetCodeRequest request){
-        return userService.resendResetCode(request);
     }
 
 

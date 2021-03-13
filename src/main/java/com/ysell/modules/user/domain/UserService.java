@@ -24,15 +24,15 @@ public interface UserService {
 
 	UserRegistrationResponse registerUser(CreateUserRequest userDetails);
 
-	UserResponse updateUser(UpdateUserRequest userDetails);
+	UserResponse updateUser(UUID userId, UpdateUserRequest userDetails);
 
-	UserResponse unsubscribe(SubscriptionRequest unsubscribeRequest);
+	UserResponse deactivate(SubscriptionRequest unsubscribeRequest);
 
-	UserResponse resubscribe(SubscriptionRequest subscribeRequest);
+	UserResponse reactivate(SubscriptionRequest subscribeRequest);
 
 	YsellResponse<String> initiatePasswordReset(InitiateResetPasswordRequest request);
 
-	YsellResponse<String> resendResetCode(ResendResetCodeRequest request);
+	YsellResponse<String> resendVerificationCode(ResendResetCodeRequest request);
 
 	YsellResponse<String> verifyResetCode(VerifyResetCodeRequest request);
 

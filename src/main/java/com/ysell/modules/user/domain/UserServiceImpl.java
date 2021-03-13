@@ -114,15 +114,35 @@ public class UserServiceImpl implements UserService {
 		UserEntity userEntity = performInitialUserCreation(request, hash);
 
 		String resetCode = generateResetCode(userEntity);
-		String msg = format("Your validation code is: %s. It expires in %d minutes", resetCode, resetCodeDelayInMinutes);
+		String msg = format("Your verification code is: %s. It expires in %d minutes", resetCode, resetCodeDelayInMinutes);
 		EmailModel emailModel = new EmailModel(request.getEmail(), "Ysell Email Validation", msg, null);
-		emailSender.send(emailModel, "user validation code");
+		emailSender.send(emailModel, "user verification code");
 
 		final String token = jwtTokenUtil.generateToken(userEntity.getEmail(), userEntity.getId());
 
 		return new UserRegistrationResponse(
-				"Validation code has been sent to your email - " + request.getEmail(), token, false
+				format("Verification code has been sent to your email - %s. It will expire in %s minutes",
+						request.getEmail(),
+						resetCodeDelayInMinutes),
+				token,
+				false
 		);
+	}
+
+
+	@Override
+	public YsellResponse<String> resendVerificationCode(ResendResetCodeRequest request) {
+		UserEntity userEntity = getUser(request.getEmail());
+		resetCodeRepo.deleteByUserId(userEntity.getId());
+
+		String resetCode = generateResetCode(userEntity);
+		String msg = format("Your verification code is: %s. It expires in %d minutes", resetCode, resetCodeDelayInMinutes);
+		EmailModel emailModel = new EmailModel(request.getEmail(), "Ysell Email Validation", msg, null);
+		emailSender.send(emailModel, "user verification code");
+
+		return YsellResponse.createSuccess(format(
+				"Verification code has been sent to your email - %s. It will expire in %s minutes", request.getEmail(), resetCodeDelayInMinutes
+		));
 	}
 
 
@@ -132,29 +152,29 @@ public class UserServiceImpl implements UserService {
 		resetCodeRepo.deleteByUserId(resetCodeEntity.getUser().getId());
 		UserEntity userEntity = getUser(request.getEmail());
 
-		return resubscribe(new SubscriptionRequest(userEntity.getId()));
+		return reactivate(new SubscriptionRequest(userEntity.getId()));
 	}
 
 
 	@Override
-	public UserResponse updateUser(UpdateUserRequest request) {
+	public UserResponse updateUser(UUID userId, UpdateUserRequest request) {
 		userRepo.findFirstByEmailIgnoreCase(request.getEmail()).ifPresent(existingUser -> {
-			if (!existingUser.getId().equals(request.getId()))
+			if (!existingUser.getId().equals(userId))
 				ServiceUtils.throwWrongEmailException("User", request.getEmail());
 		});
 		userRepo.findFirstByNameIgnoreCase(request.getName()).ifPresent(existingUser -> {
-			if (!existingUser.getId().equals(request.getId()))
+			if (!existingUser.getId().equals(userId))
 				ServiceUtils.throwWrongNameException("User", request.getName());
 		});
 
 		validateOrganisations(request.getOrganisations());
 
-		return performUserUpdate(request);
+		return performUserUpdate(userId, request);
 	}
 
 
 	@Override
-	public UserResponse unsubscribe(SubscriptionRequest request) {
+	public UserResponse deactivate(SubscriptionRequest request) {
 		UserEntity user = userRepo.findById(request.getUserId())
 				.orElseThrow(() -> ServiceUtils.wrongIdException("User", request.getUserId()));
 
@@ -169,7 +189,7 @@ public class UserServiceImpl implements UserService {
 
 
 	@Override
-	public UserResponse resubscribe(SubscriptionRequest request) {
+	public UserResponse reactivate(SubscriptionRequest request) {
 		UserEntity user = userRepo.findById(request.getUserId())
 				.orElseThrow(() -> ServiceUtils.wrongIdException("User", request.getUserId()));
 
@@ -194,15 +214,6 @@ public class UserServiceImpl implements UserService {
 		emailSender.send(emailModel, "reset code");
 
 		return YsellResponse.createSuccess(format("Reset code has been sent to your email. It will expire in %d minutes", resetCodeDelayInMinutes));
-	}
-
-
-	@Override
-	public YsellResponse<String> resendResetCode(ResendResetCodeRequest request) {
-		UserEntity userEntity = getUser(request.getEmail());
-		resetCodeRepo.deleteByUserId(userEntity.getId());
-
-		return initiatePasswordReset(new InitiateResetPasswordRequest(request.getEmail()));
 	}
 
 
@@ -276,19 +287,31 @@ public class UserServiceImpl implements UserService {
 	}
 
 
-	private UserResponse performUserUpdate(UpdateUserRequest userDetails) {
-		UserEntity user = userRepo.findById(userDetails.getId())
-				.orElseThrow(() -> ServiceUtils.wrongIdException("User", userDetails.getId()));
+	private UserResponse performUserUpdate(UUID userId, UpdateUserRequest userDetails) {
+		UserEntity user = userRepo.findById(userId)
+				.orElseThrow(() -> ServiceUtils.wrongIdException("User", userId));
 
-		user.setName(userDetails.getName());
-		user.setEmail(userDetails.getEmail());
-		user.setBankName(userDetails.getBankName());
-		user.setAccountName(userDetails.getAccountName());
-		user.setAccountNumber(userDetails.getAccountNumber());
-		user.setOrganisations(userDetails.getOrganisations().stream()
-				.map(o -> orgRepo.getOne(o.getId()))
-				.collect(Collectors.toSet())
-		);
+		if (userDetails.getName() != null) {
+			user.setName(userDetails.getName());
+		}
+		if (userDetails.getEmail() != null) {
+			user.setEmail(userDetails.getEmail());
+		}
+		if (userDetails.getBankName() != null) {
+			user.setBankName(userDetails.getBankName());
+		}
+		if (userDetails.getAccountName() != null) {
+			user.setAccountName(userDetails.getAccountName());
+		}
+		if (userDetails.getAccountNumber() != null) {
+			user.setAccountNumber(userDetails.getAccountNumber());
+		}
+		if (userDetails.getOrganisations() != null && !userDetails.getOrganisations().isEmpty()) {
+			user.setOrganisations(userDetails.getOrganisations().stream()
+					.map(o -> orgRepo.getOne(o.getId()))
+					.collect(Collectors.toSet())
+			);
+		}
 
 		user = userRepo.save(user);
 
