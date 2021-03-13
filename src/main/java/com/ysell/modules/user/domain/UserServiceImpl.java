@@ -139,11 +139,11 @@ public class UserServiceImpl implements UserService {
 	@Override
 	public UserResponse updateUser(UpdateUserRequest request) {
 		userRepo.findFirstByEmailIgnoreCase(request.getEmail()).ifPresent(existingUser -> {
-			if (existingUser.getId() != request.getId())
+			if (!existingUser.getId().equals(request.getId()))
 				ServiceUtils.throwWrongEmailException("User", request.getEmail());
 		});
 		userRepo.findFirstByNameIgnoreCase(request.getName()).ifPresent(existingUser -> {
-			if (existingUser.getId() != request.getId())
+			if (!existingUser.getId().equals(request.getId()))
 				ServiceUtils.throwWrongNameException("User", request.getName());
 		});
 

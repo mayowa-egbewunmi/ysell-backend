@@ -90,7 +90,7 @@ public class ProductServiceImpl
     @Override
     protected void beforeUpdate(UUID productId, ProductRequest request) {
         productRepo.findFirstByNameIgnoreCaseAndOrganisationId(request.getName(), request.getOrganisation().getId()).ifPresent(productEntity -> {
-            if(productEntity.getId() != productId)
+            if (!productEntity.getId().equals(productId))
                 ServiceUtils.throwWrongNameException("Product", request.getName());
         });
 

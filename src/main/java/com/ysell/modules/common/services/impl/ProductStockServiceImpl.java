@@ -30,7 +30,7 @@ public class ProductStockServiceImpl implements ProductStockService {
 
         if (quantity < 0)
             throw new YSellRuntimeException(String.format("Cannot order for negative (%d) amount of %s", quantity, productEntity.getName()));
-        else if (productEntity.getOrganisation().getId() != organisationId)
+        else if (!productEntity.getOrganisation().getId().equals(organisationId))
             throw new YSellRuntimeException(String.format("Product with id %s does not belong to Organisation with id %s", productId, organisationId));
         else if (productEntity.getCurrentStock() < quantity)
             throw new YSellRuntimeException(String.format("%s has only %s items left. Cannot order %s", productEntity.getName(), productEntity.getCurrentStock(), quantity));

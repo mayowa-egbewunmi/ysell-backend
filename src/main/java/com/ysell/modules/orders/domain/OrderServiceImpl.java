@@ -60,7 +60,7 @@ public class OrderServiceImpl implements OrderService {
 		OrderEntity orderEntity = orderRepo.findById(orderId)
 				.orElseThrow(() -> ServiceUtils.wrongIdException("Order", orderId));
 
-		if(orderEntity.getOrganisation().getId() != request.getOrganisation().getId()) {
+		if (!orderEntity.getOrganisation().getId().equals(request.getOrganisation().getId())) {
 			throw new YSellRuntimeException(String.format(
 					"Request's organisation id (%s) does not match the order's organisation id (%s)",
 					orderEntity.getOrganisation().getId(),

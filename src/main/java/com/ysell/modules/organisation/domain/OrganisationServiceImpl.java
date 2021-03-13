@@ -46,11 +46,11 @@ public class OrganisationServiceImpl
 	@Override
 	protected void beforeUpdate(UUID organisationId, OrganisationRequest request) {
 		organisationRepo.findFirstByEmailIgnoreCase(request.getEmail()).ifPresent(existingOrganisation -> {
-			if (existingOrganisation.getId() != organisationId)
+			if (!existingOrganisation.getId().equals(organisationId))
 				ServiceUtils.throwWrongEmailException("Organisation", request.getEmail());
 		});
 		organisationRepo.findFirstByNameIgnoreCase(request.getName()).ifPresent(existingOrganisation -> {
-			if (existingOrganisation.getId() != organisationId)
+			if (!existingOrganisation.getId().equals(organisationId))
 				ServiceUtils.throwWrongNameException("Organisation", request.getName());
 		});
 	}
