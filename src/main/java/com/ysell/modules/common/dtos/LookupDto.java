@@ -6,12 +6,14 @@ import com.ysell.jpa.entities.base.NamedEntity;
 import com.ysell.modules.common.exceptions.YSellRuntimeException;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.validation.constraints.NotNull;
 import java.util.UUID;
 
 @AllArgsConstructor
+@NoArgsConstructor
 @Getter
 @Slf4j
 @JsonInclude(value = JsonInclude.Include.NON_NULL)

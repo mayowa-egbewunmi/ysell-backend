@@ -2,6 +2,7 @@ package com.ysell.modules.user.models.request;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import javax.validation.constraints.NotEmpty;
 
@@ -10,6 +11,7 @@ import javax.validation.constraints.NotEmpty;
  * @since 13 February, 2021
  */
 @AllArgsConstructor
+@NoArgsConstructor
 @Getter
 public class ValidateEmailRequest {
 

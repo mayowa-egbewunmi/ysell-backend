@@ -6,12 +6,14 @@ import com.ysell.jpa.entities.enums.SaleType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.util.UUID;
 
 @Builder
 @AllArgsConstructor
+@NoArgsConstructor
 @Getter
 @JsonInclude(value = JsonInclude.Include.NON_NULL)
 public class SaleDto {

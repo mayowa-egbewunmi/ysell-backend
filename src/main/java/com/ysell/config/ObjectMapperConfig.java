@@ -5,16 +5,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.module.paramnames.ParameterNamesModule;
-import com.ysell.common.converters.date.*;
+import com.ysell.common.converters.date.DateDeserializer;
+import com.ysell.common.converters.date.LocalDateDeserializer;
+import com.ysell.common.converters.date.LocalDateTimeDeserializer;
 import com.ysell.common.converters.enums.EnumDeserializer;
-import com.ysell.common.converters.enums.StringToEnumConverterFactory;
 import org.reflections.Reflections;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.format.FormatterRegistry;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import org.springframework.context.annotation.Primary;
 
-import javax.annotation.PostConstruct;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Date;
@@ -24,21 +23,19 @@ import java.util.Date;
  * 24 January, 2020
  */
 @Configuration
-public class ObjectMapperConfig  implements WebMvcConfigurer {
+public class ObjectMapperConfig {
 
-    @Autowired
-    private ObjectMapper objectMapper;
+    @Bean
+    @Primary
+    public ObjectMapper objectMapper() {
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new ParameterNamesModule(JsonCreator.Mode.PROPERTIES));
 
-
-    @Override
-    public void addFormatters(FormatterRegistry registry) {
-        addEnumFormatters(registry);
-        addDateFormatters(registry);
+        return addDeserializers(objectMapper);
     }
 
 
-    @PostConstruct
-    public void addDeserializers() {
+    public ObjectMapper addDeserializers(ObjectMapper objectMapper) {
         SimpleModule module = new SimpleModule();
         addEnumDeserializers(module);
 
@@ -46,35 +43,28 @@ public class ObjectMapperConfig  implements WebMvcConfigurer {
         addDateDeserializers(module);
 
         objectMapper.registerModule(module);
-        objectMapper.registerModule(new ParameterNamesModule(JsonCreator.Mode.PROPERTIES));
-    }
 
-
-    private void addEnumFormatters(FormatterRegistry registry) {
-        registry.addConverterFactory(new StringToEnumConverterFactory());
-    }
-
-
-    private void addDateFormatters(FormatterRegistry registry) {
-        registry.addConverter(new StringToDateConverter());
-        registry.addConverter(new StringToLocalDateConverter());
-        registry.addConverter(new StringToLocalDateTimeConverter());
+        return objectMapper;
     }
 
 
     @SuppressWarnings("unchecked")
-    private void addEnumDeserializers(SimpleModule module) {
+    private SimpleModule addEnumDeserializers(SimpleModule module) {
         Reflections reflections = new Reflections("com.ysell");
         reflections.getSubTypesOf(Enum.class).forEach(enumClass -> {
             EnumDeserializer enumDeserializer = new EnumDeserializer<>(enumClass);
             module.addDeserializer(enumClass, enumDeserializer);
         });
+
+        return module;
     }
 
 
-    private void addDateDeserializers(SimpleModule module) {
+    private SimpleModule addDateDeserializers(SimpleModule module) {
         module.addDeserializer(Date.class, new DateDeserializer());
         module.addDeserializer(LocalDate.class, new LocalDateDeserializer());
         module.addDeserializer(LocalDateTime.class, new LocalDateTimeDeserializer());
+
+        return module;
     }
 }
