@@ -37,8 +37,8 @@ public class UserController {
 
 
     @GetMapping
-    public PageWrapper<UserResponse> getAllUsersPaged(@PageableDefault(size = AppConstants.DEFAULT_PAGE_SIZE) Pageable page) {
-        return userService.getAllPaged(page);
+    public PageWrapper<UserResponse> getUsersByPage(@PageableDefault(size = AppConstants.DEFAULT_PAGE_SIZE) Pageable page) {
+        return userService.getUsersByPage(page);
     }
 
 

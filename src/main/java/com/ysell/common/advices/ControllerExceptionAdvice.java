@@ -3,6 +3,7 @@ package com.ysell.common.advices;
 import com.ysell.common.models.YsellResponse;
 import com.ysell.modules.common.exceptions.YSellRuntimeException;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.mapping.PropertyReferenceException;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -46,6 +47,14 @@ public class ControllerExceptionAdvice {
         }
 
         return createError(strBuilder.toString());
+    }
+
+
+    @ExceptionHandler(PropertyReferenceException.class)
+    @ResponseStatus(value = HttpStatus.BAD_REQUEST)
+    public YsellResponse<Object> handlePropertyReferenceException(PropertyReferenceException ex, HttpServletRequest httpServletRequest) {
+        Throwable throwable = ex.getCause() != null && ex.getCause().getMessage() != null ? ex.getCause() : ex;
+        return createError(throwable.getMessage());
     }
 
 

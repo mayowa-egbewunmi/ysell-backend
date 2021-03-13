@@ -4,7 +4,6 @@ import com.ysell.jpa.entities.OrderEntity;
 import com.ysell.jpa.entities.PaymentEntity;
 import com.ysell.jpa.repositories.OrderRepository;
 import com.ysell.jpa.repositories.PaymentRepository;
-import com.ysell.modules.common.dtos.LookupDto;
 import com.ysell.modules.common.exceptions.YSellRuntimeException;
 import com.ysell.modules.common.services.LoggedInUserService;
 import com.ysell.modules.common.utilities.ServiceUtils;
@@ -12,8 +11,6 @@ import com.ysell.modules.payment.models.request.PaymentRequest;
 import com.ysell.modules.payment.models.response.PaymentResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-
-import java.util.UUID;
 
 /**
  * @author tchineke
@@ -32,41 +29,28 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Override
     public PaymentResponse makePayment(PaymentRequest request) {
-        OrderEntity orderEntity = tryGetOrder(request.getOrderId());
-        if(!request.isTotalPaidIgnored() && orderEntity.paymentComplete())
+        OrderEntity orderEntity = orderRepository.findById(request.getOrderId())
+                .orElseThrow(() -> ServiceUtils.wrongIdException("Order", request.getOrderId()));
+
+        if (!request.getTotalPaidIgnored() && orderEntity.paymentComplete())
             throw new YSellRuntimeException("Payment already completed for order");
 
-        PaymentEntity paymentEntity = createPayment(request, orderEntity);
-        orderEntity = updateOrder(orderEntity, paymentEntity);
+        createPayment(request, orderEntity);
 
-        return PaymentResponse.builder()
-                .order(LookupDto.create(orderEntity.getId(), orderEntity.getTitle()))
-                .totalPrice(orderEntity.getTotalPrice())
-                .amountPaid(request.getAmountPaid())
-                .depositor(loggedInUserService.getLoggedInUser().getName())
-                .totalAmountPaid(orderEntity.getAmountPaid())
-                .amountDue(orderEntity.getAmountDue())
-                .build();
+        orderEntity = orderRepository.getOne(request.getOrderId());
+
+        return PaymentResponse.from(orderEntity, request.getAmountPaid(), loggedInUserService.getLoggedInUser().getName());
     }
 
 
-    private OrderEntity updateOrder(OrderEntity orderEntity, PaymentEntity paymentEntity) {
-        orderEntity.getPayments().add(paymentEntity);
-        return orderRepository.save(orderEntity);
-    }
-
-
-    private OrderEntity tryGetOrder(UUID orderId) {
-        return orderRepository.findById(orderId)
-                .orElseThrow(() -> ServiceUtils.wrongIdException("Order", orderId));
-    }
-
-
-    private PaymentEntity createPayment(PaymentRequest request, OrderEntity orderEntity) {
+    private void createPayment(PaymentRequest request, OrderEntity orderEntity) {
         PaymentEntity paymentEntity = new PaymentEntity(
-                orderEntity, request.getAmountPaid(), request.getMode(), request.getNarration()
+                orderEntity,
+                request.getAmountPaid(),
+                request.getMode(),
+                request.getNarration()
         );
 
-        return paymentRepository.save(paymentEntity);
+        paymentRepository.save(paymentEntity);
     }
 }

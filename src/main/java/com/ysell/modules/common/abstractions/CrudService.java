@@ -10,9 +10,9 @@ public interface CrudService<TCreateRequest, TUpdateRequest, TResponse> {
 
     List<TResponse> getAll();
 
-    PageWrapper<TResponse> getAllPaged(Pageable pageable);
+    PageWrapper<TResponse> getByPage(Pageable pageable);
 
-    PageWrapper<TResponse> getAllPaged(int page, int size, boolean isAscending, String... sortFields);
+    PageWrapper<TResponse> getByPage(int page, int size, boolean isAscending, String... sortFields);
 
     TResponse getById(UUID id);
 

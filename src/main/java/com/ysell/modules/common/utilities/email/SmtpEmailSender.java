@@ -5,6 +5,7 @@ import com.ysell.modules.common.exceptions.YSellRuntimeException;
 import com.ysell.modules.common.utilities.email.models.EmailModel;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.MailSendException;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -22,6 +23,9 @@ public class SmtpEmailSender implements EmailSender {
 
     private final JavaMailSender javaMailSender;
 
+    @Value("${spring.mail.from.email}")
+    private String senderEmail;
+
 
     @Override
     public void send(EmailModel model, String emailType) {
@@ -30,6 +34,7 @@ public class SmtpEmailSender implements EmailSender {
             msg.setTo(model.getRecipient());
             msg.setSubject(model.getSubject());
             msg.setText(model.getMessage());
+            msg.setFrom(senderEmail);
 
             if (model.getBccRecipients() != null)
                 msg.setBcc(model.getBccRecipients().toArray(new String[0]));

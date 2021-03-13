@@ -1,10 +1,13 @@
 package com.ysell.modules.organisation;
 
 import com.ysell.modules.common.constants.ControllerConstants;
+import com.ysell.modules.common.response.PageWrapper;
 import com.ysell.modules.organisation.domain.OrganisationService;
 import com.ysell.modules.organisation.models.request.OrganisationRequest;
 import com.ysell.modules.organisation.models.response.OrganisationResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,8 +27,10 @@ public class OrganisationController {
 
 
     @GetMapping
-    public List<OrganisationResponse> getAllOrganisations(){
-        return organisationService.getAll();
+    public PageWrapper<OrganisationResponse> getOrganisationsByPage(
+            @PageableDefault(size = ControllerConstants.DEFAULT_PAGE_SIZE) Pageable pageable
+    ) {
+        return organisationService.getByPage(pageable);
     }
 
 

@@ -1,5 +1,6 @@
 package com.ysell.modules.product.models.response;
 
+import com.ysell.jpa.entities.ProductCategoryEntity;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -14,4 +15,13 @@ public class ProductCategoryResponse {
 	private String name;
 	
 	private String description;
+
+
+	public static ProductCategoryResponse from(ProductCategoryEntity productCategoryEntity) {
+		return new ProductCategoryResponse(
+				productCategoryEntity.getId(),
+				productCategoryEntity.getName(),
+				productCategoryEntity.getDescription()
+		);
+	}
 }

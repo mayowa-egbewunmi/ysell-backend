@@ -4,11 +4,13 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.ysell.jpa.entities.enums.SaleType;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 
 import java.math.BigDecimal;
 import java.util.UUID;
 
+@Builder
 @AllArgsConstructor
 @Getter
 @JsonInclude(value = JsonInclude.Include.NON_NULL)

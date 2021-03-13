@@ -39,7 +39,7 @@ public class BaseCrudService<TEntity extends ActiveAuditableEntity, TCreateReque
 
 
     @Override
-    public PageWrapper<TResponse> getAllPaged(Pageable pageable) {
+    public PageWrapper<TResponse> getByPage(Pageable pageable) {
         return PageWrapper.from(
                 repo.findAll(pageable)
                         .map(this::convertToResponse)
@@ -48,11 +48,11 @@ public class BaseCrudService<TEntity extends ActiveAuditableEntity, TCreateReque
 
 
     @Override
-    public PageWrapper<TResponse> getAllPaged(int page, int size, boolean isAscending, String... sortFields) {
+    public PageWrapper<TResponse> getByPage(int page, int size, boolean isAscending, String... sortFields) {
         Direction direction = isAscending ? Direction.ASC : Direction.DESC;
         Pageable pageable = PageRequest.of(page, size, by(direction, sortFields));
 
-        return getAllPaged(pageable);
+        return getByPage(pageable);
     }
 
 

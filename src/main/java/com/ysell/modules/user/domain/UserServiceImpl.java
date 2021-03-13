@@ -8,9 +8,9 @@ import com.ysell.jpa.repositories.OrganisationRepository;
 import com.ysell.jpa.repositories.ResetCodeRepository;
 import com.ysell.jpa.repositories.UserRepository;
 import com.ysell.modules.common.dtos.LookupDto;
+import com.ysell.modules.common.exceptions.YSellRuntimeException;
 import com.ysell.modules.common.response.PageWrapper;
 import com.ysell.modules.common.response.SimpleMessageResponse;
-import com.ysell.modules.common.exceptions.YSellRuntimeException;
 import com.ysell.modules.common.utilities.ServiceUtils;
 import com.ysell.modules.common.utilities.email.EmailSender;
 import com.ysell.modules.common.utilities.email.models.EmailModel;
@@ -20,7 +20,6 @@ import com.ysell.modules.user.models.response.UserResponse;
 import com.ysell.modules.user.models.response.UserTokenResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -58,8 +57,6 @@ public class UserServiceImpl implements UserService {
 
 	private final JwtTokenUtil jwtTokenUtil;
 
-	private final ModelMapper mapper = new ModelMapper();
-
 	@Value("${ysell.constants.user-activation.reset-code-delay-in-minutes:30}")
 	private int resetCodeDelayInMinutes;
 
@@ -81,10 +78,10 @@ public class UserServiceImpl implements UserService {
 
 
 	@Override
-	public PageWrapper<UserResponse> getAllPaged(Pageable page) {
+	public PageWrapper<UserResponse> getUsersByPage(Pageable page) {
 		return PageWrapper.from(
 				userRepo.findAll(page)
-						.map(userEntity -> mapper.map(userEntity, UserResponse.class))
+						.map(UserResponse::from)
 		);
 	}
 
@@ -92,7 +89,7 @@ public class UserServiceImpl implements UserService {
 	@Override
 	public UserResponse getById(UUID userId) {
 		return userRepo.findById(userId)
-				.map(user -> mapper.map(user, UserResponse.class))
+				.map(UserResponse::from)
 				.orElseThrow(() -> ServiceUtils.wrongIdException("User", userId));
 	}
 
@@ -103,12 +100,11 @@ public class UserServiceImpl implements UserService {
 
 		return organisationIds.stream()
 				.flatMap(organisationId -> userRepo.findByOrganisationsId(organisationId).stream())
-				.map(user -> mapper.map(user, UserResponse.class))
+				.map(UserResponse::from)
 				.collect(Collectors.toList());
 	}
 
 
-	//todo: refactor my validates to one line, total refactor of model mapper usages
 	@Override
 	public UserRegistrationResponse registerUser(CreateUserRequest request) {
 		if (userRepo.existsByEmailIgnoreCase(request.getEmail()))
@@ -120,14 +116,12 @@ public class UserServiceImpl implements UserService {
 
 		String hash = passwordEncoder.encode(request.getPassword());
 
-		UserEntity userEntity = performUserCreation(request, hash);
+		UserEntity userEntity = performInitialUserCreation(request, hash);
 
 		String resetCode = generateResetCode(userEntity);
 		String msg = format("Your validation code is: %s. It expires in %d minutes", resetCode, resetCodeDelayInMinutes);
 		EmailModel emailModel = new EmailModel(request.getEmail(), "Ysell Email Validation", msg, null);
 		emailSender.send(emailModel, "user validation code");
-
-		unsubscribe(new SubscriptionRequest(userEntity.getId()));
 
 		final String token = jwtTokenUtil.generateToken(userEntity.getEmail(), userEntity.getId());
 
@@ -175,7 +169,7 @@ public class UserServiceImpl implements UserService {
 		user.setActivated(false);
 		user = userRepo.save(user);
 
-		return mapper.map(user, UserResponse.class);
+		return UserResponse.from(user);
 	}
 
 
@@ -190,7 +184,7 @@ public class UserServiceImpl implements UserService {
 		user.setActivated(true);
 		user = userRepo.save(user);
 
-		return mapper.map(user, UserResponse.class);
+		return UserResponse.from(user);
 	}
 
 
@@ -249,20 +243,42 @@ public class UserServiceImpl implements UserService {
 	}
 
 
-	private UserEntity performUserCreation(CreateUserRequest userDetails, String hash) {
-		UserEntity user = mapper.map(userDetails, UserEntity.class);
+	private UserEntity performInitialUserCreation(CreateUserRequest userDetails, String hash) {
+		UserEntity user = UserEntity.builder()
+				.name(userDetails.getName())
+				.email(userDetails.getEmail())
+				.bankName(userDetails.getBankName())
+				.accountName(userDetails.getAccountName())
+				.accountNumber(userDetails.getAccountNumber())
+				.activated(false)
+				.organisations(userDetails.getOrganisations().stream()
+						.map(o -> orgRepo.getOne(o.getId()))
+						.collect(Collectors.toSet()))
+				.build();
+
 		user.setHash(hash);
+
 		return userRepo.save(user);
 	}
 
 
 	private UserResponse performUserUpdate(UpdateUserRequest userDetails) {
-		UserEntity user = userRepo.findById(userDetails.getId()).get();
+		UserEntity user = userRepo.findById(userDetails.getId())
+				.orElseThrow(() -> ServiceUtils.wrongIdException("User", userDetails.getId()));
 
-		mapper.map(userDetails, user);
+		user.setName(userDetails.getName());
+		user.setEmail(userDetails.getEmail());
+		user.setBankName(userDetails.getBankName());
+		user.setAccountName(userDetails.getAccountName());
+		user.setAccountNumber(userDetails.getAccountNumber());
+		user.setOrganisations(userDetails.getOrganisations().stream()
+				.map(o -> orgRepo.getOne(o.getId()))
+				.collect(Collectors.toSet())
+		);
+
 		user = userRepo.save(user);
 
-		return mapper.map(user, UserResponse.class);
+		return UserResponse.from(user);
 	}
 
 

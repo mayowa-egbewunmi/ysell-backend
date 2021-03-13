@@ -16,7 +16,7 @@ public interface UserService {
 
 	UserTokenResponse authenticate(LoginRequest request);
 
-	PageWrapper<UserResponse> getAllPaged(Pageable page);
+	PageWrapper<UserResponse> getUsersByPage(Pageable page);
 
 	UserResponse getById(UUID id);
 

@@ -7,14 +7,12 @@ import com.ysell.jpa.repositories.OrganisationRepository;
 import com.ysell.jpa.repositories.ProductCategoryRepository;
 import com.ysell.jpa.repositories.ProductRepository;
 import com.ysell.modules.common.abstractions.BaseCrudService;
-import com.ysell.modules.common.dtos.LookupDto;
 import com.ysell.modules.common.exceptions.YSellRuntimeException;
 import com.ysell.modules.common.utilities.ServiceUtils;
 import com.ysell.modules.product.models.request.ProductCategoryRequest;
 import com.ysell.modules.product.models.request.ProductRequest;
 import com.ysell.modules.product.models.response.ProductCategoryResponse;
 import com.ysell.modules.product.models.response.ProductResponse;
-import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,8 +32,6 @@ public class ProductServiceImpl
     private final ProductCategoryRepository productCategoryRepo;
 
     private final OrganisationRepository orgRepo;
-
-    private final ModelMapper modelMapper = new ModelMapper();
 
 
     public ProductServiceImpl(ProductRepository productRepo, ProductCategoryRepository productCategoryRepo, OrganisationRepository orgRepo) {
@@ -63,17 +59,22 @@ public class ProductServiceImpl
     @Override
     public List<ProductCategoryResponse> getProductCategories() {
         return productCategoryRepo.findAll().stream()
-                .map(productCategoryEntity ->  modelMapper.map(productCategoryEntity, ProductCategoryResponse.class))
+                .map(ProductCategoryResponse::from)
                 .collect(Collectors.toList());
     }
 
 
     @Override
     public ProductCategoryResponse createOrUpdateProductCategory(ProductCategoryRequest request) {
-        ProductCategoryEntity entity = modelMapper.map(request, ProductCategoryEntity.class);
-        entity = productCategoryRepo.save(entity);
+        ProductCategoryEntity productCategoryEntity = ProductCategoryEntity.builder()
+                .name(request.getName())
+                .description(request.getDescription())
+                .build();
+        productCategoryEntity.setId(request.getId());
 
-        return modelMapper.map(entity, ProductCategoryResponse.class);
+        productCategoryEntity = productCategoryRepo.save(productCategoryEntity);
+
+        return ProductCategoryResponse.from(productCategoryEntity);
     }
 
 
@@ -102,15 +103,7 @@ public class ProductServiceImpl
         OrganisationEntity organisationEntity = orgRepo.getOne(entity.getOrganisation().getId());
         ProductCategoryEntity productCategoryEntity = productCategoryRepo.getOne(entity.getProductCategory().getId());
 
-        return ProductResponse.builder()
-                .id(entity.getId())
-                .name(entity.getName())
-                .description(entity.getDescription())
-                .price(entity.getSellingPrice())
-                .currentStock(entity.getCurrentStock())
-                .organisation(LookupDto.create(organisationEntity))
-                .productCategory(LookupDto.create(productCategoryEntity))
-                .build();
+        return ProductResponse.from(entity, organisationEntity, productCategoryEntity);
     }
 
 

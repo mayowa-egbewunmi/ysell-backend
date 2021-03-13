@@ -27,5 +27,5 @@ public class PaymentRequest {
 
     private String narration;
 
-    private boolean totalPaidIgnored;
+    private Boolean totalPaidIgnored;
 }
