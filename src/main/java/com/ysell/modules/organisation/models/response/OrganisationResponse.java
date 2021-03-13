@@ -1,12 +1,11 @@
 package com.ysell.modules.organisation.models.response;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import com.ysell.jpa.entities.OrganisationEntity;
+import lombok.*;
 
 import java.util.UUID;
 
+@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 @Setter
@@ -22,4 +21,15 @@ public class OrganisationResponse {
     private String address;
     
     private String logo;
+
+
+    public static OrganisationResponse from(OrganisationEntity organisationEntity) {
+        return OrganisationResponse.builder()
+                .id(organisationEntity.getId())
+                .email(organisationEntity.getEmail())
+                .name(organisationEntity.getName())
+                .address(organisationEntity.getAddress())
+                .logo(organisationEntity.getLogo())
+                .build();
+    }
 }

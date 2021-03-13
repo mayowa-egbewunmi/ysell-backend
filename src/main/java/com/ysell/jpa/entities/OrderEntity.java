@@ -37,7 +37,7 @@ public class OrderEntity extends ActiveAuditableEntity {
 
 
     public BigDecimal getTotalPrice() {
-        return sales.stream().reduce(BigDecimal.ZERO, (sum, sale) -> sum.add(sale.getTotalPrice()), BigDecimal::add);
+        return sales.stream().reduce(BigDecimal.ZERO, (sum, sale) -> sum.add(sale.getTotalSellingPrice()), BigDecimal::add);
     }
 
 

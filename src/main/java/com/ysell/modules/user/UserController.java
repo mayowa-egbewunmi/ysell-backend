@@ -80,13 +80,13 @@ public class UserController {
 
 
     @PostMapping("/code/initiate")
-    public SimpleMessageResponse resetCodeInitiate(@RequestBody @Valid ResetInitiateRequest request) {
+    public SimpleMessageResponse resetCodeInitiate(@RequestBody @Valid InitiateResetPasswordRequest request) {
         return userService.resetCodeInitiate(request);
     }
 
 
     @PostMapping("/code/verify")
-    public SimpleMessageResponse resetCodeVerify(@RequestBody @Valid ResetVerifyRequest request) {
+    public SimpleMessageResponse resetCodeVerify(@RequestBody @Valid ResetCodeValidateRequest request) {
         return userService.resetCodeVerify(request);
     }
 

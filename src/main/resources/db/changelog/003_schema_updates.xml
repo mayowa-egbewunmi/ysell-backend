@@ -26,5 +26,18 @@
         <dropNotNullConstraint tableName="products" columnName="product_category_id" columnDataType="BINARY(16)" />
     </changeSet>
 
+
+    <changeSet id="1615297672-01-rename-sale-price" author="tobenna">
+        <renameColumn tableName="sales" oldColumnName="total_price" newColumnName="total__selling_price" columnDataType="DECIMAL"/>
+    </changeSet>
+
+
+    <changeSet id="1615297672-01-add-cost-price-to-sales" author="tobenna">
+        <addColumn tableName="sales">
+            <column name="total_price" type="DECIMAL" defaultValue="0">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+    </changeSet>
+
 </databaseChangeLog>
-<!--todo: update api request response, test endpoints and synchronisation, update schema, merge with front end-->

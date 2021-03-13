@@ -9,8 +9,11 @@ import javax.validation.constraints.NotEmpty;
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
-public class ResetInitiateRequest {
+public class ResetCodeValidateRequest {
 
 	@NotEmpty
 	private String email;
+
+	@NotEmpty
+	private String resetCode;
 }

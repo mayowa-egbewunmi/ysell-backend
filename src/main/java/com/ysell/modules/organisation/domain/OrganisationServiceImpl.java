@@ -7,7 +7,6 @@ import com.ysell.modules.common.abstractions.BaseCrudService;
 import com.ysell.modules.common.utilities.ServiceUtils;
 import com.ysell.modules.organisation.models.request.OrganisationRequest;
 import com.ysell.modules.organisation.models.response.OrganisationResponse;
-import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,8 +24,6 @@ public class OrganisationServiceImpl
 	private final OrganisationRepository organisationRepo;
 
 	private final UserRepository userRepo;
-
-	private final ModelMapper mapper = new ModelMapper();
 
 
 	public OrganisationServiceImpl(OrganisationRepository organisationRepo, UserRepository userRepo) {
@@ -67,7 +64,7 @@ public class OrganisationServiceImpl
 		});
 
 		return organisationRepo.findByUsersIdIn(userIds).stream()
-				.map(organisationEntity -> mapper.map(organisationEntity, OrganisationResponse.class))
+				.map(OrganisationResponse::from)
 				.collect(Collectors.toList());
 	}
 }

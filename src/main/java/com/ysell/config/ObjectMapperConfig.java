@@ -1,8 +1,10 @@
 package com.ysell.config;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.fasterxml.jackson.module.paramnames.ParameterNamesModule;
 import com.ysell.common.converters.date.*;
 import com.ysell.common.converters.enums.EnumDeserializer;
 import com.ysell.common.converters.enums.StringToEnumConverterFactory;
@@ -44,6 +46,7 @@ public class ObjectMapperConfig  implements WebMvcConfigurer {
         addDateDeserializers(module);
 
         objectMapper.registerModule(module);
+        objectMapper.registerModule(new ParameterNamesModule(JsonCreator.Mode.PROPERTIES));
     }
 
 

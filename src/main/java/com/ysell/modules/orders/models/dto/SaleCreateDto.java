@@ -1,5 +1,6 @@
 package com.ysell.modules.orders.models.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.ysell.modules.common.dto.LookupDto;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -20,5 +21,9 @@ public class SaleCreateDto {
     private Integer quantity;
 
     @NotNull
-    private BigDecimal totalPrice; 
+    @JsonProperty("total_price")
+    private BigDecimal totalSellingPrice;
+
+    @JsonProperty("total_cost")
+    private BigDecimal totalCostPrice;
 }

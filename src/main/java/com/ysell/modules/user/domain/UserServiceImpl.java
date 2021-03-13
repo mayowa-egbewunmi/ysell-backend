@@ -108,18 +108,15 @@ public class UserServiceImpl implements UserService {
 	}
 
 
+	//todo: refactor my validates to one line, total refactor of model mapper usages
 	@Override
 	public UserRegistrationResponse registerUser(CreateUserRequest request) {
-		if (request.getOrganisations().size() == 0)
-			throw new YSellRuntimeException("A user must belong to an organisation");
-
 		if (userRepo.existsByEmailIgnoreCase(request.getEmail()))
 			ServiceUtils.throwWrongEmailException("User", request.getEmail());
+		if (userRepo.existsByNameIgnoreCase(request.getName()))
+			ServiceUtils.throwWrongNameException("User", request.getName());
 
-		Set<UUID> organisationIds = request.getOrganisations().stream()
-				.map(LookupDto::getId)
-				.collect(Collectors.toSet());
-		validateOrganisationIds(organisationIds);
+		validateOrganisations(request.getOrganisations());
 
 		String hash = passwordEncoder.encode(request.getPassword());
 
@@ -128,7 +125,7 @@ public class UserServiceImpl implements UserService {
 		String resetCode = generateResetCode(userEntity);
 		String msg = format("Your validation code is: %s. It expires in %d minutes", resetCode, resetCodeDelayInMinutes);
 		EmailModel emailModel = new EmailModel(request.getEmail(), "Ysell Email Validation", msg, null);
-		sendEmail(emailModel, "user validation code");
+		emailSender.send(emailModel, "user validation code");
 
 		unsubscribe(new SubscriptionRequest(userEntity.getId()));
 
@@ -156,11 +153,12 @@ public class UserServiceImpl implements UserService {
 			if (existingUser.getId() != request.getId())
 				ServiceUtils.throwWrongEmailException("User", request.getEmail());
 		});
+		userRepo.findFirstByNameIgnoreCase(request.getName()).ifPresent(existingUser -> {
+			if (existingUser.getId() != request.getId())
+				ServiceUtils.throwWrongNameException("User", request.getName());
+		});
 
-		Set<UUID> organisationIds = request.getOrganisations().stream()
-				.map(LookupDto::getId)
-				.collect(Collectors.toSet());
-		validateOrganisationIds(organisationIds);
+		validateOrganisations(request.getOrganisations());
 
 		return performUserUpdate(request);
 	}
@@ -197,21 +195,21 @@ public class UserServiceImpl implements UserService {
 
 
 	@Override
-	public SimpleMessageResponse resetCodeInitiate(ResetInitiateRequest request) {
+	public SimpleMessageResponse resetCodeInitiate(InitiateResetPasswordRequest request) {
 		UserEntity userEntity = getUser(request.getEmail());
 
 		String resetCode = generateResetCode(userEntity);
 
 		String msg = format("Your password reset code is %s. It will expire in %d minutes", resetCode, resetCodeDelayInMinutes);
 		EmailModel emailModel = new EmailModel(request.getEmail(), "YSell Password Reset Code", msg, null);
-		sendEmail(emailModel, "reset code");
+		emailSender.send(emailModel, "reset code");
 
 		return new SimpleMessageResponse(format("Reset code has been sent to your email. It will expire in %d minutes", resetCodeDelayInMinutes));
 	}
 
 
 	@Override
-	public SimpleMessageResponse resetCodeVerify(ResetVerifyRequest request) {
+	public SimpleMessageResponse resetCodeVerify(ResetCodeValidateRequest request) {
 		verifyCode(request.getEmail(), request.getResetCode());
 		return new SimpleMessageResponse("Valid reset code");
 	}
@@ -248,16 +246,6 @@ public class UserServiceImpl implements UserService {
 		resetCodeRepo.save(resetCodeEntity);
 
 		return resetCode;
-	}
-
-
-	private void sendEmail(EmailModel emailModel, String emailType) {
-		try {
-			emailSender.Send(emailModel);
-		} catch (Exception ex) {
-			log.error(format("Error occurred while sending %s email: ", emailType), ex);
-			throw new YSellRuntimeException(format("Error occurred while sending %s email. Please meet administrator", emailType));
-		}
 	}
 
 
@@ -309,6 +297,17 @@ public class UserServiceImpl implements UserService {
 		Date expiryTime = new Date();
 		expiryTime.setTime(now.getTime() + TimeUnit.MINUTES.toMillis(resetCodeDelayInMinutes));
 		return expiryTime;
+	}
+
+
+	private void validateOrganisations(Set<LookupDto> organisations) {
+		if (organisations == null)
+			return;
+
+		Set<UUID> organisationIds = organisations.stream()
+				.map(LookupDto::getId)
+				.collect(Collectors.toSet());
+		validateOrganisationIds(organisationIds);
 	}
 
 

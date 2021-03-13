@@ -27,5 +27,8 @@ public class SaleEntity extends ActiveAuditableEntity {
     private Integer quantity;
 
     @Column(nullable = false)
-    private BigDecimal totalPrice;
+    private BigDecimal totalSellingPrice;
+
+    @Column(nullable = false)
+    private BigDecimal totalCostPrice;
 }

@@ -4,5 +4,5 @@ import com.ysell.modules.common.utilities.email.models.EmailModel;
 
 public interface EmailSender {
 
-	public void Send(EmailModel model);
+	void send(EmailModel model, String emailType);
 }

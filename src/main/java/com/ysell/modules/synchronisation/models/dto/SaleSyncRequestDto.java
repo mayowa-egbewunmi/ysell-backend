@@ -25,5 +25,9 @@ public class SaleSyncRequestDto extends BaseSyncRequestDto {
 
 	@NotNull
 	@JsonProperty("total_price")
-	private BigDecimal totalPrice;
+	private BigDecimal totalSellingPrice;
+
+	@NotNull
+	@JsonProperty("total_cost")
+	private BigDecimal totalCostPrice;
 }

@@ -70,7 +70,7 @@ public class SynchronisationServiceImpl implements SynchronisationService {
 		updatedPayments = updatedPayments.stream()
 				.filter(x -> request.getPaymentData().getUnsyncedPayments().stream().noneMatch(y -> y.getId() == x.getId()))
 				.collect(Collectors.toSet());
-		Set<UpdatedSyncResponseDto> syncedPayments = syncPayments(request.getPaymentData().getUnsyncedPayments());
+		Set<UpdatedSyncResponseDto> syncedPayments = syncedPayments(request.getPaymentData().getUnsyncedPayments());
 
 		return SynchronisationResponse.builder()
 				.productData(SynchronisationResponse.ProductData.builder()
@@ -226,7 +226,8 @@ public class SynchronisationServiceImpl implements SynchronisationService {
 					.order(orderRepository.getOne(unsyncedDto.getOrderId()))
 					.product(productRepository.getOne(unsyncedDto.getProductId()))
 					.quantity(unsyncedDto.getQuantity())
-					.totalPrice(unsyncedDto.getTotalPrice())
+					.totalSellingPrice(unsyncedDto.getTotalSellingPrice())
+					.totalCostPrice(unsyncedDto.getTotalCostPrice())
 					.build();
 			entity.setCreatedBy(unsyncedDto.getCreatedBy());
 			entity.setUpdatedBy(unsyncedDto.getUpdatedBy());
@@ -252,7 +253,7 @@ public class SynchronisationServiceImpl implements SynchronisationService {
 	}
 
 
-	private Set<UpdatedSyncResponseDto> syncPayments(Set<PaymentSyncRequestDto> unsyncedPayments) {
+	private Set<UpdatedSyncResponseDto> syncedPayments(Set<PaymentSyncRequestDto> unsyncedPayments) {
 		return unsyncedPayments.stream().map(unsyncedDto -> {
 			PaymentEntity entity = PaymentEntity.builder()
 					.order(orderRepository.getOne(unsyncedDto.getOrderId()))

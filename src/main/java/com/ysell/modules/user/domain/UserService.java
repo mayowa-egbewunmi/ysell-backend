@@ -30,9 +30,9 @@ public interface UserService {
 
 	UserResponse resubscribe(SubscriptionRequest subscribeRequest);
 
-	SimpleMessageResponse resetCodeInitiate(ResetInitiateRequest request);
+	SimpleMessageResponse resetCodeInitiate(InitiateResetPasswordRequest request);
 
-	SimpleMessageResponse resetCodeVerify(ResetVerifyRequest request);
+	SimpleMessageResponse resetCodeVerify(ResetCodeValidateRequest request);
 
 	SimpleMessageResponse resetPassword(ResetPasswordRequest request);
 
