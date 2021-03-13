@@ -1,6 +1,6 @@
 package com.ysell.modules.common.services;
 
-import com.ysell.modules.common.dto.ProductDto;
+import com.ysell.modules.common.dtos.ProductDto;
 
 import java.util.UUID;
 

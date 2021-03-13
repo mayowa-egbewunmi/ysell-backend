@@ -2,7 +2,7 @@ package com.ysell.modules.product;
 
 import com.ysell.common.constants.AppConstants;
 import com.ysell.modules.common.constants.ControllerConstants;
-import com.ysell.modules.common.dto.PageWrapper;
+import com.ysell.modules.common.response.PageWrapper;
 import com.ysell.modules.product.domain.ProductService;
 import com.ysell.modules.product.models.request.ProductCategoryRequest;
 import com.ysell.modules.product.models.request.ProductRequest;

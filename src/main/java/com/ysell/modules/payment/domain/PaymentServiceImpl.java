@@ -4,7 +4,7 @@ import com.ysell.jpa.entities.OrderEntity;
 import com.ysell.jpa.entities.PaymentEntity;
 import com.ysell.jpa.repositories.OrderRepository;
 import com.ysell.jpa.repositories.PaymentRepository;
-import com.ysell.modules.common.dto.LookupDto;
+import com.ysell.modules.common.dtos.LookupDto;
 import com.ysell.modules.common.exceptions.YSellRuntimeException;
 import com.ysell.modules.common.services.LoggedInUserService;
 import com.ysell.modules.common.utilities.ServiceUtils;

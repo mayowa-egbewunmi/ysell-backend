@@ -7,7 +7,7 @@ import com.ysell.jpa.repositories.OrganisationRepository;
 import com.ysell.jpa.repositories.ProductCategoryRepository;
 import com.ysell.jpa.repositories.ProductRepository;
 import com.ysell.modules.common.abstractions.BaseCrudService;
-import com.ysell.modules.common.dto.LookupDto;
+import com.ysell.modules.common.dtos.LookupDto;
 import com.ysell.modules.common.exceptions.YSellRuntimeException;
 import com.ysell.modules.common.utilities.ServiceUtils;
 import com.ysell.modules.product.models.request.ProductCategoryRequest;

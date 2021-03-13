@@ -2,7 +2,7 @@ package com.ysell.modules.common.services.impl;
 
 import com.ysell.jpa.entities.ProductEntity;
 import com.ysell.jpa.repositories.ProductRepository;
-import com.ysell.modules.common.dto.ProductDto;
+import com.ysell.modules.common.dtos.ProductDto;
 import com.ysell.modules.common.exceptions.YSellRuntimeException;
 import com.ysell.modules.common.services.ProductStockService;
 import com.ysell.modules.common.utilities.ServiceUtils;

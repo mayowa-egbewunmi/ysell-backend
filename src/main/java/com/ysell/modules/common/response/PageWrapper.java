@@ -1,4 +1,4 @@
-package com.ysell.modules.common.dto;
+package com.ysell.modules.common.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

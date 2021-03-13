@@ -1,6 +1,6 @@
 package com.ysell.modules.common.abstractions;
 
-import com.ysell.modules.common.dto.PageWrapper;
+import com.ysell.modules.common.response.PageWrapper;
 import org.springframework.data.domain.Pageable;
 
 import java.util.List;

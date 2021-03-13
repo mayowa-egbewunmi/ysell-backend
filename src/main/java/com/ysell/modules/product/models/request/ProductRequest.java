@@ -1,6 +1,6 @@
 package com.ysell.modules.product.models.request;
 
-import com.ysell.modules.common.dto.LookupDto;
+import com.ysell.modules.common.dtos.LookupDto;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 

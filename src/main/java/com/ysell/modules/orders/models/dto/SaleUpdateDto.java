@@ -1,6 +1,8 @@
 package com.ysell.modules.orders.models.dto;
 
-import com.ysell.modules.common.dto.LookupDto;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.ysell.jpa.entities.enums.SaleType;
+import com.ysell.modules.common.dtos.LookupDto;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -24,5 +26,12 @@ public class SaleUpdateDto {
 	private Integer quantity;
 
 	@NotNull
-	private BigDecimal totalPrice;
+	@JsonProperty("total_price")
+	private BigDecimal totalSellingPrice;
+
+	@JsonProperty("total_cost")
+	private BigDecimal totalCostPrice;
+
+	@NotNull
+	private SaleType saleType;
 }

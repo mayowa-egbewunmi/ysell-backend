@@ -1,6 +1,6 @@
 package com.ysell.modules.payment.models.response;
 
-import com.ysell.modules.common.dto.LookupDto;
+import com.ysell.modules.common.dtos.LookupDto;
 import lombok.Builder;
 import lombok.Getter;
 

@@ -1,5 +1,6 @@
-package com.ysell.modules.common.dto;
+package com.ysell.modules.common.dtos;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -8,6 +9,7 @@ import java.util.UUID;
 
 @AllArgsConstructor
 @Getter
+@JsonInclude(value = JsonInclude.Include.NON_NULL)
 public class ProductDto {
 
     private UUID id;

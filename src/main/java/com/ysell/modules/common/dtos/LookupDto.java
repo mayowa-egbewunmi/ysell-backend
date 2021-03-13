@@ -1,4 +1,4 @@
-package com.ysell.modules.common.dto;
+package com.ysell.modules.common.dtos;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.ysell.jpa.entities.base.AuditableEntity;
@@ -6,17 +6,13 @@ import com.ysell.jpa.entities.base.NamedEntity;
 import com.ysell.modules.common.exceptions.YSellRuntimeException;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.validation.constraints.NotNull;
 import java.util.UUID;
 
 @AllArgsConstructor
-@NoArgsConstructor
 @Getter
-@Setter
 @Slf4j
 @JsonInclude(value = JsonInclude.Include.NON_NULL)
 public class LookupDto {

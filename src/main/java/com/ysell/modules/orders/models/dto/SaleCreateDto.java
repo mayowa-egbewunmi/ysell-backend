@@ -1,7 +1,7 @@
 package com.ysell.modules.orders.models.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.ysell.modules.common.dto.LookupDto;
+import com.ysell.modules.common.dtos.LookupDto;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 

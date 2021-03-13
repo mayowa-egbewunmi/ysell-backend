@@ -6,14 +6,14 @@ import com.ysell.jpa.entities.enums.OrderStatus;
 import com.ysell.jpa.repositories.OrderRepository;
 import com.ysell.jpa.repositories.OrganisationRepository;
 import com.ysell.jpa.repositories.ProductRepository;
-import com.ysell.jpa.repositories.SaleRepository;
+import com.ysell.modules.common.exceptions.YSellRuntimeException;
 import com.ysell.modules.common.services.ProductStockService;
 import com.ysell.modules.common.utilities.ServiceUtils;
 import com.ysell.modules.orders.models.request.OrderCreateRequest;
 import com.ysell.modules.orders.models.request.OrderUpdateRequest;
 import com.ysell.modules.orders.models.response.OrderResponse;
+import com.ysell.modules.orders.utils.OrderUtils;
 import lombok.RequiredArgsConstructor;
-import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,15 +29,11 @@ public class OrderServiceImpl implements OrderService {
 
 	private final OrderRepository orderRepo;
 
-	private final SaleRepository saleRepo;
-
 	private final ProductRepository productRepo;
 
 	private final OrganisationRepository orgRepo;
 
 	private final ProductStockService productStockService;
-
-	private final ModelMapper mapper = new ModelMapper();
 
 
 	@Override
@@ -48,11 +44,12 @@ public class OrderServiceImpl implements OrderService {
 				sale.getQuantity())
 		);
 
-		request.getSales().forEach(sale ->
-				deductFromProductStock(sale.getProduct().getId(), sale.getQuantity()));
+		request.getSales().forEach(sale -> productStockService.updateProductStock(
+				sale.getProduct().getId(),
+				sale.getQuantity())
+		);
 
-		OrderEntity orderEntity = mapper.map(request, OrderEntity.class);
-		orderEntity.setStatus(OrderStatus.PENDING);
+		OrderEntity orderEntity = buildOrderEntity(request);
 
 		return saveOrUpdateOrder(orderEntity);
 	}
@@ -63,24 +60,28 @@ public class OrderServiceImpl implements OrderService {
 		OrderEntity orderEntity = orderRepo.findById(orderId)
 				.orElseThrow(() -> ServiceUtils.wrongIdException("Order", orderId));
 
-		request.getSales().forEach(sale -> {
-			if (!saleRepo.existsById(sale.getId()))
-				ServiceUtils.throwWrongIdException("Sale", sale.getId());
+		if(orderEntity.getOrganisation().getId() != request.getOrganisation().getId()) {
+			throw new YSellRuntimeException(String.format(
+					"Request's organisation id (%s) does not match the order's organisation id (%s)",
+					orderEntity.getOrganisation().getId(),
+					request.getOrganisation().getId()
+			));
+		}
 
-			productStockService.validateProductAndStock(
-					request.getOrganisation().getId(),
-					sale.getProduct().getId(),
-					sale.getQuantity());
-		});
+		request.getSales().forEach(sale -> productStockService.validateProductAndStock(
+				request.getOrganisation().getId(),
+				sale.getProduct().getId(),
+				sale.getQuantity() * OrderUtils.getIntValueBySaleType(sale.getSaleType())
+		));
 
-		addPreviousOrderBackToProductStock(orderEntity.getSales());
+		request.getSales().forEach(sale -> productStockService.updateProductStock(
+				sale.getProduct().getId(),
+				sale.getQuantity() * OrderUtils.getIntValueBySaleType(sale.getSaleType())
+		));
 
-		request.getSales().forEach(sale ->
-				deductFromProductStock(sale.getProduct().getId(), sale.getQuantity()));
+		OrderEntity updateOrderEntity = updateOrderEntity(orderEntity, request);
 
-		mapper.map(request, orderEntity);
-
-		return saveOrUpdateOrder(orderEntity);
+		return saveOrUpdateOrder(updateOrderEntity);
 	}
 
 
@@ -100,35 +101,54 @@ public class OrderServiceImpl implements OrderService {
 	public List<OrderResponse> getOrdersByOrganisationIds(Set<UUID> organisationIds) {
 		organisationIds.forEach(organisationId -> {
 			if (!orgRepo.existsById(organisationId))
-				throw ServiceUtils.wrongIdException("Order", organisationId);
+				throw ServiceUtils.wrongIdException("Organisation", organisationId);
 		});
 
 		List<OrderEntity> orderEntities = orderRepo.findByOrganisationIdIn(organisationIds);
 
 		return orderEntities.stream()
-				.map(entity -> mapper.map(entity, OrderResponse.class))
+				.map(OrderResponse::from)
 				.collect(Collectors.toList());
 	}
 
 
-	private void deductFromProductStock(UUID productId, int quantityUsed) {
-		int quantityToRemove = quantityUsed * -1;
-		productStockService.updateProductStock(productId, quantityToRemove);
+	private OrderEntity buildOrderEntity(OrderCreateRequest request) {
+		return OrderEntity.builder()
+				.title(request.getTitle())
+				.sales(request.getSales().stream().map(saleCreateDto -> SaleEntity.builder()
+						.product(productRepo.getOne(saleCreateDto.getProduct().getId()))
+						.quantity(saleCreateDto.getQuantity())
+						.totalSellingPrice(saleCreateDto.getTotalSellingPrice())
+						.totalCostPrice(saleCreateDto.getTotalCostPrice())
+						.build())
+						.collect(Collectors.toSet()))
+				.organisation(orgRepo.getOne(request.getOrganisation().getId()))
+				.build();
 	}
 
 
-	private void addPreviousOrderBackToProductStock(Set<SaleEntity> saleEntities) {
-		saleEntities.forEach(sale -> productStockService.updateProductStock(sale.getProduct().getId(), sale.getQuantity()));
+	private OrderEntity updateOrderEntity(OrderEntity orderEntity, OrderUpdateRequest request) {
+		orderEntity.setTitle(request.getTitle());
+		orderEntity.getSales().addAll(
+				request.getSales().stream().map(saleCreateDto -> SaleEntity.builder()
+						.product(productRepo.getOne(saleCreateDto.getProduct().getId()))
+						.quantity(saleCreateDto.getQuantity())
+						.totalSellingPrice(saleCreateDto.getTotalSellingPrice())
+						.totalCostPrice(saleCreateDto.getTotalCostPrice())
+						.saleType(saleCreateDto.getSaleType())
+						.build())
+						.collect(Collectors.toSet())
+		);
+
+		return orderEntity;
 	}
 
 
 	private OrderResponse saveOrUpdateOrder(OrderEntity entity) {
 		entity.getSales().forEach(sale -> sale.setOrder(entity));
-		OrderEntity order = orderRepo.save(entity);
+		OrderEntity orderEntity = orderRepo.save(entity);
 
-		OrderResponse response = mapper.map(entity, OrderResponse.class);
-
-		return enrichResponseWithNames(response);
+		return OrderResponse.from(orderEntity);
 	}
 
 
@@ -138,21 +158,6 @@ public class OrderServiceImpl implements OrderService {
 		entity.setStatus(status);
 		entity = orderRepo.save(entity);
 
-		OrderResponse response = mapper.map(entity, OrderResponse.class);
-
-		return enrichResponseWithNames(response);
-	}
-
-
-	private OrderResponse enrichResponseWithNames(OrderResponse response) {
-		String orgName = orgRepo.getOne(response.getOrganisation().getId()).getName();
-		response.getOrganisation().setName(orgName);
-
-		response.getSales().forEach(sale -> {
-			String productName = productRepo.getOne(sale.getProduct().getId()).getName();
-			sale.getProduct().setName(productName);
-		});
-
-		return response;
+		return OrderResponse.from(entity);
 	}
 }

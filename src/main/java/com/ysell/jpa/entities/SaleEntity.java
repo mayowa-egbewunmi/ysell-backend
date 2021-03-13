@@ -1,6 +1,8 @@
 package com.ysell.jpa.entities;
 
 import com.ysell.jpa.entities.base.ActiveAuditableEntity;
+import com.ysell.jpa.entities.enums.OrderStatus;
+import com.ysell.jpa.entities.enums.SaleType;
 import lombok.*;
 
 import javax.persistence.*;
@@ -31,4 +33,8 @@ public class SaleEntity extends ActiveAuditableEntity {
 
     @Column(nullable = false)
     private BigDecimal totalCostPrice;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private SaleType saleType = SaleType.SALE;
 }

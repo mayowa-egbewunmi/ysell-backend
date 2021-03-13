@@ -2,7 +2,7 @@ package com.ysell.modules.common.abstractions;
 
 import com.ysell.jpa.entities.base.ActiveAuditableEntity;
 import com.ysell.jpa.repositories.base.ActiveJpaRepository;
-import com.ysell.modules.common.dto.PageWrapper;
+import com.ysell.modules.common.response.PageWrapper;
 import com.ysell.modules.common.utilities.ServiceUtils;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
