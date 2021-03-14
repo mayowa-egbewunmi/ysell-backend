@@ -63,7 +63,6 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 			logger.warn(url + ": JWT Token does not begin with Bearer String");
 		}
 
-		// Once we getById the token validate it.
 		if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
 			// if token is valid configure Spring Security to manually set authentication
 			if (jwtTokenUtil.validateToken(jwtToken, username)) {

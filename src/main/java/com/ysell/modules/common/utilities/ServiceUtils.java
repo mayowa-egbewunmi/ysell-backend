@@ -28,7 +28,7 @@ public class ServiceUtils {
 
 
     public static YSellRuntimeException wrongEmailException(String modelName, String email) {
-        return new YSellRuntimeException(String.format("%s with email '%s' already exists", modelName, email));
+        return new YSellRuntimeException(String.format("%s with email '%s' does not exist", modelName, email));
     }
 
 

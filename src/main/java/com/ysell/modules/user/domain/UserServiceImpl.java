@@ -251,10 +251,13 @@ public class UserServiceImpl implements UserService {
 
 	@Override
 	public YsellResponse<String> resetPassword(ResetPasswordRequest request) {
+		if (!request.getNewPassword().equals(request.getNewPasswordRepeat()))
+			throw new YSellRuntimeException("Passwords do not match");
+
 		ResetCodeEntity resetCodeEntity = verifyCode(request.getEmail(), request.getResetCode());
 		resetCodeRepo.deleteByUserId(resetCodeEntity.getUser().getId());
 
-		updateUserPassword(request.getNewPassword(), request.getEmail());
+		updateUserPassword(request.getEmail(), request.getNewPassword());
 
 		return YsellResponse.createSuccess("Password successfully reset");
 	}

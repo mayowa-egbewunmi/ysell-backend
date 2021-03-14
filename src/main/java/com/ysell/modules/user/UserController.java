@@ -61,7 +61,7 @@ public class UserController {
 
 
     @PostMapping("/register/resend-code")
-    public YsellResponse<String> resendVerificationCode(ResendResetCodeRequest request){
+    public YsellResponse<String> resendVerificationCode(@RequestBody @Valid ResendResetCodeRequest request){
         return userService.resendVerificationCode(request);
     }
 
