@@ -8,6 +8,7 @@
 
     <include file="classpath:db/changelog/001_initial_migrations.xml" relativeToChangelogFile="false" />
      <include file="classpath:db/changelog/002_seed_database.xml" relativeToChangelogFile="false" context="mysql"/>
-     <include file="classpath:db/changelog/002_seed_h2_database.xml" relativeToChangelogFile="false" context="h2" />
+    <include file="classpath:db/changelog/002_seed_h2_database.xml" relativeToChangelogFile="false" context="h2" />
+    <include file="classpath:db/changelog/003_schema_updates.xml" relativeToChangelogFile="false" />
 </databaseChangeLog>
 

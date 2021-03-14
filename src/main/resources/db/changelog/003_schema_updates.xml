@@ -10,15 +10,21 @@
 
 
     <changeSet id="1613815252-02-add-title-to-orders" author="tobenna">
+        <preConditions onFail="MARK_RAN" onError="CONTINUE">
+            <not>
+                <columnExists tableName="orders" columnName="title" />
+            </not>
+        </preConditions>
+
         <addColumn tableName="orders">
             <column name="title" type="VARCHAR(255)" />
         </addColumn>
 
         <sql>
-            update orders set title = 'Default title'
+            update orders set title = 'Default title';
         </sql>
 
-        <addNotNullConstraint tableName="orders" columnName="title" columnDataType="VARCHAR(255" constraintName="NN_orders_to_title" />
+        <addNotNullConstraint tableName="orders" columnName="title" columnDataType="VARCHAR(255)" constraintName="NN_orders_to_title" />
     </changeSet>
 
 
@@ -47,6 +53,25 @@
                 <constraints nullable="false" />
             </column>
         </addColumn>
+    </changeSet>
+
+
+    <changeSet id="1615704124-01-add-phone_number-to-users" author="tobenna">
+        <addColumn tableName="users">
+            <column name="phone_number" type="VARCHAR(31)" />
+        </addColumn>
+    </changeSet>
+
+
+    <changeSet id="1615704124-02-set-default-value-for-users-phone_number" author="tobenna">
+        <sql>
+            update users set phone_number = '08030000000'
+        </sql>
+    </changeSet>
+
+
+    <changeSet id="1615704124-03-set-default-value-for-users-phone_number" author="tobenna">
+        <addNotNullConstraint tableName="users" columnName="phone_number" columnDataType="VARCHAR(31)" />
     </changeSet>
 
 </databaseChangeLog>

@@ -4,6 +4,7 @@ import com.ysell.config.jwt.models.AppUserDetails;
 import com.ysell.jpa.entities.UserEntity;
 import com.ysell.jpa.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -19,6 +20,9 @@ public class JwtUserDetailService implements UserDetailsService {
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 		UserEntity userEntity = userRepo.findFirstByEmailIgnoreCase(username)
 				.orElseThrow(() -> new UsernameNotFoundException(String.format("Username %s not found", username)));
+
+		if(!userEntity.getActivated())
+			throw new DisabledException(String.format("%s has been disabled", username));
 		
 		return new AppUserDetails(userEntity.getId(), userEntity.getEmail(), userEntity.getHash());
 	}
