@@ -24,6 +24,9 @@ public class UserEntity extends ActiveAuditableEntity implements NamedEntity {
 	private String email;
 
     @Column(nullable = false)
+    private String phoneNumber;
+
+    @Column(nullable = false)
     private String hash;
 
     private String bankName;

@@ -5,7 +5,8 @@ import com.ysell.jpa.repositories.OrganisationRepository;
 import com.ysell.jpa.repositories.UserRepository;
 import com.ysell.modules.common.abstractions.BaseCrudService;
 import com.ysell.modules.common.utilities.ServiceUtils;
-import com.ysell.modules.organisation.models.request.OrganisationRequest;
+import com.ysell.modules.organisation.models.request.OrganisationCreateRequest;
+import com.ysell.modules.organisation.models.request.OrganisationUpdateRequest;
 import com.ysell.modules.organisation.models.response.OrganisationResponse;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,7 +19,7 @@ import java.util.stream.Collectors;
 @Service
 @Transactional
 public class OrganisationServiceImpl
-		extends BaseCrudService<OrganisationEntity, OrganisationRequest, OrganisationRequest, OrganisationResponse>
+		extends BaseCrudService<OrganisationEntity, OrganisationCreateRequest, OrganisationUpdateRequest, OrganisationResponse>
 		implements OrganisationService {
 
 	private final OrganisationRepository organisationRepo;
@@ -35,7 +36,7 @@ public class OrganisationServiceImpl
 
 
 	@Override
-	protected void beforeCreate(OrganisationRequest request) {
+	protected void beforeCreate(OrganisationCreateRequest request) {
 		if(organisationRepo.existsByEmailIgnoreCase(request.getEmail()))
 			ServiceUtils.throwWrongEmailException("Organisation", request.getEmail());
 		if(organisationRepo.existsByNameIgnoreCase(request.getName()))
@@ -44,7 +45,7 @@ public class OrganisationServiceImpl
 
 
 	@Override
-	protected void beforeUpdate(UUID organisationId, OrganisationRequest request) {
+	protected void beforeUpdate(UUID organisationId, OrganisationUpdateRequest request) {
 		organisationRepo.findFirstByEmailIgnoreCase(request.getEmail()).ifPresent(existingOrganisation -> {
 			if (!existingOrganisation.getId().equals(organisationId))
 				ServiceUtils.throwWrongEmailException("Organisation", request.getEmail());
@@ -66,5 +67,20 @@ public class OrganisationServiceImpl
 		return organisationRepo.findByUsersIdIn(userIds).stream()
 				.map(OrganisationResponse::from)
 				.collect(Collectors.toList());
+	}
+
+
+	@Override
+	protected OrganisationEntity populateUpdateEntity(OrganisationUpdateRequest request, OrganisationEntity entity) {
+		if(request.getName() != null)
+			entity.setName(request.getName());
+		if(request.getEmail() != null)
+			entity.setEmail(request.getEmail());
+		if(request.getAddress() != null)
+			entity.setAddress(request.getAddress());
+		if(request.getLogo() != null)
+			entity.setLogo(request.getLogo());
+
+		return entity;
 	}
 }

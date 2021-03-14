@@ -14,6 +14,9 @@ import com.ysell.modules.common.models.PageWrapper;
 import com.ysell.modules.common.utilities.ServiceUtils;
 import com.ysell.modules.common.utilities.email.EmailSender;
 import com.ysell.modules.common.utilities.email.models.EmailModel;
+import com.ysell.modules.organisation.domain.OrganisationService;
+import com.ysell.modules.organisation.models.request.OrganisationCreateRequest;
+import com.ysell.modules.organisation.models.response.OrganisationResponse;
 import com.ysell.modules.user.models.request.*;
 import com.ysell.modules.user.models.response.UserRegistrationResponse;
 import com.ysell.modules.user.models.response.UserResponse;
@@ -56,6 +59,8 @@ public class UserServiceImpl implements UserService {
 	private final AuthenticationManager authenticationManager;
 
 	private final JwtTokenUtil jwtTokenUtil;
+
+	private final OrganisationService organisationService;
 
 	@Value("${ysell.constants.user-activation.reset-code-delay-in-minutes:30}")
 	private int resetCodeDelayInMinutes;
@@ -131,6 +136,30 @@ public class UserServiceImpl implements UserService {
 
 
 	@Override
+	public UserRegistrationResponse registerUserWithOrganisation(RegisterUserWithOrganisationRequest request) {
+		OrganisationResponse organisationResponse = organisationService.create(new OrganisationCreateRequest(
+				request.getOrganisationName(),
+				request.getEmail(),
+				request.getEmail(),
+				null
+		));
+
+		CreateUserRequest createUserRequest = new CreateUserRequest(
+				request.getName(),
+				request.getEmail(),
+				request.getPhoneNumber(),
+				request.getPassword(),
+				request.getBankName(),
+				request.getAccountNumber(),
+				request.getAccountName(),
+				Collections.singleton(LookupDto.create(organisationResponse.getId(), organisationResponse.getName()))
+		);
+
+		return registerUser(createUserRequest);
+	}
+
+
+	@Override
 	public YsellResponse<String> resendVerificationCode(ResendResetCodeRequest request) {
 		UserEntity userEntity = getUser(request.getEmail());
 		resetCodeRepo.deleteByUserId(userEntity.getId());
@@ -158,10 +187,6 @@ public class UserServiceImpl implements UserService {
 
 	@Override
 	public UserResponse updateUser(UUID userId, UpdateUserRequest request) {
-		userRepo.findFirstByEmailIgnoreCase(request.getEmail()).ifPresent(existingUser -> {
-			if (!existingUser.getId().equals(userId))
-				ServiceUtils.throwWrongEmailException("User", request.getEmail());
-		});
 		userRepo.findFirstByNameIgnoreCase(request.getName()).ifPresent(existingUser -> {
 			if (!existingUser.getId().equals(userId))
 				ServiceUtils.throwWrongNameException("User", request.getName());
@@ -272,6 +297,7 @@ public class UserServiceImpl implements UserService {
 		UserEntity user = UserEntity.builder()
 				.name(userDetails.getName())
 				.email(userDetails.getEmail())
+				.phoneNumber(userDetails.getPhoneNumber())
 				.bankName(userDetails.getBankName())
 				.accountName(userDetails.getAccountName())
 				.accountNumber(userDetails.getAccountNumber())
@@ -294,8 +320,8 @@ public class UserServiceImpl implements UserService {
 		if (userDetails.getName() != null) {
 			user.setName(userDetails.getName());
 		}
-		if (userDetails.getEmail() != null) {
-			user.setEmail(userDetails.getEmail());
+		if (userDetails.getPhoneNumber() != null) {
+			user.setPhoneNumber(userDetails.getPhoneNumber());
 		}
 		if (userDetails.getBankName() != null) {
 			user.setBankName(userDetails.getBankName());

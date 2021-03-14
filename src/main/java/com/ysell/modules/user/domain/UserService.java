@@ -24,6 +24,12 @@ public interface UserService {
 
 	UserRegistrationResponse registerUser(CreateUserRequest userDetails);
 
+	UserRegistrationResponse registerUserWithOrganisation(RegisterUserWithOrganisationRequest request);
+
+	YsellResponse<String> resendVerificationCode(ResendResetCodeRequest request);
+
+	UserResponse completeRegistration(ValidateEmailRequest request);
+
 	UserResponse updateUser(UUID userId, UpdateUserRequest userDetails);
 
 	UserResponse deactivate(SubscriptionRequest unsubscribeRequest);
@@ -32,13 +38,9 @@ public interface UserService {
 
 	YsellResponse<String> initiatePasswordReset(InitiateResetPasswordRequest request);
 
-	YsellResponse<String> resendVerificationCode(ResendResetCodeRequest request);
-
 	YsellResponse<String> verifyResetCode(VerifyResetCodeRequest request);
 
 	YsellResponse<String> resetPassword(ResetPasswordRequest request);
 
 	YsellResponse<String> changePassword(ChangePasswordRequest request);
-
-	UserResponse completeRegistration(ValidateEmailRequest request);
 }

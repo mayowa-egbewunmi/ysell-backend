@@ -21,6 +21,9 @@ public class CreateUserRequest {
 	private String email;
 
 	@NotEmpty
+	private String phoneNumber;
+
+	@NotEmpty
 	private String password;
 
 	private String bankName;

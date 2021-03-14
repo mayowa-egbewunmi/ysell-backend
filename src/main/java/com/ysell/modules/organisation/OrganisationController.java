@@ -3,7 +3,8 @@ package com.ysell.modules.organisation;
 import com.ysell.modules.common.constants.ControllerConstants;
 import com.ysell.modules.common.models.PageWrapper;
 import com.ysell.modules.organisation.domain.OrganisationService;
-import com.ysell.modules.organisation.models.request.OrganisationRequest;
+import com.ysell.modules.organisation.models.request.OrganisationCreateRequest;
+import com.ysell.modules.organisation.models.request.OrganisationUpdateRequest;
 import com.ysell.modules.organisation.models.response.OrganisationResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
@@ -42,14 +43,14 @@ public class OrganisationController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public OrganisationResponse createOrganisation(@RequestBody @Valid OrganisationRequest request){
+    public OrganisationResponse createOrganisation(@RequestBody @Valid OrganisationCreateRequest request){
         return organisationService.create(request);
     }    
 
 
     @PutMapping("/{id}")
     public OrganisationResponse updateOrganisation(@PathVariable("id") UUID organisationId,
-                                                   @RequestBody @Valid OrganisationRequest request){
+                                                   @RequestBody @Valid OrganisationUpdateRequest request){
         return organisationService.update(organisationId, request);
     }
 

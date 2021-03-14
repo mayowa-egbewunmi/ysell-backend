@@ -54,6 +54,12 @@ public class UserController {
     }
 
 
+    @PostMapping(value = "/register-with-organisation")
+    public UserRegistrationResponse registerUserWithOrganisation(@RequestBody @Valid RegisterUserWithOrganisationRequest request) {
+        return userService.registerUserWithOrganisation(request);
+    }
+
+
     @PostMapping("/register/resend-code")
     public YsellResponse<String> resendVerificationCode(ResendResetCodeRequest request){
         return userService.resendVerificationCode(request);

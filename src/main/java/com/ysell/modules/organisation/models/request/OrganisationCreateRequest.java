@@ -5,12 +5,11 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.NotNull;
 
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
-public class OrganisationRequest {
+public class OrganisationCreateRequest {
 
     @NotEmpty
     private String name;
