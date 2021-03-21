@@ -66,11 +66,12 @@ public class ProductServiceImpl
 
     @Override
     public ProductCategoryResponse createOrUpdateProductCategory(ProductCategoryRequest request) {
-        ProductCategoryEntity productCategoryEntity = ProductCategoryEntity.builder()
-                .name(request.getName())
-                .description(request.getDescription())
-                .build();
-        productCategoryEntity.setId(request.getId());
+        ProductCategoryEntity productCategoryEntity = productCategoryRepo.findById(request.getId())
+                .orElse(new ProductCategoryEntity());
+
+        productCategoryEntity.setName(request.getName());
+        if (request.getDescription() != null)
+            productCategoryEntity.setDescription(request.getDescription());
 
         productCategoryEntity = productCategoryRepo.save(productCategoryEntity);
 

@@ -48,6 +48,18 @@ public class UserController {
     }
 
 
+    @GetMapping("/by-email/{email}")
+    public UserResponse getUserByEmail(@PathVariable("email") String userEmail) {
+        return userService.getUserByEmail(userEmail);
+    }
+
+
+    @GetMapping("/logged-in")
+    public UserResponse getLoggedInUser() {
+        return userService.getLoggedInUser();
+    }
+
+
     @PostMapping(value = "/register")
     public UserRegistrationResponse registerUser(@RequestBody @Valid CreateUserRequest request) {
         return userService.registerUser(request);

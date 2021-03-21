@@ -3,6 +3,7 @@ package com.ysell.config.jwt.service;
 import com.ysell.config.jwt.models.AppUserDetails;
 import com.ysell.jpa.entities.UserEntity;
 import com.ysell.jpa.repositories.UserRepository;
+import com.ysell.modules.common.exceptions.YSellRuntimeException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -22,7 +23,7 @@ public class JwtUserDetailService implements UserDetailsService {
 				.orElseThrow(() -> new UsernameNotFoundException(String.format("Username %s not found", username)));
 
 		if(!userEntity.getActivated())
-			throw new DisabledException(String.format("%s has been disabled", username));
+			throw new YSellRuntimeException(String.format("%s is disabled. Please meet with administrator", username));
 		
 		return new AppUserDetails(userEntity.getId(), userEntity.getEmail(), userEntity.getHash());
 	}

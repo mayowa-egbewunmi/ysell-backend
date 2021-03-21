@@ -6,13 +6,10 @@ import com.ysell.jpa.repositories.base.EmailRepository;
 import com.ysell.jpa.repositories.base.NameRepository;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 public interface UserRepository extends
 		ActiveJpaRepository<UserEntity>, NameRepository<UserEntity>, EmailRepository<UserEntity> {
 	
 	List<UserEntity> findByOrganisationsId(UUID organisationId);
-
-	Optional<UserEntity> findByEmail(String email);
 }

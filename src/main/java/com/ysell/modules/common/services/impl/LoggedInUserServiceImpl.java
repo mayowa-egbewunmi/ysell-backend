@@ -27,7 +27,7 @@ public class LoggedInUserServiceImpl implements LoggedInUserService {
             throw new YSellRuntimeException("User is not logged in");
 
         String username = ((AppUserDetails)principal).getUsername();
-        return userRepository.findByEmail(username)
+        return userRepository.findFirstByEmailIgnoreCase(username)
                 .orElseThrow(() -> new YSellRuntimeException(String.format("User with username %s not found", username)));
     }
 }

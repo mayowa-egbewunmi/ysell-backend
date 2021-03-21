@@ -34,7 +34,7 @@ public class ProductController {
 
 
     @GetMapping
-    public PageWrapper<ProductResponse> getProductsByPaged(
+    public PageWrapper<ProductResponse> getProductsByPage(
             @PageableDefault(size = AppConstants.DEFAULT_PAGE_SIZE) Pageable pageable
     ){
         return productService.getByPage(pageable);

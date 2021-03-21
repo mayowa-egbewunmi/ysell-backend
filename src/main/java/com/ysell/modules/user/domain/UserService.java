@@ -18,6 +18,10 @@ public interface UserService {
 
 	PageWrapper<UserResponse> getUsersByPage(Pageable page);
 
+	UserResponse getLoggedInUser();
+
+	UserResponse getUserByEmail(String userEmail);
+
 	UserResponse getById(UUID id);
 
 	List<UserResponse> getUsersByOrganisation(Set<UUID> organisationIds);

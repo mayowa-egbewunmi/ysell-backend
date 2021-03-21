@@ -11,6 +11,7 @@ import com.ysell.jpa.repositories.UserRepository;
 import com.ysell.modules.common.dtos.LookupDto;
 import com.ysell.modules.common.exceptions.YSellRuntimeException;
 import com.ysell.modules.common.models.PageWrapper;
+import com.ysell.modules.common.services.LoggedInUserService;
 import com.ysell.modules.common.utilities.ServiceUtils;
 import com.ysell.modules.common.utilities.email.EmailSender;
 import com.ysell.modules.common.utilities.email.models.EmailModel;
@@ -62,6 +63,8 @@ public class UserServiceImpl implements UserService {
 
 	private final OrganisationService organisationService;
 
+	private final LoggedInUserService loggedInUserService;
+
 	@Value("${ysell.constants.user-activation.reset-code-delay-in-minutes:30}")
 	private int resetCodeDelayInMinutes;
 
@@ -92,6 +95,20 @@ public class UserServiceImpl implements UserService {
 
 
 	@Override
+	public UserResponse getLoggedInUser() {
+		return UserResponse.from(loggedInUserService.getLoggedInUser());
+	}
+
+
+	@Override
+	public UserResponse getUserByEmail(String userEmail) {
+		return userRepo.findFirstByEmailIgnoreCase(userEmail)
+				.map(UserResponse::from)
+				.orElseThrow(() -> ServiceUtils.wrongEmailException("User", userEmail));
+	}
+
+
+	@Override
 	public UserResponse getById(UUID userId) {
 		return userRepo.findById(userId)
 				.map(UserResponse::from)
@@ -118,20 +135,28 @@ public class UserServiceImpl implements UserService {
 
 		UserEntity userEntity = performInitialUserCreation(request, hash);
 
-		String resetCode = generateResetCode(userEntity);
-		String msg = format("Your verification code is: %s. It expires in %d minutes", resetCode, resetCodeDelayInMinutes);
-		EmailModel emailModel = new EmailModel(request.getEmail(), "Ysell Email Validation", msg, null);
-		emailSender.send(emailModel, "user verification code");
+		sendVerificationCode(userEntity);
 
 		final String token = jwtTokenUtil.generateToken(userEntity.getEmail(), userEntity.getId());
 
 		return new UserRegistrationResponse(
-				format("Verification code has been sent to your email - %s. It will expire in %s minutes",
-						request.getEmail(),
-						resetCodeDelayInMinutes),
+				format("Verification code has been sent to your email - %s. It will expire in %s minutes", request.getEmail(), resetCodeDelayInMinutes),
 				token,
 				false
 		);
+	}
+
+
+	@Override
+	public YsellResponse<String> resendVerificationCode(ResendResetCodeRequest request) {
+		UserEntity userEntity = getUser(request.getEmail());
+		resetCodeRepo.clearResetCodesForUser(userEntity.getId());
+
+		sendVerificationCode(userEntity);
+
+		return YsellResponse.createSuccess(format(
+				"Verification code has been sent to your email - %s. It will expire in %s minutes", request.getEmail(), resetCodeDelayInMinutes
+		));
 	}
 
 
@@ -160,25 +185,9 @@ public class UserServiceImpl implements UserService {
 
 
 	@Override
-	public YsellResponse<String> resendVerificationCode(ResendResetCodeRequest request) {
-		UserEntity userEntity = getUser(request.getEmail());
-		resetCodeRepo.deleteByUserId(userEntity.getId());
-
-		String resetCode = generateResetCode(userEntity);
-		String msg = format("Your verification code is: %s. It expires in %d minutes", resetCode, resetCodeDelayInMinutes);
-		EmailModel emailModel = new EmailModel(request.getEmail(), "Ysell Email Validation", msg, null);
-		emailSender.send(emailModel, "user verification code");
-
-		return YsellResponse.createSuccess(format(
-				"Verification code has been sent to your email - %s. It will expire in %s minutes", request.getEmail(), resetCodeDelayInMinutes
-		));
-	}
-
-
-	@Override
 	public UserResponse completeRegistration(ValidateEmailRequest request) {
-		ResetCodeEntity resetCodeEntity = verifyCode(request.getEmail(), request.getCode());
-		resetCodeRepo.deleteByUserId(resetCodeEntity.getUser().getId());
+		ResetCodeEntity resetCodeEntity = verifyCode(request.getEmail(), request.getCode(), "Verification");
+		resetCodeRepo.clearResetCodesForUser(resetCodeEntity.getUser().getId());
 		UserEntity userEntity = getUser(request.getEmail());
 
 		return reactivate(new SubscriptionRequest(userEntity.getId()));
@@ -232,7 +241,7 @@ public class UserServiceImpl implements UserService {
 	public YsellResponse<String> initiatePasswordReset(InitiateResetPasswordRequest request) {
 		UserEntity userEntity = getUser(request.getEmail());
 
-		String resetCode = generateResetCode(userEntity);
+		String resetCode = generateAndSaveResetCode(userEntity);
 
 		String msg = format("Your password reset code is %s. It will expire in %d minutes", resetCode, resetCodeDelayInMinutes);
 		EmailModel emailModel = new EmailModel(request.getEmail(), "YSell Password Reset Code", msg, null);
@@ -244,7 +253,7 @@ public class UserServiceImpl implements UserService {
 
 	@Override
 	public YsellResponse<String> verifyResetCode(VerifyResetCodeRequest request) {
-		verifyCode(request.getEmail(), request.getResetCode());
+		verifyCode(request.getEmail(), request.getResetCode(), "Reset");
 		return YsellResponse.createSuccess("Valid reset code");
 	}
 
@@ -254,8 +263,8 @@ public class UserServiceImpl implements UserService {
 		if (!request.getNewPassword().equals(request.getNewPasswordRepeat()))
 			throw new YSellRuntimeException("Passwords do not match");
 
-		ResetCodeEntity resetCodeEntity = verifyCode(request.getEmail(), request.getResetCode());
-		resetCodeRepo.deleteByUserId(resetCodeEntity.getUser().getId());
+		ResetCodeEntity resetCodeEntity = verifyCode(request.getEmail(), request.getResetCode(), "Reset");
+		resetCodeRepo.clearResetCodesForUser(resetCodeEntity.getUser().getId());
 
 		updateUserPassword(request.getEmail(), request.getNewPassword());
 
@@ -286,7 +295,15 @@ public class UserServiceImpl implements UserService {
 	}
 
 
-	private String generateResetCode(UserEntity userEntity) {
+	private void sendVerificationCode(UserEntity userEntity) {
+		String resetCode = generateAndSaveResetCode(userEntity);
+		String msg = format("Your verification code is: %s. It expires in %d minutes", resetCode, resetCodeDelayInMinutes);
+		EmailModel emailModel = new EmailModel(userEntity.getEmail(), "Ysell Email Verification", msg, null);
+		emailSender.send(emailModel, "user verification code");
+	}
+
+
+	private String generateAndSaveResetCode(UserEntity userEntity) {
 		String resetCode = composeResetCode();
 
 		ResetCodeEntity resetCodeEntity = new ResetCodeEntity(userEntity, resetCode, getExpiryTime());
@@ -401,14 +418,14 @@ public class UserServiceImpl implements UserService {
 	}
 
 
-	private ResetCodeEntity verifyCode(String email, String resetCode) {
+	private ResetCodeEntity verifyCode(String email, String resetCode, String codeType) {
 		UserEntity userEntity = getUser(email);
 
 		ResetCodeEntity resetCodeEntity = resetCodeRepo.findByUserIdAndResetCode(userEntity.getId(), resetCode);
 		if (resetCodeEntity == null)
-			throw new YSellRuntimeException("Invalid reset code");
+			throw new YSellRuntimeException(format("Invalid %s Code", codeType));
 		if (resetCodeEntity.getExpiryTimestamp().before(new Date()))
-			throw new YSellRuntimeException("Reset code has expired");
+			throw new YSellRuntimeException(format("%s Code Has Expired", codeType));
 
 		return resetCodeEntity;
 	}
