@@ -40,6 +40,8 @@ public interface UserService {
 
 	UserResponse reactivate(ActivationRequest subscribeRequest);
 
+	UserResponse softDelete(ActivationRequest request);
+
 	YsellResponse<String> initiatePasswordReset(InitiateResetPasswordRequest request);
 
 	YsellResponse<String> verifyResetCode(VerifyResetCodeRequest request);

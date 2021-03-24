@@ -237,6 +237,20 @@ public class UserServiceImpl implements UserService {
 
 
 	@Override
+	public UserResponse softDelete(ActivationRequest request) {
+		UserEntity user = userRepo.findById(request.getUserId())
+				.orElseThrow(() -> ServiceUtils.wrongIdException("User", request.getUserId()));
+
+		user.setEmail(UUID.randomUUID() + "@gmail.com");
+		user.setActivated(false);
+		user.setActive(false);
+		user = userRepo.save(user);
+
+		return UserResponse.from(user);
+	}
+
+
+	@Override
 	public YsellResponse<String> initiatePasswordReset(InitiateResetPasswordRequest request) {
 		UserEntity userEntity = getUser(request.getEmail());
 

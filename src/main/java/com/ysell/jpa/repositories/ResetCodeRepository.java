@@ -12,7 +12,6 @@ public interface ResetCodeRepository extends ActiveJpaRepository<ResetCodeEntity
 	ResetCodeEntity findByUserIdAndResetCode(UUID userId, String resetCode);
 
 	@Modifying
-	@Query("delete from ResetCodeEntity r where r.user.id = ?1")
+	@Query("delete from ResetCodeEntity r where r.user.id = ?1")		//to enforce order of operations in hibernate
 	void clearResetCodesForUser(UUID userId);
 }
-

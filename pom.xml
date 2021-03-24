@@ -164,6 +164,12 @@
 			<version>0.9.11</version>
 		</dependency>
 
+		<dependency>
+			<groupId>com.querydsl</groupId>
+			<artifactId>querydsl-jpa</artifactId>
+			<version>4.0.3</version>
+		</dependency>
+
 	</dependencies>		
 
 	<dependencyManagement>

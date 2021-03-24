@@ -3,6 +3,7 @@ package com.ysell.jpa.entities;
 import com.ysell.jpa.entities.base.ActiveAuditableEntity;
 import com.ysell.jpa.entities.base.NamedEntity;
 import lombok.*;
+import org.hibernate.annotations.Where;
 
 import javax.persistence.*;
 import java.util.HashSet;

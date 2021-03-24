@@ -2,7 +2,6 @@ package com.ysell.jpa.entities.base;
 
 import lombok.Getter;
 import lombok.Setter;
-import org.hibernate.annotations.Where;
 
 import javax.persistence.Column;
 import javax.persistence.MappedSuperclass;
@@ -14,7 +13,6 @@ import javax.persistence.MappedSuperclass;
 @MappedSuperclass
 @Getter
 @Setter
-@Where(clause = "is_active=1")
 public class ActiveAuditableEntity extends AuditableEntity {
 
     @Column(name="is_active", nullable = false)

@@ -60,6 +60,12 @@ public class UserController {
     }
 
 
+    @GetMapping("/by-organisation")
+    public List<UserResponse> getUsersByOrganisation(@RequestParam("organisationId") Set<UUID> organisationIds) {
+        return userService.getUsersByOrganisation(organisationIds);
+    }
+
+
     @PostMapping(value = "/register")
     public UserRegistrationResponse registerUser(@RequestBody @Valid CreateUserRequest request) {
         return userService.registerUser(request);
@@ -103,6 +109,12 @@ public class UserController {
     }
 
 
+    @PostMapping("/soft-delete")
+    public UserResponse softDelete(@RequestBody @Valid ActivationRequest request) {
+        return userService.softDelete(request);
+    }
+
+
     @PostMapping("/code/initiate")
     public YsellResponse<String> initiatePasswordReset(@RequestBody @Valid InitiateResetPasswordRequest request) {
         return userService.initiatePasswordReset(request);
@@ -124,11 +136,5 @@ public class UserController {
     @PostMapping("/password/change")
     public YsellResponse<String> changePassword(@RequestBody @Valid ChangePasswordRequest request) {
         return userService.changePassword(request);
-    }
-
-
-    @GetMapping("/by-organisation")
-    public List<UserResponse> getUsersByOrganisation(@RequestParam("organisationId") Set<UUID> organisationIds) {
-        return userService.getUsersByOrganisation(organisationIds);
     }
 }
