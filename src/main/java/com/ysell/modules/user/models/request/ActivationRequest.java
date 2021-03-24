@@ -10,7 +10,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
-public class SubscriptionRequest {
+public class ActivationRequest {
 
 	@NotNull
 	private UUID userId;

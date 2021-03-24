@@ -150,7 +150,6 @@ public class UserServiceImpl implements UserService {
 	@Override
 	public YsellResponse<String> resendVerificationCode(ResendResetCodeRequest request) {
 		UserEntity userEntity = getUser(request.getEmail());
-		resetCodeRepo.clearResetCodesForUser(userEntity.getId());
 
 		sendVerificationCode(userEntity);
 
@@ -190,7 +189,7 @@ public class UserServiceImpl implements UserService {
 		resetCodeRepo.clearResetCodesForUser(resetCodeEntity.getUser().getId());
 		UserEntity userEntity = getUser(request.getEmail());
 
-		return reactivate(new SubscriptionRequest(userEntity.getId()));
+		return reactivate(new ActivationRequest(userEntity.getId()));
 	}
 
 
@@ -208,12 +207,12 @@ public class UserServiceImpl implements UserService {
 
 
 	@Override
-	public UserResponse deactivate(SubscriptionRequest request) {
+	public UserResponse deactivate(ActivationRequest request) {
 		UserEntity user = userRepo.findById(request.getUserId())
 				.orElseThrow(() -> ServiceUtils.wrongIdException("User", request.getUserId()));
 
 		if (!user.getActivated())
-			throw new YSellRuntimeException(format("Account with Id %s is already unsubscribed", request.getUserId()));
+			throw new YSellRuntimeException(format("Account with Id %s is already deactivated", request.getUserId()));
 
 		user.setActivated(false);
 		user = userRepo.save(user);
@@ -223,12 +222,12 @@ public class UserServiceImpl implements UserService {
 
 
 	@Override
-	public UserResponse reactivate(SubscriptionRequest request) {
+	public UserResponse reactivate(ActivationRequest request) {
 		UserEntity user = userRepo.findById(request.getUserId())
 				.orElseThrow(() -> ServiceUtils.wrongIdException("User", request.getUserId()));
 
 		if (user.getActivated())
-			throw new YSellRuntimeException(format("Account with Id %s is already subscribed", request.getUserId()));
+			throw new YSellRuntimeException(format("Account with Id %s is already activated", request.getUserId()));
 
 		user.setActivated(true);
 		user = userRepo.save(user);
@@ -274,12 +273,15 @@ public class UserServiceImpl implements UserService {
 
 	@Override
 	public YsellResponse<String> changePassword(ChangePasswordRequest request) {
+		if (!request.getNewPassword().equals(request.getNewPasswordRepeat()))
+			throw new YSellRuntimeException("Passwords do not match");
+
 		UserEntity userEntity = getUser(request.getEmail());
 
 		if (!passwordEncoder.matches(request.getOldPassword(), userEntity.getHash()))
 			throw new YSellRuntimeException("Old password does not match current password");
 
-		updateUserPassword(request.getNewPassword(), request.getEmail());
+		updateUserPassword(request.getEmail(), request.getNewPassword());
 
 		return YsellResponse.createSuccess("Password successfully changed");
 	}
@@ -306,6 +308,7 @@ public class UserServiceImpl implements UserService {
 	private String generateAndSaveResetCode(UserEntity userEntity) {
 		String resetCode = composeResetCode();
 
+		resetCodeRepo.clearResetCodesForUser(userEntity.getId());
 		ResetCodeEntity resetCodeEntity = new ResetCodeEntity(userEntity, resetCode, getExpiryTime());
 		resetCodeRepo.save(resetCodeEntity);
 

@@ -36,9 +36,9 @@ public interface UserService {
 
 	UserResponse updateUser(UUID userId, UpdateUserRequest userDetails);
 
-	UserResponse deactivate(SubscriptionRequest unsubscribeRequest);
+	UserResponse deactivate(ActivationRequest unsubscribeRequest);
 
-	UserResponse reactivate(SubscriptionRequest subscribeRequest);
+	UserResponse reactivate(ActivationRequest subscribeRequest);
 
 	YsellResponse<String> initiatePasswordReset(InitiateResetPasswordRequest request);
 

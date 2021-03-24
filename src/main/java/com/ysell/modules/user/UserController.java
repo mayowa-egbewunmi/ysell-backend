@@ -92,13 +92,13 @@ public class UserController {
 
 
     @PostMapping("/deactivate")
-    public UserResponse deactivate(@RequestBody @Valid SubscriptionRequest request) {
+    public UserResponse deactivate(@RequestBody @Valid ActivationRequest request) {
         return userService.deactivate(request);
     }
 
 
     @PostMapping("/reactivate")
-    public UserResponse reactivate(@RequestBody @Valid SubscriptionRequest request) {
+    public UserResponse reactivate(@RequestBody @Valid ActivationRequest request) {
         return userService.reactivate(request);
     }
 
