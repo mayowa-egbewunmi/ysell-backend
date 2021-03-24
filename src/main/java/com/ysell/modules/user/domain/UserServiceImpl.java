@@ -24,6 +24,7 @@ import com.ysell.modules.user.models.response.UserResponse;
 import com.ysell.modules.user.models.response.UserTokenResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.h2.util.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -237,16 +238,34 @@ public class UserServiceImpl implements UserService {
 
 
 	@Override
-	public UserResponse softDelete(ActivationRequest request) {
-		UserEntity user = userRepo.findById(request.getUserId())
+	public UserResponse softDelete(UserSoftDeleteRequest request) {
+		UserEntity userEntity = userRepo.findById(request.getUserId())
 				.orElseThrow(() -> ServiceUtils.wrongIdException("User", request.getUserId()));
 
-		user.setEmail(UUID.randomUUID() + "@gmail.com");
-		user.setActivated(false);
-		user.setActive(false);
-		user = userRepo.save(user);
+		String newEmail = StringUtils.isNullOrEmpty(request.getNewEmail()) ? UUID.randomUUID() + "@gmail.com" : request.getNewEmail();
+		userEntity.setEmail(newEmail);
+		userEntity.setActivated(false);
+		userEntity.setActive(false);
 
-		return UserResponse.from(user);
+		userEntity = userRepo.save(userEntity);
+
+		return UserResponse.from(userEntity);
+	}
+
+
+	@Override
+	public UserResponse undelete(UserSoftDeleteRequest request) {
+		UserEntity userEntity = userRepo.findById(request.getUserId(), "User");
+
+		if (request.getNewEmail() != null)
+			userEntity.setEmail(request.getNewEmail());
+
+		userEntity.setActivated(true);
+		userEntity.setActive(true);
+
+		userEntity = userRepo.save(userEntity);
+
+		return UserResponse.from(userEntity);
 	}
 
 
@@ -351,8 +370,7 @@ public class UserServiceImpl implements UserService {
 
 
 	private UserResponse performUserUpdate(UUID userId, UpdateUserRequest userDetails) {
-		UserEntity user = userRepo.findById(userId)
-				.orElseThrow(() -> ServiceUtils.wrongIdException("User", userId));
+		UserEntity user = userRepo.findById(userId, "User");
 
 		if (userDetails.getName() != null) {
 			user.setName(userDetails.getName());

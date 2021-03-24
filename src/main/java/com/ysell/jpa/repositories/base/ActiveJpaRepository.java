@@ -1,7 +1,7 @@
 package com.ysell.jpa.repositories.base;
 
 import com.ysell.jpa.entities.base.ActiveAuditableEntity;
-import com.ysell.modules.common.exceptions.YSellRuntimeException;
+import com.ysell.modules.common.utilities.ServiceUtils;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -65,18 +65,26 @@ public interface ActiveJpaRepository<TEntity extends ActiveAuditableEntity>
 	List<TEntity> findAllRegardless();
 
 
+	@Transactional(readOnly = true)
+	@Query("select e from #{#entityName} e where e.active = 1")
+	default TEntity findById(UUID id, String modelName) {
+		return findById(id)
+				.orElseThrow(() -> ServiceUtils.wrongIdException(modelName, id));
+	}
+
+
 	@Transactional
-	default void unDeleteById(UUID id) {
+	default TEntity unDeleteById(UUID id) {
 		TEntity entity = findById(id)
-				.orElseThrow(() -> new RuntimeException(String.format("Id %s does not exist", id)));
+				.orElseThrow(() -> ServiceUtils.wrongIdException("Record", id));
 		entity.setActive(true);
 
-		save(entity);
+		return save(entity);
 	}
 
 	@Transactional
-	default void unDelete(TEntity entity) {
-		unDeleteById(entity.getId());
+	default TEntity unDelete(TEntity entity) {
+		return unDeleteById(entity.getId());
 	}
 
 
@@ -92,7 +100,7 @@ public interface ActiveJpaRepository<TEntity extends ActiveAuditableEntity>
 	@Transactional
 	default void deleteById(@Nonnull UUID id) {
 		TEntity entity = findById(id)
-				.orElseThrow(() -> new YSellRuntimeException(String.format("Entity id %s does not exist", id)));
+				.orElseThrow(() -> ServiceUtils.wrongIdException("Record", id));
 		delete(entity);
 	}
 
@@ -100,7 +108,7 @@ public interface ActiveJpaRepository<TEntity extends ActiveAuditableEntity>
 	@Override
 	@Transactional
 	default void deleteAll(@Nonnull Iterable<? extends TEntity> entities) {
-		for(TEntity entity : entities)
+		for (TEntity entity : entities)
 			delete(entity);
 	}
 

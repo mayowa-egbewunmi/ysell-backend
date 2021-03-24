@@ -110,8 +110,14 @@ public class UserController {
 
 
     @PostMapping("/soft-delete")
-    public UserResponse softDelete(@RequestBody @Valid ActivationRequest request) {
+    public UserResponse softDelete(@RequestBody @Valid UserSoftDeleteRequest request) {
         return userService.softDelete(request);
+    }
+
+
+    @PostMapping("/undelete")
+    public UserResponse undelete(@RequestBody @Valid UserSoftDeleteRequest request) {
+        return userService.undelete(request);
     }
 
 
