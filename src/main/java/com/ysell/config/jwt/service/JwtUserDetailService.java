@@ -5,7 +5,6 @@ import com.ysell.jpa.entities.UserEntity;
 import com.ysell.jpa.repositories.UserRepository;
 import com.ysell.modules.common.exceptions.YSellRuntimeException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
