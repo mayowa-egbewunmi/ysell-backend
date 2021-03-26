@@ -1,6 +1,7 @@
 package com.ysell.modules.user.models.response;
 
 import com.ysell.jpa.entities.UserEntity;
+import com.ysell.jpa.entities.inactive.InactiveUserEntity;
 import com.ysell.modules.common.dtos.LookupDto;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -40,6 +41,21 @@ public class UserResponse {
 				userEntity.getAccountName(),
 				userEntity.getActivated(),
 				userEntity.getOrganisations().stream()
+						.map(LookupDto::create)
+						.collect(Collectors.toSet())
+		);
+	}
+
+	public static UserResponse from(InactiveUserEntity inactiveUserEntity) {
+		return new UserResponse(
+				inactiveUserEntity.getId(),
+				inactiveUserEntity.getName(),
+				inactiveUserEntity.getEmail(),
+				inactiveUserEntity.getBankName(),
+				inactiveUserEntity.getAccountNumber(),
+				inactiveUserEntity.getAccountName(),
+				inactiveUserEntity.getActivated(),
+				inactiveUserEntity.getOrganisations().stream()
 						.map(LookupDto::create)
 						.collect(Collectors.toSet())
 		);

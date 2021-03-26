@@ -8,7 +8,7 @@ import java.util.UUID;
 public class ServiceUtils {
 
     public static YSellRuntimeException wrongIdException(String modelName, UUID id) {
-        return new YSellRuntimeException(String.format("%s with Id '%s' does not exist", modelName, id));
+        return new YSellRuntimeException(String.format("%s with Id '%s' not found", modelName, id));
     }
 
 
@@ -17,23 +17,23 @@ public class ServiceUtils {
     }
 
 
-    public static YSellRuntimeException wrongNameException(String modelName, String name) {
+    public static YSellRuntimeException duplicateNameException(String modelName, String name) {
         return new YSellRuntimeException(String.format("%s with name '%s' already exists", modelName, name));
     }
 
 
-    public static void throwWrongNameException(String modelName, String name) {
-        throw wrongNameException(modelName, name);
+    public static void throwDuplicateNameException(String modelName, String name) {
+        throw duplicateNameException(modelName, name);
     }
 
 
-    public static YSellRuntimeException wrongEmailException(String modelName, String email) {
-        return new YSellRuntimeException(String.format("%s with email '%s' does not exist", modelName, email));
+    public static YSellRuntimeException duplicateEmailException(String modelName, String email) {
+        return new YSellRuntimeException(String.format("%s with email '%s' already exists", modelName, email));
     }
 
 
-    public static void throwWrongEmailException(String modelName, String email) {
-        throw wrongEmailException(modelName, email);
+    public static void throwDuplicateEmailException(String modelName, String email) {
+        throw duplicateEmailException(modelName, email);
     }
 
 

@@ -92,7 +92,7 @@ public class ProductServiceImpl
     protected void beforeUpdate(UUID productId, ProductRequest request) {
         productRepo.findFirstByNameIgnoreCaseAndOrganisationId(request.getName(), request.getOrganisation().getId()).ifPresent(productEntity -> {
             if (!productEntity.getId().equals(productId))
-                ServiceUtils.throwWrongNameException("Product", request.getName());
+                ServiceUtils.throwDuplicateNameException("Product", request.getName());
         });
 
         validateOrganisationAndCategory(request.getOrganisation().getId(), request.getProductCategory().getId());

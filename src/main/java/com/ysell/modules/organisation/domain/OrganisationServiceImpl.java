@@ -38,9 +38,9 @@ public class OrganisationServiceImpl
 	@Override
 	protected void beforeCreate(OrganisationCreateRequest request) {
 		if(organisationRepo.existsByEmailIgnoreCase(request.getEmail()))
-			ServiceUtils.throwWrongEmailException("Organisation", request.getEmail());
+			ServiceUtils.throwDuplicateEmailException("Organisation", request.getEmail());
 		if(organisationRepo.existsByNameIgnoreCase(request.getName()))
-			ServiceUtils.throwWrongNameException("Organisation", request.getName());
+			ServiceUtils.throwDuplicateNameException("Organisation", request.getName());
 	}
 
 
@@ -48,11 +48,11 @@ public class OrganisationServiceImpl
 	protected void beforeUpdate(UUID organisationId, OrganisationUpdateRequest request) {
 		organisationRepo.findFirstByEmailIgnoreCase(request.getEmail()).ifPresent(existingOrganisation -> {
 			if (!existingOrganisation.getId().equals(organisationId))
-				ServiceUtils.throwWrongEmailException("Organisation", request.getEmail());
+				ServiceUtils.throwDuplicateEmailException("Organisation", request.getEmail());
 		});
 		organisationRepo.findFirstByNameIgnoreCase(request.getName()).ifPresent(existingOrganisation -> {
 			if (!existingOrganisation.getId().equals(organisationId))
-				ServiceUtils.throwWrongNameException("Organisation", request.getName());
+				ServiceUtils.throwDuplicateNameException("Organisation", request.getName());
 		});
 	}
 

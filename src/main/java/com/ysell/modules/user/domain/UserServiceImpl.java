@@ -5,9 +5,11 @@ import com.ysell.config.jwt.models.AppUserDetails;
 import com.ysell.config.jwt.service.JwtTokenUtil;
 import com.ysell.jpa.entities.ResetCodeEntity;
 import com.ysell.jpa.entities.UserEntity;
+import com.ysell.jpa.entities.inactive.InactiveUserEntity;
 import com.ysell.jpa.repositories.OrganisationRepository;
 import com.ysell.jpa.repositories.ResetCodeRepository;
 import com.ysell.jpa.repositories.UserRepository;
+import com.ysell.jpa.repositories.inactive.InactiveUserRepository;
 import com.ysell.modules.common.dtos.LookupDto;
 import com.ysell.modules.common.exceptions.YSellRuntimeException;
 import com.ysell.modules.common.models.PageWrapper;
@@ -49,6 +51,8 @@ import static java.lang.String.format;
 public class UserServiceImpl implements UserService {
 
 	private final UserRepository userRepo;
+
+	private final InactiveUserRepository inactiveUserRepo;
 
 	private final OrganisationRepository orgRepo;
 
@@ -105,7 +109,7 @@ public class UserServiceImpl implements UserService {
 	public UserResponse getUserByEmail(String userEmail) {
 		return userRepo.findFirstByEmailIgnoreCase(userEmail)
 				.map(UserResponse::from)
-				.orElseThrow(() -> ServiceUtils.wrongEmailException("User", userEmail));
+				.orElseThrow(() -> ServiceUtils.duplicateEmailException("User", userEmail));
 	}
 
 
@@ -198,7 +202,7 @@ public class UserServiceImpl implements UserService {
 	public UserResponse updateUser(UUID userId, UpdateUserRequest request) {
 		userRepo.findFirstByNameIgnoreCase(request.getName()).ifPresent(existingUser -> {
 			if (!existingUser.getId().equals(userId))
-				ServiceUtils.throwWrongNameException("User", request.getName());
+				ServiceUtils.throwDuplicateNameException("User", request.getName());
 		});
 
 		validateOrganisations(request.getOrganisations());
@@ -255,17 +259,17 @@ public class UserServiceImpl implements UserService {
 
 	@Override
 	public UserResponse undelete(UserSoftDeleteRequest request) {
-		UserEntity userEntity = userRepo.findById(request.getUserId(), "User");
+		InactiveUserEntity inactiveUserEntity = inactiveUserRepo.unDeleteById(request.getUserId(), "Inactive User");
 
 		if (request.getNewEmail() != null)
-			userEntity.setEmail(request.getNewEmail());
+			inactiveUserEntity.setEmail(request.getNewEmail());
 
-		userEntity.setActivated(true);
-		userEntity.setActive(true);
+		inactiveUserEntity.setActivated(true);
+		inactiveUserEntity.setActive(true);
 
-		userEntity = userRepo.save(userEntity);
+		inactiveUserRepo.save(inactiveUserEntity);
 
-		return UserResponse.from(userEntity);
+		return UserResponse.from(inactiveUserEntity);
 	}
 
 
@@ -322,9 +326,9 @@ public class UserServiceImpl implements UserService {
 
 	private void validateUserRegistrationRequest(CreateUserRequest request) {
 		if (userRepo.existsByEmailIgnoreCase(request.getEmail()))
-			ServiceUtils.throwWrongEmailException("User", request.getEmail());
+			ServiceUtils.throwDuplicateEmailException("User", request.getEmail());
 		if (userRepo.existsByNameIgnoreCase(request.getName()))
-			ServiceUtils.throwWrongNameException("User", request.getName());
+			ServiceUtils.throwDuplicateNameException("User", request.getName());
 
 		validateOrganisations(request.getOrganisations());
 	}
@@ -468,6 +472,6 @@ public class UserServiceImpl implements UserService {
 
 	private UserEntity getUser(String email) {
 		return userRepo.findFirstByEmailIgnoreCase(email)
-				.orElseThrow(() -> ServiceUtils.wrongEmailException("User", email));
+				.orElseThrow(() -> ServiceUtils.duplicateEmailException("User", email));
 	}
 }
