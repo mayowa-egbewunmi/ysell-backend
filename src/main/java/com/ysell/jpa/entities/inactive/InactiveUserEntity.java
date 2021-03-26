@@ -1,7 +1,7 @@
-package com.ysell.jpa.entities;
+package com.ysell.jpa.entities.inactive;
 
+import com.ysell.jpa.entities.OrganisationEntity;
 import com.ysell.jpa.entities.base.ActiveAuditableEntity;
-import com.ysell.jpa.entities.base.NamedEntity;
 import lombok.*;
 import org.hibernate.annotations.Where;
 
@@ -9,6 +9,10 @@ import javax.persistence.*;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * @author tchineke
+ * @since 25 March, 2021
+ */
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
@@ -16,14 +20,14 @@ import java.util.Set;
 @Setter
 @Entity
 @Table(name = "users")
-@Where(clause = "is_active=1")
-public class UserEntity extends ActiveAuditableEntity implements NamedEntity {
+@Where( clause = "is_active<>1")
+public class InactiveUserEntity extends ActiveAuditableEntity {
 
     @Column(nullable = false, unique = true)
     private String name;
 
     @Column(nullable = false, unique = true)
-	private String email;
+    private String email;
 
     @Column(nullable = false)
     private String phoneNumber;

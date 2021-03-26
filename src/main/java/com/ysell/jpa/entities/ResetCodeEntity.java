@@ -2,6 +2,7 @@ package com.ysell.jpa.entities;
 
 import com.ysell.jpa.entities.base.ActiveAuditableEntity;
 import lombok.*;
+import org.hibernate.annotations.Where;
 
 import javax.persistence.*;
 import java.util.Date;
@@ -13,6 +14,7 @@ import java.util.Date;
 @Setter
 @Entity
 @Table(name = "reset_codes")
+@Where(clause = "is_active=1")
 public class ResetCodeEntity extends ActiveAuditableEntity {
 
 	@OneToOne
