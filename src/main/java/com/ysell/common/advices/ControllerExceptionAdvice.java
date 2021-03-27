@@ -24,13 +24,14 @@ public class ControllerExceptionAdvice {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public YsellResponse<Object> handleMethodArgumentNotValidException(MethodArgumentNotValidException e, HttpServletRequest httpServletRequest) {
-        log.error("Invalid request arguments: ", e);
-        if (e.getBindingResult().getFieldError() == null) {
+    public YsellResponse<Object> handleMethodArgumentNotValidException(MethodArgumentNotValidException ex, HttpServletRequest httpServletRequest) {
+        log.error("Invalid Request Arguments Exception: ", ex);
+
+        if (ex.getBindingResult().getFieldError() == null) {
             return createError("Invalid request arguments");
         }
 
-        FieldError error = e.getBindingResult().getFieldError();
+        FieldError error = ex.getBindingResult().getFieldError();
 
         return createError(String.format("Field %s %s", error.getField(), error.getDefaultMessage()));
     }
@@ -38,8 +39,10 @@ public class ControllerExceptionAdvice {
 
     @ExceptionHandler(ConstraintViolationException.class)
     @ResponseStatus(value = HttpStatus.BAD_REQUEST)
-    public YsellResponse<Object> handleConstraintViolationException(ConstraintViolationException e, HttpServletRequest httpServletRequest) {
-        Set<ConstraintViolation<?>> violations = e.getConstraintViolations();
+    public YsellResponse<Object> handleConstraintViolationException(ConstraintViolationException ex, HttpServletRequest httpServletRequest) {
+        log.error("Constraint Violation Exception: ", ex);
+
+        Set<ConstraintViolation<?>> violations = ex.getConstraintViolations();
         StringBuilder strBuilder = new StringBuilder();
         for (ConstraintViolation<?> violation : violations) {
             strBuilder.append(violation.getMessage());
@@ -53,24 +56,31 @@ public class ControllerExceptionAdvice {
     @ExceptionHandler(PropertyReferenceException.class)
     @ResponseStatus(value = HttpStatus.BAD_REQUEST)
     public YsellResponse<Object> handlePropertyReferenceException(PropertyReferenceException ex, HttpServletRequest httpServletRequest) {
+        log.error("Property Reference Exception: ", ex);
+
         Throwable throwable = ex.getCause() != null && ex.getCause().getMessage() != null ? ex.getCause() : ex;
+
         return createError(throwable.getMessage());
     }
 
 
     @ExceptionHandler(YSellRuntimeException.class)
     @ResponseStatus(value = HttpStatus.BAD_REQUEST)
-    public YsellResponse<Object> handleYSellRuntimeException(YSellRuntimeException e, HttpServletRequest httpServletRequest) {
-        return createError(e.getErrors());
+    public YsellResponse<Object> handleYSellRuntimeException(YSellRuntimeException ex, HttpServletRequest httpServletRequest) {
+        log.error("Generic Exception: ", ex);
+
+        return createError(ex.getErrors());
     }
 
 
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public YsellResponse<Object> handleGeneralException(Exception e, HttpServletRequest httpServletRequest) {
-        log.error("Unknown server error", e);
-        Throwable throwable = e.getCause() != null && e.getCause().getMessage() != null ? e.getCause() : e;
-        String errorMessage = throwable.getMessage() != null ? throwable.getMessage() :  "Exception type: " + e.getClass().getName();
+    public YsellResponse<Object> handleGeneralException(Exception ex, HttpServletRequest httpServletRequest) {
+        log.error("Internal Server Exception: ", ex);
+
+        Throwable throwable = ex.getCause() != null && ex.getCause().getMessage() != null ? ex.getCause() : ex;
+        String errorMessage = throwable.getMessage() != null ? throwable.getMessage() :  "Exception type: " + ex.getClass().getName();
+
         return createError(errorMessage);
     }
 }
