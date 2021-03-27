@@ -360,7 +360,7 @@ public class UserServiceImpl implements UserService {
 				.accountName(userDetails.getAccountName())
 				.accountNumber(userDetails.getAccountNumber())
 				.activated(false)
-				.organisations(userDetails.getOrganisations().stream()
+				.organisations(Optional.of(userDetails.getOrganisations()).orElse(new HashSet<>()).stream()
 						.map(o -> orgRepo.getOne(o.getId()))
 						.collect(Collectors.toSet()))
 				.build();
