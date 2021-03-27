@@ -39,8 +39,6 @@ public class OrganisationServiceImpl
 	protected void beforeCreate(OrganisationCreateRequest request) {
 		if(organisationRepo.existsByEmailIgnoreCase(request.getEmail()))
 			ServiceUtils.throwDuplicateEmailException("Organisation", request.getEmail());
-		if(organisationRepo.existsByNameIgnoreCase(request.getName()))
-			ServiceUtils.throwDuplicateNameException("Organisation", request.getName());
 	}
 
 

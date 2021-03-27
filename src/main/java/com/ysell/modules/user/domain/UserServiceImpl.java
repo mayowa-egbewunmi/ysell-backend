@@ -327,8 +327,6 @@ public class UserServiceImpl implements UserService {
 	private void validateUserRegistrationRequest(CreateUserRequest request) {
 		if (userRepo.existsByEmailIgnoreCase(request.getEmail()))
 			ServiceUtils.throwDuplicateEmailException("User", request.getEmail());
-		if (userRepo.existsByNameIgnoreCase(request.getName()))
-			ServiceUtils.throwDuplicateNameException("User", request.getName());
 
 		validateOrganisations(request.getOrganisations());
 	}
@@ -445,6 +443,7 @@ public class UserServiceImpl implements UserService {
 		Set<UUID> organisationIds = organisations.stream()
 				.map(LookupDto::getId)
 				.collect(Collectors.toSet());
+
 		validateOrganisationIds(organisationIds);
 	}
 

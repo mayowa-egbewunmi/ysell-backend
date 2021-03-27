@@ -10,7 +10,5 @@ import java.util.UUID;
 @NoRepositoryBean
 public interface NameRepository<TEntity extends AuditableEntity> extends JpaRepository<TEntity, UUID> {
 
-	boolean existsByNameIgnoreCase(String name);
-
 	Optional<TEntity> findFirstByNameIgnoreCase(String name);
 }
