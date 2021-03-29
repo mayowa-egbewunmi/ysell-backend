@@ -16,6 +16,15 @@ public class ServiceUtils {
         throw wrongIdException(modelName, id);
     }
 
+    public static YSellRuntimeException noAccessIdException(String modelName, UUID id) {
+        return new YSellRuntimeException(String.format("You do not have access to %s with id '%s'", modelName, id));
+    }
+
+
+    public static void throwNoAccessIdException(String modelName, UUID id) {
+        throw noAccessIdException(modelName, id);
+    }
+
 
     public static YSellRuntimeException duplicateNameException(String modelName, String name) {
         return new YSellRuntimeException(String.format("%s with name '%s' already exists", modelName, name));

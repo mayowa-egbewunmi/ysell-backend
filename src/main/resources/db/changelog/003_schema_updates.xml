@@ -74,4 +74,14 @@
         <addNotNullConstraint tableName="users" columnName="phone_number" columnDataType="VARCHAR(31)" />
     </changeSet>
 
+
+    <changeSet id="1615297672-01-correct-selling-price-typo" author="tobenna">
+        <renameColumn tableName="sales" oldColumnName="total__selling_price" newColumnName="total_selling_price" columnDataType="DECIMAL"/>
+    </changeSet>
+
+
+    <changeSet id="1615297672-02-rename-total_price-to-total_cost_price" author="tobenna">
+        <renameColumn tableName="sales" oldColumnName="total_price" newColumnName="total_cost_price" columnDataType="DECIMAL"/>
+    </changeSet>
+
 </databaseChangeLog>

@@ -1,6 +1,9 @@
 package com.ysell.modules.synchronisation.domain;
 
-import com.ysell.jpa.entities.*;
+import com.ysell.jpa.entities.OrderEntity;
+import com.ysell.jpa.entities.PaymentEntity;
+import com.ysell.jpa.entities.ProductEntity;
+import com.ysell.jpa.entities.SaleEntity;
 import com.ysell.jpa.entities.base.AuditableEntity;
 import com.ysell.jpa.repositories.*;
 import com.ysell.modules.common.exceptions.YSellRuntimeException;
@@ -38,11 +41,11 @@ public class SynchronisationServiceImpl implements SynchronisationService {
 
 	@Override
 	public SynchronisationResponse synchroniseRecords(SynchronisationRequest request) {
-		validateRequest(request);
-
 		Set<UUID> userOrganisationIds = loggedInUserService.getLoggedInUser().getOrganisations().stream()
 				.map(AuditableEntity::getId)
 				.collect(Collectors.toSet());
+
+		validateRequest(request, userOrganisationIds);
 
 		Set<ProductSyncResponseDto> newProducts = getNewProducts(request.getProductData().getMostRecentlySyncedTimestamp(), userOrganisationIds);
 		Set<ProductSyncResponseDto> updatedProducts = getUpdatedProducts(request.getProductData().getMostRecentlySyncedTimestamp(), userOrganisationIds);
@@ -85,7 +88,7 @@ public class SynchronisationServiceImpl implements SynchronisationService {
 	}
 
 
-	private void validateRequest(SynchronisationRequest request) {
+	private void validateRequest(SynchronisationRequest request, Set<UUID> userOrganisations) {
 		if (request.getProductData().getUnsyncedProducts().size() != request.getProductData().getCount())
 			throwInvalidCountError("Product", request.getProductData().getUnsyncedProducts().size(), request.getProductData().getCount());
 
@@ -101,25 +104,29 @@ public class SynchronisationServiceImpl implements SynchronisationService {
 		validateOrganisationIdsForUser(
 				request.getProductData().getUnsyncedProducts().stream()
 						.map(BaseSyncRequestDto::getOrganisationId)
-						.collect(Collectors.toSet())
+						.collect(Collectors.toSet()),
+				userOrganisations
 		);
 
 		validateOrganisationIdsForUser(
 				request.getOrderData().getUnsyncedOrders().stream()
 						.map(BaseSyncRequestDto::getOrganisationId)
-						.collect(Collectors.toSet())
+						.collect(Collectors.toSet()),
+				userOrganisations
 		);
 
 		validateOrganisationIdsForUser(
 				request.getSalesData().getUnsyncedSales().stream()
 						.map(BaseSyncRequestDto::getOrganisationId)
-						.collect(Collectors.toSet())
+						.collect(Collectors.toSet()),
+				userOrganisations
 		);
 
 		validateOrganisationIdsForUser(
 				request.getPaymentData().getUnsyncedPayments().stream()
 						.map(BaseSyncRequestDto::getOrganisationId)
-						.collect(Collectors.toSet())
+						.collect(Collectors.toSet()),
+				userOrganisations
 		);
 	}
 
@@ -131,12 +138,10 @@ public class SynchronisationServiceImpl implements SynchronisationService {
 	}
 
 
-	private void validateOrganisationIdsForUser(Set<UUID> organisationIds) {
-		Set<OrganisationEntity> userOrganisations = loggedInUserService.getLoggedInUser().getOrganisations();
-
+	private void validateOrganisationIdsForUser(Set<UUID> organisationIds, Set<UUID> userOrganisationIds) {
 		organisationIds.forEach(organisationId -> {
-			if (userOrganisations.stream().noneMatch(org -> org.getId() == organisationId))
-				ServiceUtils.throwWrongIdException("Organisation", organisationId);
+			if (userOrganisationIds.stream().noneMatch(orgId -> orgId.equals(organisationId)))
+				ServiceUtils.throwNoAccessIdException("Organisation", organisationId);
 		});
 	}
 
@@ -165,12 +170,18 @@ public class SynchronisationServiceImpl implements SynchronisationService {
 					.currentStock(0)
 					.organisation(organisationRepository.getOne(unsyncedDto.getOrganisationId()))
 					.build();
+
+			entity.setId(unsyncedDto.getId());
 			entity.setCreatedBy(unsyncedDto.getCreatedBy());
 			entity.setUpdatedBy(unsyncedDto.getUpdatedBy());
+			entity.setCreatedAt(Instant.now());
+			entity.setUpdatedAt(Instant.now());
 			entity.setClientCreatedAt(unsyncedDto.getClientCreatedAt());
 			entity.setClientUpdatedAt(unsyncedDto.getClientUpdatedAt());
 
-			return UpdatedSyncResponseDto.from(productRepository.save(entity));
+			entity = productRepository.saveAndFlush(entity);
+
+			return UpdatedSyncResponseDto.from(entity);
 		}).collect(Collectors.toSet());
 	}
 
@@ -196,12 +207,18 @@ public class SynchronisationServiceImpl implements SynchronisationService {
 					.status(unsyncedDto.getStatus())
 					.organisation(organisationRepository.getOne(unsyncedDto.getOrganisationId()))
 					.build();
+
+			entity.setId(unsyncedDto.getId());
 			entity.setCreatedBy(unsyncedDto.getCreatedBy());
 			entity.setUpdatedBy(unsyncedDto.getUpdatedBy());
+			entity.setCreatedAt(Instant.now());
+			entity.setUpdatedAt(Instant.now());
 			entity.setClientCreatedAt(unsyncedDto.getClientCreatedAt());
 			entity.setClientUpdatedAt(unsyncedDto.getClientUpdatedAt());
 
-			return UpdatedSyncResponseDto.from(orderRepository.save(entity));
+			entity = orderRepository.save(entity);
+
+			return UpdatedSyncResponseDto.from(entity);
 		}).collect(Collectors.toSet());
 	}
 
@@ -228,13 +245,20 @@ public class SynchronisationServiceImpl implements SynchronisationService {
 					.quantity(unsyncedDto.getQuantity())
 					.totalSellingPrice(unsyncedDto.getTotalSellingPrice())
 					.totalCostPrice(unsyncedDto.getTotalCostPrice())
+					.saleType(unsyncedDto.getSaleType())
 					.build();
+
+			entity.setId(unsyncedDto.getId());
 			entity.setCreatedBy(unsyncedDto.getCreatedBy());
 			entity.setUpdatedBy(unsyncedDto.getUpdatedBy());
+			entity.setCreatedAt(Instant.now());
+			entity.setUpdatedAt(Instant.now());
 			entity.setClientCreatedAt(unsyncedDto.getClientCreatedAt());
 			entity.setClientUpdatedAt(unsyncedDto.getClientUpdatedAt());
 
-			return UpdatedSyncResponseDto.from(saleRepository.save(entity));
+			entity = saleRepository.save(entity);
+
+			return UpdatedSyncResponseDto.from(entity);
 		}).collect(Collectors.toSet());
 	}
 
@@ -261,12 +285,18 @@ public class SynchronisationServiceImpl implements SynchronisationService {
 					.amount(unsyncedDto.getAmount())
 					.narration(unsyncedDto.getNarration())
 					.build();
+
+			entity.setId(unsyncedDto.getId());
 			entity.setCreatedBy(unsyncedDto.getCreatedBy());
 			entity.setUpdatedBy(unsyncedDto.getUpdatedBy());
+			entity.setCreatedAt(Instant.now());
+			entity.setUpdatedAt(Instant.now());
 			entity.setClientCreatedAt(unsyncedDto.getClientCreatedAt());
 			entity.setClientUpdatedAt(unsyncedDto.getClientUpdatedAt());
 
-			return UpdatedSyncResponseDto.from(paymentRepository.save(entity));
+			entity = paymentRepository.save(entity);
+
+			return UpdatedSyncResponseDto.from(entity);
 		}).collect(Collectors.toSet());
 	}
 }

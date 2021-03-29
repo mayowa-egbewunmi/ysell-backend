@@ -9,6 +9,7 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import javax.persistence.*;
+import javax.validation.constraints.NotNull;
 import java.time.Instant;
 import java.util.UUID;
 
@@ -21,32 +22,35 @@ public abstract class AuditableEntity {
 	@Id
 	@Column(columnDefinition = "BINARY(16)")
 	private UUID id;
-	
+
 	@CreatedBy
 	@Column(columnDefinition = "BINARY(16)")
 	private UUID createdBy;
 
 	@CreatedDate
+	@NotNull
 	private Instant createdAt;
 
 	@LastModifiedBy
+	@NotNull
 	@Column(columnDefinition = "BINARY(16)")
 	private UUID updatedBy;
 
 	@LastModifiedDate
+	@NotNull
 	private Instant updatedAt;
 
 	@Version
 	private int version;
-	
-    private Instant clientCreatedAt;
 
-    private Instant clientUpdatedAt;
+	private Instant clientCreatedAt;
+
+	private Instant clientUpdatedAt;
 
 
 	@PrePersist
 	public void validateUuid() {
-		if(id == null) 
+		if (id == null)
 			id = UUID.randomUUID();
 	}
 
@@ -61,26 +65,26 @@ public abstract class AuditableEntity {
 		return table == null ? null : table.name();
 	}
 
-	
+
 	@Override
 	public boolean equals(Object obj) {
-		if(id == null)
+		if (id == null)
 			return super.equals(obj);
-		else if(obj == null || obj.getClass() != getClass())
+		else if (obj == null || obj.getClass() != getClass())
 			return false;
 
 		@SuppressWarnings("unchecked")
-		boolean isEqual = id == ((AuditableEntity)obj).id;
-		
+		boolean isEqual = id == ((AuditableEntity) obj).id;
+
 		return isEqual;
 	}
 
 
 	@Override
 	public int hashCode() {
-		if(id == null)
+		if (id == null)
 			return super.hashCode();
-		
+
 		long bitSum = id.getMostSignificantBits() + id.getLeastSignificantBits();
 		return new Long(bitSum).intValue();
 	}

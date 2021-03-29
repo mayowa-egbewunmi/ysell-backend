@@ -59,4 +59,11 @@
         </sql>
     </changeSet>
 
+
+    <changeSet id="1615297672-03-add-more-seed-for-users-organisation" author="tobenna">
+        <sql>
+            INSERT INTO users_organisations VALUES (UNHEX('1b63e5256162429e96233c8a56045b33'), UNHEX('1b63e5256162429e96233c8a56045b31'));
+        </sql>
+    </changeSet>
+
 </databaseChangeLog>

@@ -3,6 +3,7 @@ package com.ysell.common.advices;
 import com.ysell.common.models.YsellResponse;
 import com.ysell.modules.common.exceptions.YSellRuntimeException;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.mapping.PropertyReferenceException;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.FieldError;
@@ -59,6 +60,17 @@ public class ControllerExceptionAdvice {
         log.error("Property Reference Exception: ", ex);
 
         Throwable throwable = ex.getCause() != null && ex.getCause().getMessage() != null ? ex.getCause() : ex;
+
+        return createError(throwable.getMessage());
+    }
+
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public YsellResponse<Object> handleDataIntegrityViolationErrors(DataIntegrityViolationException ex) {
+        log.error("Data Integrity Exception: ", ex);
+
+        Throwable throwable = ex.getRootCause() != null && ex.getRootCause().getMessage() != null ? ex.getRootCause() : ex;
 
         return createError(throwable.getMessage());
     }

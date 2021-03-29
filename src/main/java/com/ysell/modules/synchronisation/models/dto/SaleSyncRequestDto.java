@@ -1,6 +1,7 @@
 package com.ysell.modules.synchronisation.models.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.ysell.jpa.entities.enums.SaleType;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -30,4 +31,8 @@ public class SaleSyncRequestDto extends BaseSyncRequestDto {
 	@NotNull
 	@JsonProperty("total_cost")
 	private BigDecimal totalCostPrice;
+
+	@NotNull
+	@JsonProperty("sale_type")
+	private SaleType saleType;
 }

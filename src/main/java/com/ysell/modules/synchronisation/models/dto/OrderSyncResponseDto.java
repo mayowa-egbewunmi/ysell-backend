@@ -2,11 +2,8 @@ package com.ysell.modules.synchronisation.models.dto;
 
 import com.ysell.jpa.entities.OrderEntity;
 import com.ysell.jpa.entities.enums.OrderStatus;
-import com.ysell.modules.common.utilities.MapperUtils;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 
-@AllArgsConstructor
 @Getter
 public class OrderSyncResponseDto extends BaseSyncResponseDto {
 
@@ -16,9 +13,12 @@ public class OrderSyncResponseDto extends BaseSyncResponseDto {
 
 
     public static OrderSyncResponseDto from(OrderEntity orderEntity) {
-        OrderSyncResponseDto responseDto = MapperUtils.allArgsMap(orderEntity, OrderSyncResponseDto.class);
-        responseDto.setOrganisationId(orderEntity.getOrganisation().getId());
-        responseDto.setDeleted(!orderEntity.isActive());
+        OrderSyncResponseDto responseDto = new OrderSyncResponseDto();
+        responseDto.setBaseFields(orderEntity, orderEntity.getOrganisation().getId());
+
+        responseDto.title = orderEntity.getTitle();
+        responseDto.status = orderEntity.getStatus();
+
         return responseDto;
     }
 }

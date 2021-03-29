@@ -27,21 +27,21 @@ public class SynchronisationResponse {
 		@JsonProperty("synced_products")
 		private Set<UpdatedSyncResponseDto> syncedProducts;
 
-		@JsonProperty("updated_products")
-		private Set<ProductSyncResponseDto> updatedProducts;
-
-		@JsonProperty("new_products")
-		private Set<ProductSyncResponseDto> newProducts;
-
 		@JsonProperty("synced_products_count")
 		public int getSyncedProductsCount() {
 			return syncedProducts.size();
 		}
 
+		@JsonProperty("new_products")
+		private Set<ProductSyncResponseDto> newProducts;
+
 		@JsonProperty("new_products_count")
 		public int getNewProductsCount() {
 			return newProducts.size();
 		}
+
+		@JsonProperty("updated_products")
+		private Set<ProductSyncResponseDto> updatedProducts;
 
 		@JsonProperty("updated_products_count")
 		public int getUpdatedProductsCount() {
@@ -57,21 +57,21 @@ public class SynchronisationResponse {
 		@JsonProperty("synced_orders")
 		private Set<UpdatedSyncResponseDto> syncedOrders;
 
-		@JsonProperty("updated_orders")
-		private Set<OrderSyncResponseDto> updatedOrders;
-
-		@JsonProperty("new_orders")
-		private Set<OrderSyncResponseDto> newOrders;
-
 		@JsonProperty("synced_orders_count")
 		public int getSyncedOrdersCount() {
 			return syncedOrders.size();
 		}
 
+		@JsonProperty("new_orders")
+		private Set<OrderSyncResponseDto> newOrders;
+
 		@JsonProperty("new_orders_count")
 		public int getNewOrdersCount() {
 			return newOrders.size();
 		}
+
+		@JsonProperty("updated_orders")
+		private Set<OrderSyncResponseDto> updatedOrders;
 
 		@JsonProperty("updated_orders_count")
 		public int getUpdatedOrdersCount() {
@@ -87,21 +87,21 @@ public class SynchronisationResponse {
 		@JsonProperty("synced_sales")
 		private Set<UpdatedSyncResponseDto> syncedSales;
 
-		@JsonProperty("updated_sales")
-		private Set<SaleSyncResponseDto> updatedSales;
-
-		@JsonProperty("new_sales")
-		private Set<SaleSyncResponseDto> newSales;
-
 		@JsonProperty("synced_sales_count")
 		public int getSyncedSalesCount() {
 			return syncedSales.size();
 		}
 
+		@JsonProperty("new_sales")
+		private Set<SaleSyncResponseDto> newSales;
+
 		@JsonProperty("new_sales_count")
 		public int getNewSalesCount() {
 			return newSales.size();
 		}
+
+		@JsonProperty("updated_sales")
+		private Set<SaleSyncResponseDto> updatedSales;
 
 		@JsonProperty("updated_sales_count")
 		public int getUpdatedSalesCount() {
@@ -117,21 +117,21 @@ public class SynchronisationResponse {
 		@JsonProperty("synced_payments")
 		private Set<UpdatedSyncResponseDto> syncedPayments;
 
-		@JsonProperty("updated_payments")
-		private Set<PaymentSyncResponseDto> updatedPayments;
-
-		@JsonProperty("new_payments")
-		private Set<PaymentSyncResponseDto> newPayments;
-
 		@JsonProperty("synced_payments_count")
 		public int getSyncedPaymentsCount() {
 			return syncedPayments.size();
 		}
 
+		@JsonProperty("new_payments")
+		private Set<PaymentSyncResponseDto> newPayments;
+
 		@JsonProperty("new_payments_count")
 		public int getNewPaymentsCount() {
 			return newPayments.size();
 		}
+
+		@JsonProperty("updated_payments")
+		private Set<PaymentSyncResponseDto> updatedPayments;
 
 		@JsonProperty("updated_payments_count")
 		public int getUpdatedPaymentsCount() {

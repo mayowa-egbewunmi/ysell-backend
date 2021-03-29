@@ -3,14 +3,11 @@ package com.ysell.modules.synchronisation.models.dto;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.ysell.jpa.entities.PaymentEntity;
 import com.ysell.jpa.entities.enums.PaymentMode;
-import com.ysell.modules.common.utilities.MapperUtils;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 import java.math.BigDecimal;
 import java.util.UUID;
 
-@AllArgsConstructor
 @Getter
 public class PaymentSyncResponseDto extends BaseSyncResponseDto {
 
@@ -23,10 +20,13 @@ public class PaymentSyncResponseDto extends BaseSyncResponseDto {
 
 
 	public static PaymentSyncResponseDto from(PaymentEntity paymentEntity) {
-		PaymentSyncResponseDto responseDto = MapperUtils.allArgsMap(paymentEntity, PaymentSyncResponseDto.class);
+		PaymentSyncResponseDto responseDto = new PaymentSyncResponseDto();
+		responseDto.setBaseFields(paymentEntity, paymentEntity.getOrder().getOrganisation().getId());
+
 		responseDto.orderId = paymentEntity.getOrder().getId();
-		responseDto.setOrganisationId(paymentEntity.getOrder().getOrganisation().getId());
-		responseDto.setDeleted(!paymentEntity.isActive());
+		responseDto.mode = paymentEntity.getMode();
+		responseDto.amountPaid = paymentEntity.getAmount();
+
 		return responseDto;
 	}
 }

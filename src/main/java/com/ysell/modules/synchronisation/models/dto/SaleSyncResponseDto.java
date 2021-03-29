@@ -2,15 +2,12 @@ package com.ysell.modules.synchronisation.models.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.ysell.jpa.entities.SaleEntity;
-import com.ysell.modules.common.utilities.MapperUtils;
-import lombok.Builder;
 import lombok.Getter;
 
 import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.util.UUID;
 
-@Builder
 @Getter
 public class SaleSyncResponseDto extends BaseSyncResponseDto {
 
@@ -23,7 +20,7 @@ public class SaleSyncResponseDto extends BaseSyncResponseDto {
 	private UUID productId;
 
 	@NotNull
-	private Long quantity;
+	private int quantity;
 
 	@NotNull
 	@JsonProperty("total_price")
@@ -31,11 +28,14 @@ public class SaleSyncResponseDto extends BaseSyncResponseDto {
 
 
 	public static SaleSyncResponseDto from(SaleEntity saleEntity) {
-		SaleSyncResponseDto responseDto = MapperUtils.allArgsMap(saleEntity, SaleSyncResponseDto.class);
+		SaleSyncResponseDto responseDto = new SaleSyncResponseDto();
+		responseDto.setBaseFields(saleEntity, saleEntity.getOrder().getOrganisation().getId());
+
 		responseDto.orderId = saleEntity.getOrder().getId();
 		responseDto.productId = saleEntity.getProduct().getId();
-		responseDto.setOrganisationId(saleEntity.getOrder().getOrganisation().getId());
-		responseDto.setDeleted(!saleEntity.isActive());
+		responseDto.quantity = saleEntity.getQuantity();
+		responseDto.totalPrice = saleEntity.getTotalSellingPrice();
+
 		return responseDto;
 	}
 }
