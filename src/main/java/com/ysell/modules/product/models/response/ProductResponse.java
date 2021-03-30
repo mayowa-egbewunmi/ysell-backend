@@ -1,5 +1,6 @@
 package com.ysell.modules.product.models.response;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.ysell.jpa.entities.OrganisationEntity;
 import com.ysell.jpa.entities.ProductCategoryEntity;
 import com.ysell.jpa.entities.ProductEntity;
@@ -22,12 +23,14 @@ public class ProductResponse {
 
     private String description;
 
-    private BigDecimal price; 		
-    
+    private BigDecimal price;
+
+    @JsonProperty("current_stock")
     private int currentStock;
 
     private LookupDto organisation;
 
+    @JsonProperty("product_category")
     private LookupDto productCategory;
 
 

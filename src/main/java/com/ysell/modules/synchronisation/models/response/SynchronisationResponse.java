@@ -11,12 +11,16 @@ import java.util.Set;
 @Getter
 public class SynchronisationResponse {
 
+	@JsonProperty("product_data")
 	private ProductData productData;
-	
+
+	@JsonProperty("order_data")
 	private OrderData orderData;
 
+	@JsonProperty("sales_data")
 	private SalesData salesData;
 
+	@JsonProperty("payment_data")
 	private PaymentData paymentData;
 
 

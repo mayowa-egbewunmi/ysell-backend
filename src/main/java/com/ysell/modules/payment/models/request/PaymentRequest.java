@@ -1,5 +1,6 @@
 package com.ysell.modules.payment.models.request;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.ysell.jpa.entities.enums.PaymentMode;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -19,9 +20,11 @@ import java.util.UUID;
 public class PaymentRequest {
 
     @NotNull
+    @JsonProperty("order_id")
     private UUID orderId;
 
     @NotNull
+    @JsonProperty("amount_paid")
     private BigDecimal amountPaid;
 
     @NotNull
@@ -29,5 +32,6 @@ public class PaymentRequest {
 
     private String narration;
 
+    @JsonProperty("ignore_total_paid")
     private Boolean totalPaidIgnored;
 }

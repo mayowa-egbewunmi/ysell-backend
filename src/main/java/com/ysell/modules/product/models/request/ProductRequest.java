@@ -1,5 +1,6 @@
 package com.ysell.modules.product.models.request;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.ysell.modules.common.dtos.LookupDto;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -21,9 +22,11 @@ public class ProductRequest {
     private String description;
 
     @NotNull
+    @JsonProperty("cost_price")
     private BigDecimal costPrice;
 
     @NotNull
+    @JsonProperty("selling_price")
     private BigDecimal sellingPrice;
 
     @NotNull
@@ -32,5 +35,6 @@ public class ProductRequest {
 
     @NotNull
     @Valid
+    @JsonProperty("product_category")
     private LookupDto productCategory;   		
 }
