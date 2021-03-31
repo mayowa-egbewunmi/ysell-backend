@@ -2,7 +2,7 @@ package com.ysell.common.converters.date;
 
 /**
  * @author created by Tobenna
- * @since 24 January, 2021
+ * @since 24th January, 2021
  */
 public class DateConstants {
 
