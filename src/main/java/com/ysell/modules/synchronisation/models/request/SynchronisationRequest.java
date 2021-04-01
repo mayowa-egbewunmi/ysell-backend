@@ -21,27 +21,27 @@ public class SynchronisationRequest {
 	@NotNull
 	@Valid
 	@JsonProperty("product_data")
-	private ProductData productData;
+	private ProductRequestData productData;
 
 	@NotNull
 	@Valid
 	@JsonProperty("order_data")
-	private OrderData orderData;
+	private OrderRequestData orderData;
 
 	@NotNull
 	@Valid
 	@JsonProperty("sales_data")
-	private SalesData salesData;
+	private SalesRequestData salesData;
 
 	@NotNull
 	@Valid
 	@JsonProperty("payment_data")
-	private PaymentData paymentData;
+	private PaymentRequestData paymentData;
 
 
 	@Getter
 	@Setter
-	public static class ProductData extends SyncData {
+	public static class ProductRequestData extends SyncData {
 
 		@JsonProperty("unsynced_products")
 		private Set<ProductSyncRequestDto> unsyncedProducts;
@@ -50,7 +50,7 @@ public class SynchronisationRequest {
 
 	@Getter
 	@Setter
-	public static class OrderData extends SyncData {
+	public static class OrderRequestData extends SyncData {
 
 		@JsonProperty("unsynced_orders")
 		private Set<OrderSyncRequestDto> unsyncedOrders;
@@ -59,7 +59,7 @@ public class SynchronisationRequest {
 
 	@Getter
 	@Setter
-	public static class SalesData extends SyncData {
+	public static class SalesRequestData extends SyncData {
 
 		@JsonProperty("unsynced_sales")
 		private Set<SaleSyncRequestDto> unsyncedSales;
@@ -68,7 +68,7 @@ public class SynchronisationRequest {
 
 	@Getter
 	@Setter
-	public static class PaymentData extends SyncData {
+	public static class PaymentRequestData extends SyncData {
 
 		@JsonProperty("unsynced_payments")
 		private Set<PaymentSyncRequestDto> unsyncedPayments;

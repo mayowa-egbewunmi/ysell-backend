@@ -21,6 +21,8 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import static com.ysell.modules.synchronisation.models.response.SynchronisationResponse.*;
+
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -75,14 +77,14 @@ public class SynchronisationServiceImpl implements SynchronisationService {
 				.collect(Collectors.toSet());
 		Set<UpdatedSyncResponseDto> syncedPayments = syncedPayments(request.getPaymentData().getUnsyncedPayments());
 
-		return SynchronisationResponse.builder()
-				.productData(SynchronisationResponse.ProductData.builder()
+		return builder()
+				.productData(ProductResponseData.builder()
 						.newProducts(newProducts).updatedProducts(updatedProducts).syncedProducts(syncedProducts).build())
-				.orderData(SynchronisationResponse.OrderData.builder()
+				.orderData(OrderResponseData.builder()
 						.newOrders(newOrders).updatedOrders(updatedOrders).syncedOrders(syncedOrders).build())
-				.salesData(SynchronisationResponse.SalesData.builder()
+				.salesData(SalesResponseData.builder()
 						.newSales(newSales).updatedSales(updatedSales).syncedSales(syncedSales).build())
-				.paymentData(SynchronisationResponse.PaymentData.builder()
+				.paymentData(PaymentResponseData.builder()
 						.newPayments(newPayments).updatedPayments(updatedPayments).syncedPayments(syncedPayments).build())
 				.build();
 	}

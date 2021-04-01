@@ -12,21 +12,21 @@ import java.util.Set;
 public class SynchronisationResponse {
 
 	@JsonProperty("product_data")
-	private ProductData productData;
+	private ProductResponseData productData;
 
 	@JsonProperty("order_data")
-	private OrderData orderData;
+	private OrderResponseData orderData;
 
 	@JsonProperty("sales_data")
-	private SalesData salesData;
+	private SalesResponseData salesData;
 
 	@JsonProperty("payment_data")
-	private PaymentData paymentData;
+	private PaymentResponseData paymentData;
 
 
 	@Builder
 	@Getter
-	public static class ProductData {
+	public static class ProductResponseData {
 
 		@JsonProperty("synced_products")
 		private Set<UpdatedSyncResponseDto> syncedProducts;
@@ -56,7 +56,7 @@ public class SynchronisationResponse {
 
 	@Builder
 	@Getter
-	public static class OrderData {
+	public static class OrderResponseData {
 
 		@JsonProperty("synced_orders")
 		private Set<UpdatedSyncResponseDto> syncedOrders;
@@ -86,7 +86,7 @@ public class SynchronisationResponse {
 
 	@Builder
 	@Getter
-	public static class SalesData {
+	public static class SalesResponseData {
 
 		@JsonProperty("synced_sales")
 		private Set<UpdatedSyncResponseDto> syncedSales;
@@ -116,7 +116,7 @@ public class SynchronisationResponse {
 
 	@Builder
 	@Getter
-	public static class PaymentData {
+	public static class PaymentResponseData {
 
 		@JsonProperty("synced_payments")
 		private Set<UpdatedSyncResponseDto> syncedPayments;
