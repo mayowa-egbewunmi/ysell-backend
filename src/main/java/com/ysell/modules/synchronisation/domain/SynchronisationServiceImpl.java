@@ -181,7 +181,7 @@ public class SynchronisationServiceImpl implements SynchronisationService {
 			entity.setClientCreatedAt(unsyncedDto.getClientCreatedAt());
 			entity.setClientUpdatedAt(unsyncedDto.getClientUpdatedAt());
 
-			entity = productRepository.saveAndFlush(entity);
+			entity = productRepository.save(entity);
 
 			return UpdatedSyncResponseDto.from(entity);
 		}).collect(Collectors.toSet());

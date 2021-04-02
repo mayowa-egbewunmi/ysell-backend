@@ -26,6 +26,8 @@ public class UserResponse {
 
 	private String accountName;
 
+	private String phoneNumber;
+
 	private boolean activated;
 
 	private Set<LookupDto> organisations;
@@ -39,6 +41,7 @@ public class UserResponse {
 				userEntity.getBankName(),
 				userEntity.getAccountNumber(),
 				userEntity.getAccountName(),
+				userEntity.getPhoneNumber(),
 				userEntity.getActivated(),
 				userEntity.getOrganisations().stream()
 						.map(LookupDto::create)
@@ -54,6 +57,7 @@ public class UserResponse {
 				inactiveUserEntity.getBankName(),
 				inactiveUserEntity.getAccountNumber(),
 				inactiveUserEntity.getAccountName(),
+				inactiveUserEntity.getPhoneNumber(),
 				inactiveUserEntity.getActivated(),
 				inactiveUserEntity.getOrganisations().stream()
 						.map(LookupDto::create)

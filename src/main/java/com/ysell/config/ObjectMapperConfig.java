@@ -1,7 +1,9 @@
 package com.ysell.config;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.module.paramnames.ParameterNamesModule;
@@ -28,8 +30,12 @@ public class ObjectMapperConfig {
     @Bean
     @Primary
     public ObjectMapper objectMapper() {
-        ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.registerModule(new ParameterNamesModule(JsonCreator.Mode.PROPERTIES));
+        ObjectMapper objectMapper = new ObjectMapper()
+                .registerModule(new ParameterNamesModule(JsonCreator.Mode.PROPERTIES))
+                .configure(SerializationFeature.WRITE_DATE_TIMESTAMPS_AS_NANOSECONDS, false)
+                .configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false)
+                .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+                .configure(DeserializationFeature.READ_DATE_TIMESTAMPS_AS_NANOSECONDS, false);
 
         return addDeserializers(objectMapper);
     }
@@ -49,22 +55,18 @@ public class ObjectMapperConfig {
 
 
     @SuppressWarnings("unchecked")
-    private SimpleModule addEnumDeserializers(SimpleModule module) {
+    private void addEnumDeserializers(SimpleModule module) {
         Reflections reflections = new Reflections("com.ysell");
         reflections.getSubTypesOf(Enum.class).forEach(enumClass -> {
             EnumDeserializer enumDeserializer = new EnumDeserializer<>(enumClass);
             module.addDeserializer(enumClass, enumDeserializer);
         });
-
-        return module;
     }
 
 
-    private SimpleModule addDateDeserializers(SimpleModule module) {
+    private void addDateDeserializers(SimpleModule module) {
         module.addDeserializer(Date.class, new DateDeserializer());
         module.addDeserializer(LocalDate.class, new LocalDateDeserializer());
         module.addDeserializer(LocalDateTime.class, new LocalDateTimeDeserializer());
-
-        return module;
     }
 }

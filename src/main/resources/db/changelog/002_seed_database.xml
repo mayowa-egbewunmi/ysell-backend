@@ -66,4 +66,11 @@
         </sql>
     </changeSet>
 
+
+    <changeSet id="1615297672-04-set-test-organisation-for-ysell-user" author="tobenna">
+        <sql>
+            UPDATE users_organisations SET organisation_id = UNHEX('1b63e5256162429e96233c8a56045b32') where user_id = UNHEX('1b63e5256162429e96233c8a56045b33');
+        </sql>
+    </changeSet>
+
 </databaseChangeLog>
