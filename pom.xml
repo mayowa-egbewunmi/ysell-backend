@@ -199,14 +199,6 @@
 				<configuration>
 					<mainClass>com.ysell.YsellApplication</mainClass>
 				</configuration>
-
-				<executions>
-					<execution>
-						<goals>
-							<goal>repackage</goal>
-						</goals>
-					</execution>
-				</executions>
 			</plugin>
             <plugin>
                 <groupId>org.flywaydb</groupId>
