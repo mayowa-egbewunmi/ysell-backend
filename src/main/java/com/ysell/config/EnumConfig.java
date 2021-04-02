@@ -10,7 +10,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 /**
  * created by Tobenna
- * 24 January, 2020
+ * 24th January, 2020
  */
 @Configuration
 public class EnumConfig implements WebMvcConfigurer {
