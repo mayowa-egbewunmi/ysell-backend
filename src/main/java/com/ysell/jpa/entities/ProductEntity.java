@@ -24,7 +24,7 @@ public class ProductEntity extends ActiveAuditableEntity implements NamedEntity 
     private String description;
 
     @Column(nullable = false)
-    private Integer currentStock;
+    private Integer currentStock = 0;
 
     @Column(nullable = false)
     private BigDecimal costPrice;

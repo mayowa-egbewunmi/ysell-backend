@@ -36,6 +36,9 @@ public class LookupDto {
 
 
 	public static LookupDto create(NamedEntity namedEntity) {
+		if(namedEntity == null)
+			return null;
+
 		return new LookupDto(namedEntity.getId(), namedEntity.getName());
 	}
 

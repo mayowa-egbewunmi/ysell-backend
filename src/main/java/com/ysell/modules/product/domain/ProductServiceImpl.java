@@ -82,7 +82,9 @@ public class ProductServiceImpl
     @Override
     protected void beforeCreate(ProductRequest request) {
         if (productRepo.existsByNameIgnoreCaseAndOrganisationId(request.getName(), request.getOrganisation().getId()))
-            throw new YSellRuntimeException(String.format("Product With Name %s Already Exists For Organisation", request.getName()));
+            throw new YSellRuntimeException(String.format(
+                    "Product With Name %s Already Exists For Organisation %s", request.getName(), request.getOrganisation().getId()
+            ));
 
         validateOrganisationAndCategory(request.getOrganisation().getId(), request.getProductCategory().getId());
     }
@@ -92,7 +94,9 @@ public class ProductServiceImpl
     protected void beforeUpdate(UUID productId, ProductRequest request) {
         productRepo.findFirstByNameIgnoreCaseAndOrganisationId(request.getName(), request.getOrganisation().getId()).ifPresent(productEntity -> {
             if (!productEntity.getId().equals(productId))
-                ServiceUtils.throwDuplicateNameException("Product", request.getName());
+                throw new YSellRuntimeException(String.format(
+                        "Product With Name %s Already Exists For Organisation %s", request.getName(), request.getOrganisation().getId()
+                ));
         });
 
         validateOrganisationAndCategory(request.getOrganisation().getId(), request.getProductCategory().getId());
@@ -100,9 +104,22 @@ public class ProductServiceImpl
 
 
     @Override
+    protected ProductEntity populateUpdateEntity(ProductRequest productRequest, ProductEntity entity) {
+        entity.setName(productRequest.getName());
+        entity.setDescription(productRequest.getDescription());
+        entity.setCostPrice(productRequest.getCostPrice());
+        entity.setSellingPrice(productRequest.getSellingPrice());
+        entity.setOrganisation(orgRepo.getOne(productRequest.getOrganisation().getId()));
+        entity.setProductCategory(productCategoryRepo.getOne(productRequest.getProductCategory().getId()));
+
+        return entity;
+    }
+
+    @Override
     protected ProductResponse convertToResponse(ProductEntity entity) {
         OrganisationEntity organisationEntity = orgRepo.getOne(entity.getOrganisation().getId());
-        ProductCategoryEntity productCategoryEntity = productCategoryRepo.getOne(entity.getProductCategory().getId());
+        ProductCategoryEntity productCategoryEntity = entity.getProductCategory() == null ? null :
+                productCategoryRepo.getOne(entity.getProductCategory().getId());
 
         return ProductResponse.from(entity, organisationEntity, productCategoryEntity);
     }

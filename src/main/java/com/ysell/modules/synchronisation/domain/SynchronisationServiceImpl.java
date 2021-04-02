@@ -54,28 +54,28 @@ public class SynchronisationServiceImpl implements SynchronisationService {
 		updatedProducts = updatedProducts.stream()
 				.filter(x -> request.getProductData().getUnsyncedProducts().stream().noneMatch(y -> y.getId() == x.getId()))
 				.collect(Collectors.toSet());
-		Set<UpdatedSyncResponseDto> syncedProducts = syncProducts(request.getProductData().getUnsyncedProducts());
+		Set<UpdatedSyncResponseDto> syncedProducts = syncProducts(request.getProductData().getUnsyncedProducts(), userOrganisationIds);
 
 		Set<OrderSyncResponseDto> newOrders = getNewOrders(request.getOrderData().getMostRecentlySyncedTimestamp(), userOrganisationIds);
 		Set<OrderSyncResponseDto> updatedOrders = getUpdatedOrders(request.getOrderData().getMostRecentlySyncedTimestamp(), userOrganisationIds);
 		updatedOrders = updatedOrders.stream()
 				.filter(x -> request.getOrderData().getUnsyncedOrders().stream().noneMatch(y -> y.getId() == x.getId()))
 				.collect(Collectors.toSet());
-		Set<UpdatedSyncResponseDto> syncedOrders = syncOrders(request.getOrderData().getUnsyncedOrders());
+		Set<UpdatedSyncResponseDto> syncedOrders = syncOrders(request.getOrderData().getUnsyncedOrders(), userOrganisationIds);
 
 		Set<SaleSyncResponseDto> newSales = getNewSales(request.getSalesData().getMostRecentlySyncedTimestamp(), userOrganisationIds);
 		Set<SaleSyncResponseDto> updatedSales = getUpdatedSales(request.getSalesData().getMostRecentlySyncedTimestamp(), userOrganisationIds);
 		updatedSales = updatedSales.stream()
 				.filter(x -> request.getSalesData().getUnsyncedSales().stream().noneMatch(y -> y.getId() == x.getId()))
 				.collect(Collectors.toSet());
-		Set<UpdatedSyncResponseDto> syncedSales = syncSales(request.getSalesData().getUnsyncedSales());
+		Set<UpdatedSyncResponseDto> syncedSales = syncSales(request.getSalesData().getUnsyncedSales(), userOrganisationIds);
 
 		Set<PaymentSyncResponseDto> newPayments = getNewPayments(request.getPaymentData().getMostRecentlySyncedTimestamp(), userOrganisationIds);
 		Set<PaymentSyncResponseDto> updatedPayments = getUpdatedPayments(request.getPaymentData().getMostRecentlySyncedTimestamp(), userOrganisationIds);
 		updatedPayments = updatedPayments.stream()
 				.filter(x -> request.getPaymentData().getUnsyncedPayments().stream().noneMatch(y -> y.getId() == x.getId()))
 				.collect(Collectors.toSet());
-		Set<UpdatedSyncResponseDto> syncedPayments = syncedPayments(request.getPaymentData().getUnsyncedPayments());
+		Set<UpdatedSyncResponseDto> syncedPayments = syncedPayments(request.getPaymentData().getUnsyncedPayments(), userOrganisationIds);
 
 		return builder()
 				.productData(ProductResponseData.builder()
@@ -162,29 +162,45 @@ public class SynchronisationServiceImpl implements SynchronisationService {
 	}
 
 
-	private Set<UpdatedSyncResponseDto> syncProducts(Set<ProductSyncRequestDto> unsyncedProducts) {
+	private Set<UpdatedSyncResponseDto> syncProducts(Set<ProductSyncRequestDto> unsyncedProducts, Set<UUID> userOrganisationIds) {
 		return unsyncedProducts.stream().map(unsyncedDto -> {
-			ProductEntity entity = ProductEntity.builder()
-					.name(unsyncedDto.getName())
-					.description(unsyncedDto.getName())
-					.costPrice(unsyncedDto.getCostPrice())
-					.sellingPrice(unsyncedDto.getSellingPrice())
-					.currentStock(0)
-					.organisation(organisationRepository.getOne(unsyncedDto.getOrganisationId()))
-					.build();
+			ProductEntity entity = productRepository.findById(unsyncedDto.getId())
+					.orElse(ProductEntity.builder()
+							.currentStock(0)
+							.organisation(organisationRepository.getOne(unsyncedDto.getOrganisationId()))
+							.build());
 
-			entity.setId(unsyncedDto.getId());
-			entity.setCreatedBy(unsyncedDto.getCreatedBy());
+			entity = setValuesForNewOrValidate(entity, unsyncedDto, entity.getOrganisation().getId(), userOrganisationIds);
+
+			entity.setName(unsyncedDto.getName());
+			entity.setDescription(unsyncedDto.getName());
+			entity.setCostPrice(unsyncedDto.getCostPrice());
+			entity.setSellingPrice(unsyncedDto.getSellingPrice());
+
 			entity.setUpdatedBy(unsyncedDto.getUpdatedBy());
-			entity.setCreatedAt(Instant.now());
 			entity.setUpdatedAt(Instant.now());
-			entity.setClientCreatedAt(unsyncedDto.getClientCreatedAt());
 			entity.setClientUpdatedAt(unsyncedDto.getClientUpdatedAt());
 
 			entity = productRepository.save(entity);
 
 			return UpdatedSyncResponseDto.from(entity);
 		}).collect(Collectors.toSet());
+	}
+
+
+	private <T extends AuditableEntity> T setValuesForNewOrValidate(T entity, BaseSyncRequestDto unsyncedDto, UUID organisationId, Set<UUID> userOrganisationIds) {
+		if (entity.getId() == null) {
+			entity.setId(unsyncedDto.getId());
+			entity.setCreatedBy(unsyncedDto.getCreatedBy());
+			entity.setCreatedAt(Instant.now());
+			entity.setClientCreatedAt(unsyncedDto.getClientCreatedAt());
+		} else if (userOrganisationIds.stream().noneMatch(oId -> oId.equals(organisationId))) {
+			throw new YSellRuntimeException(String.format(
+					"%s with id %s does not belong to your organisation", entity.getTableName(), unsyncedDto.getId()
+			));
+		}
+
+		return entity;
 	}
 
 
@@ -202,20 +218,20 @@ public class SynchronisationServiceImpl implements SynchronisationService {
 	}
 
 
-	private Set<UpdatedSyncResponseDto> syncOrders(Set<OrderSyncRequestDto> unsyncedOrders) {
+	private Set<UpdatedSyncResponseDto> syncOrders(Set<OrderSyncRequestDto> unsyncedOrders, Set<UUID> userOrganisationIds) {
 		return unsyncedOrders.stream().map(unsyncedDto -> {
-			OrderEntity entity = OrderEntity.builder()
-					.title(unsyncedDto.getTitle())
-					.status(unsyncedDto.getStatus())
-					.organisation(organisationRepository.getOne(unsyncedDto.getOrganisationId()))
-					.build();
+			OrderEntity entity = orderRepository.findById(unsyncedDto.getId())
+					.orElse(OrderEntity.builder()
+							.organisation(organisationRepository.getOne(unsyncedDto.getOrganisationId()))
+							.build());
 
-			entity.setId(unsyncedDto.getId());
-			entity.setCreatedBy(unsyncedDto.getCreatedBy());
+			entity = setValuesForNewOrValidate(entity, unsyncedDto, entity.getOrganisation().getId(), userOrganisationIds);
+
+			entity.setTitle(unsyncedDto.getTitle());
+			entity.setStatus(unsyncedDto.getStatus());
+
 			entity.setUpdatedBy(unsyncedDto.getUpdatedBy());
-			entity.setCreatedAt(Instant.now());
 			entity.setUpdatedAt(Instant.now());
-			entity.setClientCreatedAt(unsyncedDto.getClientCreatedAt());
 			entity.setClientUpdatedAt(unsyncedDto.getClientUpdatedAt());
 
 			entity = orderRepository.save(entity);
@@ -239,23 +255,23 @@ public class SynchronisationServiceImpl implements SynchronisationService {
 	}
 
 
-	private Set<UpdatedSyncResponseDto> syncSales(Set<SaleSyncRequestDto> unsyncedSales) {
+	private Set<UpdatedSyncResponseDto> syncSales(Set<SaleSyncRequestDto> unsyncedSales, Set<UUID> userOrganisationIds) {
 		return unsyncedSales.stream().map(unsyncedDto -> {
-			SaleEntity entity = SaleEntity.builder()
-					.order(orderRepository.getOne(unsyncedDto.getOrderId()))
-					.product(productRepository.getOne(unsyncedDto.getProductId()))
-					.quantity(unsyncedDto.getQuantity())
-					.totalSellingPrice(unsyncedDto.getTotalSellingPrice())
-					.totalCostPrice(unsyncedDto.getTotalCostPrice())
-					.saleType(unsyncedDto.getSaleType())
-					.build();
+			SaleEntity entity = saleRepository.findById(unsyncedDto.getId())
+					.orElse(SaleEntity.builder()
+							.order(orderRepository.getOne(unsyncedDto.getOrderId()))
+							.product(productRepository.getOne(unsyncedDto.getProductId()))
+							.build());
 
-			entity.setId(unsyncedDto.getId());
-			entity.setCreatedBy(unsyncedDto.getCreatedBy());
+			entity = setValuesForNewOrValidate(entity, unsyncedDto, entity.getOrder().getOrganisation().getId(), userOrganisationIds);
+
+			entity.setQuantity(unsyncedDto.getQuantity());
+			entity.setTotalSellingPrice(unsyncedDto.getTotalSellingPrice());
+			entity.setTotalCostPrice(unsyncedDto.getTotalCostPrice());
+			entity.setSaleType(unsyncedDto.getSaleType());
+
 			entity.setUpdatedBy(unsyncedDto.getUpdatedBy());
-			entity.setCreatedAt(Instant.now());
 			entity.setUpdatedAt(Instant.now());
-			entity.setClientCreatedAt(unsyncedDto.getClientCreatedAt());
 			entity.setClientUpdatedAt(unsyncedDto.getClientUpdatedAt());
 
 			entity = saleRepository.save(entity);
@@ -279,21 +295,21 @@ public class SynchronisationServiceImpl implements SynchronisationService {
 	}
 
 
-	private Set<UpdatedSyncResponseDto> syncedPayments(Set<PaymentSyncRequestDto> unsyncedPayments) {
+	private Set<UpdatedSyncResponseDto> syncedPayments(Set<PaymentSyncRequestDto> unsyncedPayments, Set<UUID> userOrganisationIds) {
 		return unsyncedPayments.stream().map(unsyncedDto -> {
-			PaymentEntity entity = PaymentEntity.builder()
-					.order(orderRepository.getOne(unsyncedDto.getOrderId()))
-					.mode(unsyncedDto.getMode())
-					.amount(unsyncedDto.getAmount())
-					.narration(unsyncedDto.getNarration())
-					.build();
+			PaymentEntity entity = paymentRepository.findById(unsyncedDto.getId())
+					.orElse(PaymentEntity.builder()
+							.order(orderRepository.getOne(unsyncedDto.getOrderId()))
+							.build());
 
-			entity.setId(unsyncedDto.getId());
-			entity.setCreatedBy(unsyncedDto.getCreatedBy());
+			entity = setValuesForNewOrValidate(entity, unsyncedDto, entity.getOrder().getOrganisation().getId(), userOrganisationIds);
+
+			entity.setMode(unsyncedDto.getMode());
+			entity.setAmount(unsyncedDto.getAmount());
+			entity.setNarration(unsyncedDto.getNarration());
+
 			entity.setUpdatedBy(unsyncedDto.getUpdatedBy());
-			entity.setCreatedAt(Instant.now());
 			entity.setUpdatedAt(Instant.now());
-			entity.setClientCreatedAt(unsyncedDto.getClientCreatedAt());
 			entity.setClientUpdatedAt(unsyncedDto.getClientUpdatedAt());
 
 			entity = paymentRepository.save(entity);
