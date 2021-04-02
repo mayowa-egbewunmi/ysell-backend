@@ -197,7 +197,7 @@
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 				<configuration>
-					<mainClass>com.places.Main</mainClass>
+					<mainClass>com.ysell.YsellApplication</mainClass>
 				</configuration>
 
 				<executions>
