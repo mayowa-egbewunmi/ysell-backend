@@ -6,5 +6,11 @@ package com.ysell.jpa.entities.enums;
  */
 public enum PaymentMode {
 
-    CASH
+    CASH,
+
+    POS,
+
+    TRANSFER,
+
+    REFUND
 }
