@@ -84,10 +84,4 @@
         <renameColumn tableName="sales" oldColumnName="total_price" newColumnName="total_cost_price" columnDataType="DECIMAL"/>
     </changeSet>
 
-    <changeSet id="1615297672-03-temp" author="tobenna">
-        <sql>
-            update DATABASECHANGELOGLOCK set LOCKED = 0;
-        </sql>
-    </changeSet>
-
 </databaseChangeLog>
