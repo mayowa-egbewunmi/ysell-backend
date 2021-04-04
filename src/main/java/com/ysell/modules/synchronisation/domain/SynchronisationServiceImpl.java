@@ -170,37 +170,19 @@ public class SynchronisationServiceImpl implements SynchronisationService {
 							.organisation(organisationRepository.getOne(unsyncedDto.getOrganisationId()))
 							.build());
 
-			entity = setValuesForNewOrValidate(entity, unsyncedDto, entity.getOrganisation().getId(), userOrganisationIds);
+			setValuesForNewOrValidateOrganisationForUpdate(entity, unsyncedDto, entity.getOrganisation().getId(), userOrganisationIds);
 
 			entity.setName(unsyncedDto.getName());
 			entity.setDescription(unsyncedDto.getName());
 			entity.setCostPrice(unsyncedDto.getCostPrice());
 			entity.setSellingPrice(unsyncedDto.getSellingPrice());
 
-			entity.setUpdatedBy(unsyncedDto.getUpdatedBy());
-			entity.setUpdatedAt(Instant.now());
-			entity.setClientUpdatedAt(unsyncedDto.getClientUpdatedAt());
+			entity = setValuesForUpdate(entity, unsyncedDto);
 
 			entity = productRepository.save(entity);
 
 			return UpdatedSyncResponseDto.from(entity);
 		}).collect(Collectors.toSet());
-	}
-
-
-	private <T extends AuditableEntity> T setValuesForNewOrValidate(T entity, BaseSyncRequestDto unsyncedDto, UUID organisationId, Set<UUID> userOrganisationIds) {
-		if (entity.getId() == null) {
-			entity.setId(unsyncedDto.getId());
-			entity.setCreatedBy(unsyncedDto.getCreatedBy());
-			entity.setCreatedAt(Instant.now());
-			entity.setClientCreatedAt(unsyncedDto.getClientCreatedAt());
-		} else if (userOrganisationIds.stream().noneMatch(oId -> oId.equals(organisationId))) {
-			throw new YSellRuntimeException(String.format(
-					"%s with id %s does not belong to your organisation", entity.getTableName(), unsyncedDto.getId()
-			));
-		}
-
-		return entity;
 	}
 
 
@@ -225,14 +207,12 @@ public class SynchronisationServiceImpl implements SynchronisationService {
 							.organisation(organisationRepository.getOne(unsyncedDto.getOrganisationId()))
 							.build());
 
-			entity = setValuesForNewOrValidate(entity, unsyncedDto, entity.getOrganisation().getId(), userOrganisationIds);
+			entity = setValuesForNewOrValidateOrganisationForUpdate(entity, unsyncedDto, entity.getOrganisation().getId(), userOrganisationIds);
 
 			entity.setTitle(unsyncedDto.getTitle());
 			entity.setStatus(unsyncedDto.getStatus());
 
-			entity.setUpdatedBy(unsyncedDto.getUpdatedBy());
-			entity.setUpdatedAt(Instant.now());
-			entity.setClientUpdatedAt(unsyncedDto.getClientUpdatedAt());
+			entity = setValuesForUpdate(entity, unsyncedDto);
 
 			entity = orderRepository.save(entity);
 
@@ -263,16 +243,14 @@ public class SynchronisationServiceImpl implements SynchronisationService {
 							.product(productRepository.getOne(unsyncedDto.getProductId()))
 							.build());
 
-			entity = setValuesForNewOrValidate(entity, unsyncedDto, entity.getOrder().getOrganisation().getId(), userOrganisationIds);
+			entity = setValuesForNewOrValidateOrganisationForUpdate(entity, unsyncedDto, entity.getOrder().getOrganisation().getId(), userOrganisationIds);
 
 			entity.setQuantity(unsyncedDto.getQuantity());
 			entity.setTotalSellingPrice(unsyncedDto.getTotalSellingPrice());
 			entity.setTotalCostPrice(unsyncedDto.getTotalCostPrice());
 			entity.setSaleType(unsyncedDto.getSaleType());
 
-			entity.setUpdatedBy(unsyncedDto.getUpdatedBy());
-			entity.setUpdatedAt(Instant.now());
-			entity.setClientUpdatedAt(unsyncedDto.getClientUpdatedAt());
+			entity = setValuesForUpdate(entity, unsyncedDto);
 
 			entity = saleRepository.save(entity);
 
@@ -302,19 +280,42 @@ public class SynchronisationServiceImpl implements SynchronisationService {
 							.order(orderRepository.getOne(unsyncedDto.getOrderId()))
 							.build());
 
-			entity = setValuesForNewOrValidate(entity, unsyncedDto, entity.getOrder().getOrganisation().getId(), userOrganisationIds);
+			entity = setValuesForNewOrValidateOrganisationForUpdate(entity, unsyncedDto, entity.getOrder().getOrganisation().getId(), userOrganisationIds);
 
 			entity.setMode(unsyncedDto.getMode());
 			entity.setAmount(unsyncedDto.getAmount());
 			entity.setNarration(unsyncedDto.getNarration());
 
-			entity.setUpdatedBy(unsyncedDto.getUpdatedBy());
-			entity.setUpdatedAt(Instant.now());
-			entity.setClientUpdatedAt(unsyncedDto.getClientUpdatedAt());
+			entity = setValuesForUpdate(entity, unsyncedDto);
 
 			entity = paymentRepository.save(entity);
 
 			return UpdatedSyncResponseDto.from(entity);
 		}).collect(Collectors.toSet());
+	}
+
+
+	private <T extends AuditableEntity> T setValuesForNewOrValidateOrganisationForUpdate(T entity, BaseSyncRequestDto unsyncedDto, UUID organisationId, Set<UUID> userOrganisationIds) {
+		if (entity.getId() == null) {
+			entity.setId(unsyncedDto.getId());
+			entity.setCreatedBy(unsyncedDto.getCreatedBy());
+			entity.setCreatedAt(Instant.now());
+			entity.setClientCreatedAt(unsyncedDto.getClientCreatedAt());
+		} else if (userOrganisationIds.stream().noneMatch(oId -> oId.equals(organisationId))) {
+			throw new YSellRuntimeException(String.format(
+					"%s with id %s does not belong to your organisation", entity.getTableName(), unsyncedDto.getId()
+			));
+		}
+
+		return entity;
+	}
+
+
+	private <T extends AuditableEntity> T setValuesForUpdate(T entity, BaseSyncRequestDto unsyncedDto) {
+		entity.setUpdatedBy(unsyncedDto.getUpdatedBy());
+		entity.setUpdatedAt(Instant.now());
+		entity.setClientUpdatedAt(unsyncedDto.getClientUpdatedAt());
+
+		return entity;
 	}
 }
