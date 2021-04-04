@@ -23,7 +23,11 @@ public class ProductResponse {
 
     private String description;
 
-    private BigDecimal price;
+    @JsonProperty("cost_price")
+    private BigDecimal costPrice;
+
+    @JsonProperty("selling_price")
+    private BigDecimal sellingPrice;
 
     @JsonProperty("current_stock")
     private int currentStock;
@@ -39,7 +43,8 @@ public class ProductResponse {
                 .id(entity.getId())
                 .name(entity.getName())
                 .description(entity.getDescription())
-                .price(entity.getSellingPrice())
+                .costPrice(entity.getCostPrice())
+                .sellingPrice(entity.getSellingPrice())
                 .currentStock(entity.getCurrentStock())
                 .organisation(LookupDto.create(organisationEntity))
                 .productCategory(LookupDto.create(productCategoryEntity))

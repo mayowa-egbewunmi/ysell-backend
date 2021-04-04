@@ -1,13 +1,11 @@
 package com.ysell.modules.product.domain;
 
-import com.ysell.jpa.entities.OrganisationEntity;
 import com.ysell.jpa.entities.ProductCategoryEntity;
 import com.ysell.jpa.entities.ProductEntity;
 import com.ysell.jpa.repositories.OrganisationRepository;
 import com.ysell.jpa.repositories.ProductCategoryRepository;
 import com.ysell.jpa.repositories.ProductRepository;
 import com.ysell.modules.common.abstractions.BaseCrudService;
-import com.ysell.modules.common.exceptions.YSellRuntimeException;
 import com.ysell.modules.common.utilities.ServiceUtils;
 import com.ysell.modules.product.models.request.ProductCategoryRequest;
 import com.ysell.modules.product.models.request.ProductRequest;
@@ -81,25 +79,19 @@ public class ProductServiceImpl
 
     @Override
     protected void beforeCreate(ProductRequest request) {
-        if (productRepo.existsByNameIgnoreCaseAndOrganisationId(request.getName(), request.getOrganisation().getId()))
-            throw new YSellRuntimeException(String.format(
-                    "Product With Name %s Already Exists For Organisation %s", request.getName(), request.getOrganisation().getId()
-            ));
-
-        validateOrganisationAndCategory(request.getOrganisation().getId(), request.getProductCategory().getId());
+        validateOrganisationAndCategory(
+                request.getOrganisation().getId(),
+                request.getProductCategory() == null ? null : request.getProductCategory().getId()
+        );
     }
 
 
     @Override
     protected void beforeUpdate(UUID productId, ProductRequest request) {
-        productRepo.findFirstByNameIgnoreCaseAndOrganisationId(request.getName(), request.getOrganisation().getId()).ifPresent(productEntity -> {
-            if (!productEntity.getId().equals(productId))
-                throw new YSellRuntimeException(String.format(
-                        "Product With Name %s Already Exists For Organisation %s", request.getName(), request.getOrganisation().getId()
-                ));
-        });
-
-        validateOrganisationAndCategory(request.getOrganisation().getId(), request.getProductCategory().getId());
+        validateOrganisationAndCategory(
+                request.getOrganisation().getId(),
+                request.getProductCategory() == null ? null : request.getProductCategory().getId()
+        );
     }
 
 
@@ -110,25 +102,23 @@ public class ProductServiceImpl
         entity.setCostPrice(productRequest.getCostPrice());
         entity.setSellingPrice(productRequest.getSellingPrice());
         entity.setOrganisation(orgRepo.getOne(productRequest.getOrganisation().getId()));
-        entity.setProductCategory(productCategoryRepo.getOne(productRequest.getProductCategory().getId()));
+        ProductCategoryEntity productCategoryEntity = productRequest.getProductCategory() == null ? null :
+                productCategoryRepo.getOne(productRequest.getProductCategory().getId());
+        entity.setProductCategory(productCategoryEntity);
 
         return entity;
     }
 
     @Override
     protected ProductResponse convertToResponse(ProductEntity entity) {
-        OrganisationEntity organisationEntity = orgRepo.getOne(entity.getOrganisation().getId());
-        ProductCategoryEntity productCategoryEntity = entity.getProductCategory() == null ? null :
-                productCategoryRepo.getOne(entity.getProductCategory().getId());
-
-        return ProductResponse.from(entity, organisationEntity, productCategoryEntity);
+        return ProductResponse.from(entity, entity.getOrganisation(), entity.getProductCategory());
     }
 
 
     private void validateOrganisationAndCategory(UUID organisationId, UUID categoryId) {
         if (!orgRepo.existsById(organisationId))
             ServiceUtils.throwWrongIdException("Organisation", organisationId);
-        if (!productCategoryRepo.existsById(categoryId))
+        if (categoryId != null && !productCategoryRepo.existsById(categoryId))
             ServiceUtils.throwWrongIdException("Product Category", categoryId);
     }
 }

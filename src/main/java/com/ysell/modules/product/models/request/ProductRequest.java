@@ -33,7 +33,6 @@ public class ProductRequest {
     @Valid
     private LookupDto organisation;
 
-    @NotNull
     @Valid
     @JsonProperty("product_category")
     private LookupDto productCategory;   		

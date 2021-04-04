@@ -24,13 +24,13 @@ public class ProductEntity extends ActiveAuditableEntity implements NamedEntity 
     private String description;
 
     @Column(nullable = false)
-    private Integer currentStock = 0;
-
-    @Column(nullable = false)
     private BigDecimal costPrice;
 
     @Column(nullable = false)
     private BigDecimal sellingPrice;
+
+    @Column(nullable = false)
+    private Integer currentStock = 0;
 
     @ManyToOne
     @JoinColumn(nullable = false)
