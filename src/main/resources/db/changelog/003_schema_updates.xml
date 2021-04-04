@@ -80,8 +80,8 @@
     </changeSet>
 
 
-    <changeSet id="1615297672-02-rename-total_price-to-total_cost_price" author="tobenna">
-        <renameColumn tableName="sales" oldColumnName="total_price" newColumnName="total_cost_price" columnDataType="DECIMAL"/>
+    <changeSet id="1617541239-01-remove-unique-constraint-from-product-name" author="tobenna">
+        <dropUniqueConstraint tableName="products" constraintName="name" uniqueColumns="name, organisation_id" />
     </changeSet>
 
 </databaseChangeLog>
