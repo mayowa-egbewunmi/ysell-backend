@@ -170,7 +170,7 @@ public class SynchronisationServiceImpl implements SynchronisationService {
 							.organisation(organisationRepository.getOne(unsyncedDto.getOrganisationId()))
 							.build());
 
-			setValuesForNewOrValidateOrganisationForUpdate(entity, unsyncedDto, entity.getOrganisation().getId(), userOrganisationIds);
+			entity = setValuesForNewOrValidateOrganisationForUpdate(entity, unsyncedDto, entity.getOrganisation().getId(), userOrganisationIds);
 
 			entity.setName(unsyncedDto.getName());
 			entity.setDescription(unsyncedDto.getName());
