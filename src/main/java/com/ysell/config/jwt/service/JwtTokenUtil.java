@@ -1,16 +1,13 @@
 package com.ysell.config.jwt.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ysell.config.jwt.models.AppUserDetails;
 import com.ysell.config.jwt.models.YsellAuthority;
 import com.ysell.jpa.entities.enums.Role;
-import com.ysell.modules.common.exceptions.YSellRuntimeException;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
-import io.jsonwebtoken.impl.DefaultClaims;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -31,7 +28,7 @@ public class JwtTokenUtil implements Serializable {
 	
 	private static final long AUTH_TOKEN_TIMEOUT_IN_SECONDS = 24 * 60 * 60; //1 day
 
-	private static final long REFRESH_TOKEN_TIMEOUT_IN_SECONDS = 15;//365 * 24 * 60 * 60; //1 year
+	private static final long REFRESH_TOKEN_TIMEOUT_IN_SECONDS = 365 * 24 * 60 * 60; //1 year
 
 	private String userIdKey = "user_id";
 
@@ -109,21 +106,6 @@ public class JwtTokenUtil implements Serializable {
 	}
 
 
-	public Claims getClaimsFromTokenWithoutVerification(String token) {
-		String[] parts = token.split("\\."); // Splitting header, payload and signature
-		Base64.Decoder decoder = Base64.getUrlDecoder();
-		String payload = new String(decoder.decode(parts[1]));
-
-		try {
-			HashMap<String, Object> claimsMap = objectMapper.readValue(payload, new TypeReference<HashMap<String, Object>>() {
-			});
-			return new DefaultClaims(claimsMap);
-		} catch (JsonProcessingException ex) {
-			throw new YSellRuntimeException("Error while extracting deserialized claims: ", ex);
-		}
-	}
-
-
 	private Date getExpirationDateFromToken(String token) {
 		return getClaimFromToken(token, Claims::getExpiration);
 	}
@@ -136,7 +118,11 @@ public class JwtTokenUtil implements Serializable {
 
 
 	private Claims getAllClaimsFromToken(String token) {
-		return Jwts.parser().setSigningKey(secret).parseClaimsJws(token).getBody();
+		try {
+			return Jwts.parser().setSigningKey(secret).parseClaimsJws(token).getBody();
+		} catch (ExpiredJwtException ex) {
+			return ex.getClaims();
+		}
 	}
 
 
