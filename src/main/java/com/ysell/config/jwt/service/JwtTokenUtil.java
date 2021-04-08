@@ -1,12 +1,18 @@
 package com.ysell.config.jwt.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ysell.config.jwt.models.AppUserDetails;
 import com.ysell.config.jwt.models.YsellAuthority;
 import com.ysell.jpa.entities.enums.Role;
+import com.ysell.modules.common.exceptions.YSellRuntimeException;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.impl.DefaultClaims;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Component;
@@ -18,13 +24,14 @@ import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class JwtTokenUtil implements Serializable {
 	
 	private static final long serialVersionUID = -2550185165626007488L;
 	
 	private static final long AUTH_TOKEN_TIMEOUT_IN_SECONDS = 24 * 60 * 60; //1 day
 
-	private static final long REFRESH_TOKEN_TIMEOUT_IN_SECONDS = 365 * 24 * 60 * 60; //1 year
+	private static final long REFRESH_TOKEN_TIMEOUT_IN_SECONDS = 15;//365 * 24 * 60 * 60; //1 year
 
 	private String userIdKey = "user_id";
 
@@ -35,6 +42,8 @@ public class JwtTokenUtil implements Serializable {
 	private String clientIdKey = "client_id";
 
 	private final ClientService clientService;
+
+	private final ObjectMapper objectMapper;
 
 	@Value("${jwt.secret}")
 	private String secret;
@@ -97,6 +106,21 @@ public class JwtTokenUtil implements Serializable {
 	public Boolean validateToken(String token, String sentUsername) {
 		final String username = getSubjectFromToken(token);
 		return (username.equals(sentUsername) && !isTokenExpired(token));
+	}
+
+
+	public Claims getClaimsFromTokenWithoutVerification(String token) {
+		String[] parts = token.split("\\."); // Splitting header, payload and signature
+		Base64.Decoder decoder = Base64.getUrlDecoder();
+		String payload = new String(decoder.decode(parts[1]));
+
+		try {
+			HashMap<String, Object> claimsMap = objectMapper.readValue(payload, new TypeReference<HashMap<String, Object>>() {
+			});
+			return new DefaultClaims(claimsMap);
+		} catch (JsonProcessingException ex) {
+			throw new YSellRuntimeException("Error while extracting deserialized claims: ", ex);
+		}
 	}
 
 

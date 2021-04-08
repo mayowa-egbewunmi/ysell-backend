@@ -353,7 +353,7 @@ public class SynchronisationServiceImpl implements SynchronisationService {
 	}
 
 
-	private <T extends ClientAuditableEntity> T setValuesForNewOrValidateOrganisationForUpdate(T entity, BaseSyncRequestDto unsyncedDto, UUID organisationId, Set<UUID> userOrganisationIds) {
+	private <T extends ClientAuditableEntity> void setValuesForNewOrValidateOrganisationForUpdate(T entity, BaseSyncRequestDto unsyncedDto, UUID organisationId, Set<UUID> userOrganisationIds) {
 		if (entity.getId() == null) {
 			entity.setId(unsyncedDto.getId());
 			entity.setCreatedBy(unsyncedDto.getCreatedBy());
@@ -364,16 +364,12 @@ public class SynchronisationServiceImpl implements SynchronisationService {
 					"%s with id %s does not belong to your organisation", entity.getTableName(), unsyncedDto.getId()
 			));
 		}
-
-		return entity;
 	}
 
 
-	private <T extends ClientAuditableEntity> T setValuesForUpdate(T entity, BaseSyncRequestDto unsyncedDto) {
+	private <T extends ClientAuditableEntity> void setValuesForUpdate(T entity, BaseSyncRequestDto unsyncedDto) {
 		entity.setUpdatedBy(unsyncedDto.getUpdatedBy());
 		entity.setUpdatedAt(Instant.now());
 		entity.setClientUpdatedAt(unsyncedDto.getClientUpdatedAt());
-
-		return entity;
 	}
 }

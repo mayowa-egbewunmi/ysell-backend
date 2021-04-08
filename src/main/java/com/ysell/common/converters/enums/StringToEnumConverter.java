@@ -52,26 +52,30 @@ public class StringToEnumConverter<T extends Enum<?>> implements Converter<Strin
 
             return getEnumIgnoreCase(enumValue);
         } catch (Exception e) {
-            log.error("Error converting {} to {} type: ", enumClass.getSimpleName(), enumValue, e);
             List<String> enumValues = getEnumValues();
             String values = formatValues(enumValues);
-            throw new YSellRuntimeException(String.format("Invalid %s (%s). Please enter %s",
+            throw new YSellRuntimeException(String.format(
+                    "Invalid %s (%s). Please enter %s",
                     enumClass.getSimpleName(),
                     enumValue,
-                    values));
+                    values)
+            );
         }
     }
 
+
     private T getEnumIgnoreCase(String enumValue) {
-            Enum<?>[] enumConstants = enumClass.getEnumConstants();
+        Enum<?>[] enumConstants = enumClass.getEnumConstants();
 
-            for(Enum<?> enumConstant : enumConstants) {
-                if (enumConstant.toString().equalsIgnoreCase(enumValue)) {
-                    return (T)enumConstant;
-                }
+        for (Enum<?> enumConstant : enumConstants) {
+            if (enumConstant.toString().equalsIgnoreCase(enumValue)) {
+                return (T) enumConstant;
             }
+        }
 
-            throw new YSellRuntimeException("Unable to convert enums " + enumValue);
+        throw new YSellRuntimeException(String.format(
+                "Unable to convert %s to %s enum", enumValue, enumClass.getSimpleName()
+        ));
     }
 
 

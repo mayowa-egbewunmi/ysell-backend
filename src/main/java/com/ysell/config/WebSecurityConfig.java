@@ -3,7 +3,6 @@ package com.ysell.config;
 import com.ysell.config.jwt.filter.JwtExceptionEntryPoint;
 import com.ysell.config.jwt.filter.JwtRequestFilter;
 import com.ysell.modules.common.constants.ControllerConstants;
-import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -35,6 +34,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 	
 	public static final String[] ALLOWED_URLS = {
 			ControllerConstants.VERSION_URL + "/users/authenticate",
+			ControllerConstants.VERSION_URL + "/users/refresh_token",
 			ControllerConstants.VERSION_URL + "/users/register",
 			ControllerConstants.VERSION_URL + "/users/register/resend-code",
 			ControllerConstants.VERSION_URL + "/users/register-with-organisation",

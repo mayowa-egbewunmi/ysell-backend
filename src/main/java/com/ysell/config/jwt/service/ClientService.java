@@ -21,7 +21,7 @@ public class ClientService {
     public void validateClientId(String clientId) {
         StringToEnumConverter<Client> clientStringToEnumConverter = new StringToEnumConverter<>(Client.class);
         if (!clientStringToEnumConverter.isValid(clientId))
-            throw new YSellRuntimeException("Invalid client id " + clientId);
+            throw new YSellRuntimeException(String.format("Invalid client id '%s'", clientId));
     }
 
 

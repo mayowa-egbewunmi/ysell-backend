@@ -27,6 +27,7 @@ import com.ysell.modules.user.models.request.*;
 import com.ysell.modules.user.models.response.UserRegistrationResponse;
 import com.ysell.modules.user.models.response.UserResponse;
 import com.ysell.modules.user.models.response.UserTokenResponse;
+import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.h2.util.StringUtils;
@@ -347,13 +348,15 @@ public class UserServiceImpl implements UserService {
 
 
 	private String getRefreshToken(RefreshTokenRequest request) {
-		String clientId = jwtTokenUtil.getSubjectFromToken(request.getRefreshToken());
+		Claims claims = jwtTokenUtil.getClaimsFromTokenWithoutVerification(request.getRefreshToken());
+		String clientId = claims.getSubject();
 
 		clientService.validateClient(clientId, request.getClientSecret());
 
-		return jwtTokenUtil.isTokenExpired(request.getRefreshToken()) ?
-				jwtTokenUtil.generateRefreshToken(clientId) :
-				request.getRefreshToken();
+		final Date expiration = claims.getExpiration();
+		boolean expired = expiration.before(new Date());
+
+		return expired ? jwtTokenUtil.generateRefreshToken(clientId) : request.getRefreshToken();
 	}
 
 

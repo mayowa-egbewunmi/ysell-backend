@@ -79,7 +79,7 @@ public class ControllerExceptionAdvice {
     @ExceptionHandler(YSellRuntimeException.class)
     @ResponseStatus(value = HttpStatus.BAD_REQUEST)
     public YsellResponse<Object> handleYSellRuntimeException(YSellRuntimeException ex, HttpServletRequest httpServletRequest) {
-        log.error("Generic Exception: ", ex);
+        log.error("YSell Runtime Exception: ", ex);
 
         return createError(ex.getErrors());
     }
