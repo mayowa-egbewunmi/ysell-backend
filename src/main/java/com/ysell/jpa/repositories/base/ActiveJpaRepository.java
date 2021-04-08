@@ -1,6 +1,6 @@
 package com.ysell.jpa.repositories.base;
 
-import com.ysell.jpa.entities.base.ActiveAuditableEntity;
+import com.ysell.jpa.entities.base.ActiveClientAuditableEntity;
 import com.ysell.modules.common.utilities.ServiceUtils;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -13,7 +13,7 @@ import java.util.UUID;
 
 
 @NoRepositoryBean
-public interface ActiveJpaRepository<TEntity extends ActiveAuditableEntity> extends JpaRepository<TEntity, UUID> {
+public interface ActiveJpaRepository<TEntity extends ActiveClientAuditableEntity> extends JpaRepository<TEntity, UUID> {
 
 	@Transactional(readOnly = true)
 	default TEntity findById(UUID id, String modelName) {

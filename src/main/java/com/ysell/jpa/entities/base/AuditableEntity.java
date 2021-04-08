@@ -43,10 +43,6 @@ public abstract class AuditableEntity {
 	@Version
 	private int version;
 
-	private Instant clientCreatedAt;
-
-	private Instant clientUpdatedAt;
-
 
 	@PrePersist
 	public void validateUuid() {
@@ -73,10 +69,7 @@ public abstract class AuditableEntity {
 		else if (obj == null || obj.getClass() != getClass())
 			return false;
 
-		@SuppressWarnings("unchecked")
-		boolean isEqual = id == ((AuditableEntity) obj).id;
-
-		return isEqual;
+		return id == ((AuditableEntity) obj).id;
 	}
 
 

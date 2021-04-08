@@ -13,7 +13,7 @@ import javax.persistence.MappedSuperclass;
 @MappedSuperclass
 @Getter
 @Setter
-public class ActiveAuditableEntity extends AuditableEntity {
+public class ActiveClientAuditableEntity extends ClientAuditableEntity {
 
     @Column(name="is_active", nullable = false)
     protected boolean active = true;
