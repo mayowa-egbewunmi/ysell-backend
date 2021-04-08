@@ -84,4 +84,53 @@
         <dropUniqueConstraint tableName="products" constraintName="name" uniqueColumns="name, organisation_id" />
     </changeSet>
 
+
+    <changeSet id="1617775297-01-create-user_roles-table" author="tobenna">
+        <createTable tableName="user_roles">
+            <column name="id" type="BINARY(16)">
+                <constraints primaryKey="true"/>
+            </column>
+
+            <column name="user_id" type="BINARY(16)">
+                <constraints nullable="false" />
+            </column>
+            <column name="role" type="VARCHAR(31)">
+                <constraints nullable="false" />
+            </column>
+
+            <column name="created_by" type="BINARY(16)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="DATETIME" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_by" type="BINARY(16)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="DATETIME" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="version" type="INT" defaultValueNumeric="0">
+                <constraints nullable="false" />
+            </column>
+        </createTable>
+    </changeSet>
+
+
+    <changeSet id="1617775297-02-add-user-role-constraints" author="tobenna">
+        <addForeignKeyConstraint baseTableName="user_roles" baseColumnNames="user_id"
+                                 referencedTableName="users" referencedColumnNames="id"
+                                 constraintName="FK_user_roles_to_user" />
+
+        <addUniqueConstraint tableName="user_roles" columnNames="user_id, role" />
+    </changeSet>
+
+    <changeSet id="1617775297-03-seed-user_roles" author="tobenna">
+        <sql>
+            INSERT INTO user_roles (id, user_id, role, created_by, updated_by) VALUES (UNHEX('1b63e5256162429e96233c8a56045b31'), UNHEX('1b63e5256162429e96233c8a56045b31'), 'ADMIN', UNHEX('d41d8cd98f003204a9800998ecf8427e'), UNHEX('d41d8cd98f003204a9800998ecf8427e'));
+            INSERT INTO user_roles (id, user_id, role, created_by, updated_by) VALUES (UNHEX('1b63e5256162429e96233c8a56045b32'), UNHEX('1b63e5256162429e96233c8a56045b32'), 'ADMIN', UNHEX('d41d8cd98f003204a9800998ecf8427e'), UNHEX('d41d8cd98f003204a9800998ecf8427e'));
+            INSERT INTO user_roles (id, user_id, role, created_by, updated_by) VALUES (UNHEX('1b63e5256162429e96233c8a56045b33'), UNHEX('1b63e5256162429e96233c8a56045b33'), 'ADMIN', UNHEX('d41d8cd98f003204a9800998ecf8427e'), UNHEX('d41d8cd98f003204a9800998ecf8427e'));
+        </sql>
+    </changeSet>
+
 </databaseChangeLog>
