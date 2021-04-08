@@ -1,7 +1,7 @@
 package com.ysell.modules.synchronisation.models.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.ysell.jpa.entities.base.AuditableEntity;
+import com.ysell.jpa.entities.base.ClientAuditableEntity;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -25,7 +25,7 @@ public class UpdatedSyncResponseDto {
     private Instant updatedAt;
 
 
-    public static UpdatedSyncResponseDto from(AuditableEntity entity) {
+    public static UpdatedSyncResponseDto from(ClientAuditableEntity entity) {
         return new UpdatedSyncResponseDto(entity.getId(), entity.getCreatedAt(), entity.getUpdatedAt());
     }
 }

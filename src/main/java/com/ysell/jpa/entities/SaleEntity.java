@@ -1,7 +1,6 @@
 package com.ysell.jpa.entities;
 
-import com.ysell.jpa.entities.base.ActiveAuditableEntity;
-import com.ysell.jpa.entities.enums.OrderStatus;
+import com.ysell.jpa.entities.base.ActiveClientAuditableEntity;
 import com.ysell.jpa.entities.enums.SaleType;
 import lombok.*;
 import org.hibernate.annotations.Where;
@@ -17,7 +16,7 @@ import java.math.BigDecimal;
 @Entity
 @Table(name = "sales")
 @Where(clause = "is_active=1")
-public class SaleEntity extends ActiveAuditableEntity {
+public class SaleEntity extends ActiveClientAuditableEntity {
 	
     @ManyToOne
     @JoinColumn(nullable = false)

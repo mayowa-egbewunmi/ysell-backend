@@ -9,14 +9,14 @@ import javax.validation.constraints.NotEmpty;
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
-public class LoginRequest {
+public class RefreshTokenRequest {
 
 	@NotEmpty
-	private String email;
+	private String token;
 
 	@NotEmpty
-	private String password;
+	private String refreshToken;
 
 	@NotEmpty
-	private String clientId;
+	private String clientSecret;
 }

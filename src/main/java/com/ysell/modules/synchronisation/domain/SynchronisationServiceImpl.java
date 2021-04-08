@@ -1,16 +1,25 @@
 package com.ysell.modules.synchronisation.domain;
 
+//todo: passcode for protected endpoint (admin only)
+//todo: refresh token
+//todo: logging
+
 import com.ysell.jpa.entities.OrderEntity;
 import com.ysell.jpa.entities.PaymentEntity;
 import com.ysell.jpa.entities.ProductEntity;
 import com.ysell.jpa.entities.SaleEntity;
 import com.ysell.jpa.entities.base.AuditableEntity;
+import com.ysell.jpa.entities.base.ClientAuditableEntity;
 import com.ysell.jpa.repositories.*;
 import com.ysell.modules.common.exceptions.YSellRuntimeException;
 import com.ysell.modules.common.services.LoggedInUserService;
 import com.ysell.modules.common.utilities.ServiceUtils;
 import com.ysell.modules.synchronisation.models.dto.*;
 import com.ysell.modules.synchronisation.models.request.SynchronisationRequest;
+import com.ysell.modules.synchronisation.models.request.SynchronisationRequest.OrderRequestData;
+import com.ysell.modules.synchronisation.models.request.SynchronisationRequest.PaymentRequestData;
+import com.ysell.modules.synchronisation.models.request.SynchronisationRequest.ProductRequestData;
+import com.ysell.modules.synchronisation.models.request.SynchronisationRequest.SalesRequestData;
 import com.ysell.modules.synchronisation.models.response.SynchronisationResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -43,54 +52,103 @@ public class SynchronisationServiceImpl implements SynchronisationService {
 
 	@Override
 	public SynchronisationResponse synchroniseRecords(SynchronisationRequest request) {
-		Set<UUID> userOrganisationIds = loggedInUserService.getLoggedInUser().getOrganisations().stream()
-				.map(AuditableEntity::getId)
-				.collect(Collectors.toSet());
+		Set<UUID> userOrganisationIds = getLoggedInUserOrganisationIds();
 
 		validateRequest(request, userOrganisationIds);
 
-		Set<ProductSyncResponseDto> newProducts = getNewProducts(request.getProductData().getMostRecentlySyncedTimestamp(), userOrganisationIds);
-		Set<ProductSyncResponseDto> updatedProducts = getUpdatedProducts(request.getProductData().getMostRecentlySyncedTimestamp(), userOrganisationIds);
-		updatedProducts = updatedProducts.stream()
-				.filter(x -> request.getProductData().getUnsyncedProducts().stream().noneMatch(y -> y.getId() == x.getId()))
-				.collect(Collectors.toSet());
-		Set<UpdatedSyncResponseDto> syncedProducts = syncProducts(request.getProductData().getUnsyncedProducts(), userOrganisationIds);
+		ProductResponseData productResponseData = synchroniseProducts(request.getProductData(), userOrganisationIds);
+		OrderResponseData orderResponseData = synchroniseOrders(request.getOrderData(), userOrganisationIds);
+		SalesResponseData salesResponseData = synchroniseSales(request.getSalesData(), userOrganisationIds);
+		PaymentResponseData paymentResponseData = synchronisePayments(request.getPaymentData(), userOrganisationIds);
 
-		Set<OrderSyncResponseDto> newOrders = getNewOrders(request.getOrderData().getMostRecentlySyncedTimestamp(), userOrganisationIds);
-		Set<OrderSyncResponseDto> updatedOrders = getUpdatedOrders(request.getOrderData().getMostRecentlySyncedTimestamp(), userOrganisationIds);
-		updatedOrders = updatedOrders.stream()
-				.filter(x -> request.getOrderData().getUnsyncedOrders().stream().noneMatch(y -> y.getId() == x.getId()))
-				.collect(Collectors.toSet());
-		Set<UpdatedSyncResponseDto> syncedOrders = syncOrders(request.getOrderData().getUnsyncedOrders(), userOrganisationIds);
-
-		Set<SaleSyncResponseDto> newSales = getNewSales(request.getSalesData().getMostRecentlySyncedTimestamp(), userOrganisationIds);
-		Set<SaleSyncResponseDto> updatedSales = getUpdatedSales(request.getSalesData().getMostRecentlySyncedTimestamp(), userOrganisationIds);
-		updatedSales = updatedSales.stream()
-				.filter(x -> request.getSalesData().getUnsyncedSales().stream().noneMatch(y -> y.getId() == x.getId()))
-				.collect(Collectors.toSet());
-		Set<UpdatedSyncResponseDto> syncedSales = syncSales(request.getSalesData().getUnsyncedSales(), userOrganisationIds);
-
-		Set<PaymentSyncResponseDto> newPayments = getNewPayments(request.getPaymentData().getMostRecentlySyncedTimestamp(), userOrganisationIds);
-		Set<PaymentSyncResponseDto> updatedPayments = getUpdatedPayments(request.getPaymentData().getMostRecentlySyncedTimestamp(), userOrganisationIds);
-		updatedPayments = updatedPayments.stream()
-				.filter(x -> request.getPaymentData().getUnsyncedPayments().stream().noneMatch(y -> y.getId() == x.getId()))
-				.collect(Collectors.toSet());
-		Set<UpdatedSyncResponseDto> syncedPayments = syncedPayments(request.getPaymentData().getUnsyncedPayments(), userOrganisationIds);
-
-		return builder()
-				.productData(ProductResponseData.builder()
-						.newProducts(newProducts).updatedProducts(updatedProducts).syncedProducts(syncedProducts).build())
-				.orderData(OrderResponseData.builder()
-						.newOrders(newOrders).updatedOrders(updatedOrders).syncedOrders(syncedOrders).build())
-				.salesData(SalesResponseData.builder()
-						.newSales(newSales).updatedSales(updatedSales).syncedSales(syncedSales).build())
-				.paymentData(PaymentResponseData.builder()
-						.newPayments(newPayments).updatedPayments(updatedPayments).syncedPayments(syncedPayments).build())
+		return SynchronisationResponse.builder()
+				.productData(productResponseData)
+				.orderData(orderResponseData)
+				.salesData(salesResponseData)
+				.paymentData(paymentResponseData)
 				.build();
 	}
 
 
-	private void validateRequest(SynchronisationRequest request, Set<UUID> userOrganisations) {
+	private Set<UUID> getLoggedInUserOrganisationIds() {
+		return loggedInUserService.getLoggedInUser().getOrganisations().stream()
+				.map(AuditableEntity::getId)
+				.collect(Collectors.toSet());
+	}
+
+
+	private ProductResponseData synchroniseProducts(ProductRequestData productRequestData, Set<UUID> userOrganisationIds) {
+		Set<ProductSyncResponseDto> newProducts = getNewProducts(productRequestData.getMostRecentlySyncedTimestamp(), userOrganisationIds);
+
+		Set<ProductSyncResponseDto> updatedProducts = getUpdatedProducts(productRequestData.getMostRecentlySyncedTimestamp(), userOrganisationIds);
+		updatedProducts = updatedProducts.stream()
+				.filter(x -> productRequestData.getUnsyncedProducts().stream().noneMatch(y -> y.getId().equals(x.getId())))
+				.collect(Collectors.toSet());
+
+		Set<UpdatedSyncResponseDto> syncedProducts = syncProducts(productRequestData.getUnsyncedProducts(), userOrganisationIds);
+
+		return ProductResponseData.builder()
+				.newProducts(newProducts)
+				.updatedProducts(updatedProducts)
+				.syncedProducts(syncedProducts)
+				.build();
+	}
+
+
+	private OrderResponseData synchroniseOrders(OrderRequestData orderRequestData, Set<UUID> userOrganisationIds) {
+		Set<OrderSyncResponseDto> newOrders = getNewOrders(orderRequestData.getMostRecentlySyncedTimestamp(), userOrganisationIds);
+
+		Set<OrderSyncResponseDto> updatedOrders = getUpdatedOrders(orderRequestData.getMostRecentlySyncedTimestamp(), userOrganisationIds);
+		updatedOrders = updatedOrders.stream()
+				.filter(x -> orderRequestData.getUnsyncedOrders().stream().noneMatch(y -> y.getId().equals(x.getId())))
+				.collect(Collectors.toSet());
+
+		Set<UpdatedSyncResponseDto> syncedOrders = syncOrders(orderRequestData.getUnsyncedOrders(), userOrganisationIds);
+
+		return OrderResponseData.builder()
+				.newOrders(newOrders)
+				.updatedOrders(updatedOrders)
+				.syncedOrders(syncedOrders).build();
+	}
+
+
+	private SalesResponseData synchroniseSales(SalesRequestData salesRequestData, Set<UUID> userOrganisationIds) {
+		Set<SaleSyncResponseDto> newSales = getNewSales(salesRequestData.getMostRecentlySyncedTimestamp(), userOrganisationIds);
+
+		Set<SaleSyncResponseDto> updatedSales = getUpdatedSales(salesRequestData.getMostRecentlySyncedTimestamp(), userOrganisationIds);
+		updatedSales = updatedSales.stream()
+				.filter(x -> salesRequestData.getUnsyncedSales().stream().noneMatch(y -> y.getId().equals(x.getId())))
+				.collect(Collectors.toSet());
+
+		Set<UpdatedSyncResponseDto> syncedSales = syncSales(salesRequestData.getUnsyncedSales(), userOrganisationIds);
+
+		return SalesResponseData.builder()
+				.newSales(newSales)
+				.updatedSales(updatedSales)
+				.syncedSales(syncedSales)
+				.build();
+	}
+
+
+	private PaymentResponseData synchronisePayments(PaymentRequestData paymentRequestData, Set<UUID> userOrganisationIds) {
+		Set<PaymentSyncResponseDto> newPayments = getNewPayments(paymentRequestData.getMostRecentlySyncedTimestamp(), userOrganisationIds);
+
+		Set<PaymentSyncResponseDto> updatedPayments = getUpdatedPayments(paymentRequestData.getMostRecentlySyncedTimestamp(), userOrganisationIds);
+		updatedPayments = updatedPayments.stream()
+				.filter(x -> paymentRequestData.getUnsyncedPayments().stream().noneMatch(y -> y.getId().equals(x.getId())))
+				.collect(Collectors.toSet());
+
+		Set<UpdatedSyncResponseDto> syncedPayments = syncedPayments(paymentRequestData.getUnsyncedPayments(), userOrganisationIds);
+
+		return PaymentResponseData.builder()
+				.newPayments(newPayments)
+				.updatedPayments(updatedPayments)
+				.syncedPayments(syncedPayments)
+				.build();
+	}
+
+
+	private void validateRequest(SynchronisationRequest request, Set<UUID> userOrganisationIds) {
 		if (request.getProductData().getUnsyncedProducts().size() != request.getProductData().getCount())
 			throwInvalidCountError("Product", request.getProductData().getUnsyncedProducts().size(), request.getProductData().getCount());
 
@@ -107,28 +165,28 @@ public class SynchronisationServiceImpl implements SynchronisationService {
 				request.getProductData().getUnsyncedProducts().stream()
 						.map(BaseSyncRequestDto::getOrganisationId)
 						.collect(Collectors.toSet()),
-				userOrganisations
+				userOrganisationIds
 		);
 
 		validateOrganisationIdsForUser(
 				request.getOrderData().getUnsyncedOrders().stream()
 						.map(BaseSyncRequestDto::getOrganisationId)
 						.collect(Collectors.toSet()),
-				userOrganisations
+				userOrganisationIds
 		);
 
 		validateOrganisationIdsForUser(
 				request.getSalesData().getUnsyncedSales().stream()
 						.map(BaseSyncRequestDto::getOrganisationId)
 						.collect(Collectors.toSet()),
-				userOrganisations
+				userOrganisationIds
 		);
 
 		validateOrganisationIdsForUser(
 				request.getPaymentData().getUnsyncedPayments().stream()
 						.map(BaseSyncRequestDto::getOrganisationId)
 						.collect(Collectors.toSet()),
-				userOrganisations
+				userOrganisationIds
 		);
 	}
 
@@ -170,14 +228,14 @@ public class SynchronisationServiceImpl implements SynchronisationService {
 							.organisation(organisationRepository.getOne(unsyncedDto.getOrganisationId()))
 							.build());
 
-			entity = setValuesForNewOrValidateOrganisationForUpdate(entity, unsyncedDto, entity.getOrganisation().getId(), userOrganisationIds);
+			setValuesForNewOrValidateOrganisationForUpdate(entity, unsyncedDto, entity.getOrganisation().getId(), userOrganisationIds);
 
 			entity.setName(unsyncedDto.getName());
 			entity.setDescription(unsyncedDto.getName());
 			entity.setCostPrice(unsyncedDto.getCostPrice());
 			entity.setSellingPrice(unsyncedDto.getSellingPrice());
 
-			entity = setValuesForUpdate(entity, unsyncedDto);
+			setValuesForUpdate(entity, unsyncedDto);
 
 			entity = productRepository.save(entity);
 
@@ -207,12 +265,12 @@ public class SynchronisationServiceImpl implements SynchronisationService {
 							.organisation(organisationRepository.getOne(unsyncedDto.getOrganisationId()))
 							.build());
 
-			entity = setValuesForNewOrValidateOrganisationForUpdate(entity, unsyncedDto, entity.getOrganisation().getId(), userOrganisationIds);
+			setValuesForNewOrValidateOrganisationForUpdate(entity, unsyncedDto, entity.getOrganisation().getId(), userOrganisationIds);
 
 			entity.setTitle(unsyncedDto.getTitle());
 			entity.setStatus(unsyncedDto.getStatus());
 
-			entity = setValuesForUpdate(entity, unsyncedDto);
+			setValuesForUpdate(entity, unsyncedDto);
 
 			entity = orderRepository.save(entity);
 
@@ -243,14 +301,14 @@ public class SynchronisationServiceImpl implements SynchronisationService {
 							.product(productRepository.getOne(unsyncedDto.getProductId()))
 							.build());
 
-			entity = setValuesForNewOrValidateOrganisationForUpdate(entity, unsyncedDto, entity.getOrder().getOrganisation().getId(), userOrganisationIds);
+			setValuesForNewOrValidateOrganisationForUpdate(entity, unsyncedDto, entity.getOrder().getOrganisation().getId(), userOrganisationIds);
 
 			entity.setQuantity(unsyncedDto.getQuantity());
 			entity.setTotalSellingPrice(unsyncedDto.getTotalSellingPrice());
 			entity.setTotalCostPrice(unsyncedDto.getTotalCostPrice());
 			entity.setSaleType(unsyncedDto.getSaleType());
 
-			entity = setValuesForUpdate(entity, unsyncedDto);
+			setValuesForUpdate(entity, unsyncedDto);
 
 			entity = saleRepository.save(entity);
 
@@ -280,13 +338,13 @@ public class SynchronisationServiceImpl implements SynchronisationService {
 							.order(orderRepository.getOne(unsyncedDto.getOrderId()))
 							.build());
 
-			entity = setValuesForNewOrValidateOrganisationForUpdate(entity, unsyncedDto, entity.getOrder().getOrganisation().getId(), userOrganisationIds);
+			setValuesForNewOrValidateOrganisationForUpdate(entity, unsyncedDto, entity.getOrder().getOrganisation().getId(), userOrganisationIds);
 
 			entity.setMode(unsyncedDto.getMode());
 			entity.setAmount(unsyncedDto.getAmount());
 			entity.setNarration(unsyncedDto.getNarration());
 
-			entity = setValuesForUpdate(entity, unsyncedDto);
+			setValuesForUpdate(entity, unsyncedDto);
 
 			entity = paymentRepository.save(entity);
 
@@ -295,7 +353,7 @@ public class SynchronisationServiceImpl implements SynchronisationService {
 	}
 
 
-	private <T extends AuditableEntity> T setValuesForNewOrValidateOrganisationForUpdate(T entity, BaseSyncRequestDto unsyncedDto, UUID organisationId, Set<UUID> userOrganisationIds) {
+	private <T extends ClientAuditableEntity> T setValuesForNewOrValidateOrganisationForUpdate(T entity, BaseSyncRequestDto unsyncedDto, UUID organisationId, Set<UUID> userOrganisationIds) {
 		if (entity.getId() == null) {
 			entity.setId(unsyncedDto.getId());
 			entity.setCreatedBy(unsyncedDto.getCreatedBy());
@@ -311,7 +369,7 @@ public class SynchronisationServiceImpl implements SynchronisationService {
 	}
 
 
-	private <T extends AuditableEntity> T setValuesForUpdate(T entity, BaseSyncRequestDto unsyncedDto) {
+	private <T extends ClientAuditableEntity> T setValuesForUpdate(T entity, BaseSyncRequestDto unsyncedDto) {
 		entity.setUpdatedBy(unsyncedDto.getUpdatedBy());
 		entity.setUpdatedAt(Instant.now());
 		entity.setClientUpdatedAt(unsyncedDto.getClientUpdatedAt());

@@ -31,4 +31,7 @@ public class RegisterUserWithOrganisationRequest {
 	private String accountNumber;
 
 	private String accountName;
+
+	@NotEmpty
+	private String clientId;
 }

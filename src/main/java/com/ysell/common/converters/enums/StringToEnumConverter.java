@@ -5,7 +5,6 @@ import com.ysell.modules.common.exceptions.YSellRuntimeException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.convert.converter.Converter;
 
-import javax.validation.constraints.NotNull;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
@@ -19,7 +18,7 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 @SuppressWarnings("unchecked")
-public class StringToEnumConverter<T extends Enum> implements Converter<String, T> {
+public class StringToEnumConverter<T extends Enum<?>> implements Converter<String, T> {
     
     private Class<T> enumClass;
     
@@ -29,8 +28,19 @@ public class StringToEnumConverter<T extends Enum> implements Converter<String, 
 
 
     @Override
-    public T convert(@NotNull String enumValue) {
+    public T convert(String enumValue) {
         return convert(enumClass, enumValue);
+    }
+
+
+    public boolean isValid( String enumValue) {
+        try{
+            convert(enumValue);
+            return true;
+        }
+        catch (Exception ex) {
+            return false;
+        }
     }
 
 
@@ -53,9 +63,9 @@ public class StringToEnumConverter<T extends Enum> implements Converter<String, 
     }
 
     private T getEnumIgnoreCase(String enumValue) {
-            Enum[] enumConstants = enumClass.getEnumConstants();
+            Enum<?>[] enumConstants = enumClass.getEnumConstants();
 
-            for(Enum enumConstant : enumConstants) {
+            for(Enum<?> enumConstant : enumConstants) {
                 if (enumConstant.toString().equalsIgnoreCase(enumValue)) {
                     return (T)enumConstant;
                 }

@@ -2,9 +2,12 @@ package com.ysell.modules.user.domain;
 
 import com.ysell.common.models.YsellResponse;
 import com.ysell.config.jwt.models.AppUserDetails;
+import com.ysell.config.jwt.service.ClientService;
 import com.ysell.config.jwt.service.JwtTokenUtil;
 import com.ysell.jpa.entities.ResetCodeEntity;
 import com.ysell.jpa.entities.UserEntity;
+import com.ysell.jpa.entities.UserRoleEntity;
+import com.ysell.jpa.entities.enums.Role;
 import com.ysell.jpa.entities.inactive.InactiveUserEntity;
 import com.ysell.jpa.repositories.OrganisationRepository;
 import com.ysell.jpa.repositories.ResetCodeRepository;
@@ -41,6 +44,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static java.lang.String.format;
 
@@ -70,6 +74,8 @@ public class UserServiceImpl implements UserService {
 
 	private final LoggedInUserService loggedInUserService;
 
+	private final ClientService clientService;
+
 	@Value("${ysell.constants.user-activation.reset-code-delay-in-minutes:30}")
 	private int resetCodeDelayInMinutes;
 
@@ -79,14 +85,27 @@ public class UserServiceImpl implements UserService {
 			UsernamePasswordAuthenticationToken usernamePasswordAuthToken = new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword());
 			Authentication auth = authenticationManager.authenticate(usernamePasswordAuthToken);
 			AppUserDetails userDetails = (AppUserDetails) auth.getPrincipal();
-			final String token = jwtTokenUtil.generateToken(userDetails.getUsername(), userDetails.getUserId());
 
-			return new UserTokenResponse(token);
+			final String token = jwtTokenUtil.generateAuthToken(userDetails);
+			final String refreshToken = jwtTokenUtil.generateRefreshToken(request.getClientId());
+
+			return new UserTokenResponse(token, refreshToken);
 		} catch (BadCredentialsException e) {
 			throw new YSellRuntimeException("Invalid username/password");
 		} catch (DisabledException e) {
-			throw new YSellRuntimeException(String.format("User %s is Disabled", request.getEmail()));
+			throw new YSellRuntimeException(String.format("User %s is Disabled. Please meet with administrator", request.getEmail()));
 		}
+	}
+
+
+	@Override
+	public UserTokenResponse refreshToken(RefreshTokenRequest request) {
+		AppUserDetails userDetails = jwtTokenUtil.getUserDetailsFromToken(request.getToken());
+
+		String token = jwtTokenUtil.generateAuthToken(userDetails);
+		String refreshToken = getRefreshToken(request);
+
+		return new UserTokenResponse(token, refreshToken);
 	}
 
 
@@ -142,11 +161,13 @@ public class UserServiceImpl implements UserService {
 
 		sendVerificationCode(userEntity);
 
-		final String token = jwtTokenUtil.generateToken(userEntity.getEmail(), userEntity.getId());
+		final String token = jwtTokenUtil.generateAuthToken(AppUserDetails.from(userEntity));
+		final String refreshToken = jwtTokenUtil.generateRefreshToken(request.getClientId());
 
 		return new UserRegistrationResponse(
 				format("Verification code has been sent to your email - %s. It will expire in %s minutes", request.getEmail(), resetCodeDelayInMinutes),
 				token,
+				refreshToken,
 				false
 		);
 	}
@@ -181,7 +202,8 @@ public class UserServiceImpl implements UserService {
 				request.getBankName(),
 				request.getAccountNumber(),
 				request.getAccountName(),
-				Collections.singleton(LookupDto.create(organisationResponse.getId(), organisationResponse.getName()))
+				Collections.singleton(LookupDto.create(organisationResponse.getId(), organisationResponse.getName())),
+				request.getClientId()
 		);
 
 		return registerUser(createUserRequest);
@@ -324,6 +346,17 @@ public class UserServiceImpl implements UserService {
 	}
 
 
+	private String getRefreshToken(RefreshTokenRequest request) {
+		String clientId = jwtTokenUtil.getSubjectFromToken(request.getRefreshToken());
+
+		clientService.validateClient(clientId, request.getClientSecret());
+
+		return jwtTokenUtil.isTokenExpired(request.getRefreshToken()) ?
+				jwtTokenUtil.generateRefreshToken(clientId) :
+				request.getRefreshToken();
+	}
+
+
 	private void validateUserRegistrationRequest(CreateUserRequest request) {
 		if (userRepo.existsByEmailIgnoreCase(request.getEmail()))
 			ServiceUtils.throwDuplicateEmailException("User", request.getEmail());
@@ -354,6 +387,7 @@ public class UserServiceImpl implements UserService {
 	private UserEntity performInitialUserCreation(CreateUserRequest userDetails, String hash) {
 		UserEntity user = UserEntity.builder()
 				.name(userDetails.getName())
+				.hash(hash)
 				.email(userDetails.getEmail())
 				.phoneNumber(userDetails.getPhoneNumber())
 				.bankName(userDetails.getBankName())
@@ -365,7 +399,11 @@ public class UserServiceImpl implements UserService {
 						.collect(Collectors.toSet()))
 				.build();
 
-		user.setHash(hash);
+		user.setUserRoles(Stream.of(UserRoleEntity.builder()
+				.user(user)
+				.role(Role.USER)
+				.build())
+				.collect(Collectors.toSet()));
 
 		return userRepo.save(user);
 	}

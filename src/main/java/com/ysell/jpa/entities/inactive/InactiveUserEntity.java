@@ -1,7 +1,7 @@
 package com.ysell.jpa.entities.inactive;
 
 import com.ysell.jpa.entities.OrganisationEntity;
-import com.ysell.jpa.entities.base.ActiveAuditableEntity;
+import com.ysell.jpa.entities.base.ActiveClientAuditableEntity;
 import lombok.*;
 import org.hibernate.annotations.Where;
 
@@ -21,7 +21,7 @@ import java.util.Set;
 @Entity
 @Table(name = "users")
 @Where( clause = "is_active<>1")
-public class InactiveUserEntity extends ActiveAuditableEntity {
+public class InactiveUserEntity extends ActiveClientAuditableEntity {
 
     @Column(nullable = false, unique = true)
     private String name;

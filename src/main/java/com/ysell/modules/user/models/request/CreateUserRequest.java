@@ -34,4 +34,7 @@ public class CreateUserRequest {
 
 	@Valid
     private Set<LookupDto> organisations;
+
+	@NotEmpty
+	private String clientId;
 }

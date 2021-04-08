@@ -1,7 +1,7 @@
 package com.ysell.modules.common.dtos;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.ysell.jpa.entities.base.AuditableEntity;
+import com.ysell.jpa.entities.base.ClientAuditableEntity;
 import com.ysell.jpa.entities.base.NamedEntity;
 import com.ysell.modules.common.exceptions.YSellRuntimeException;
 import lombok.AllArgsConstructor;
@@ -43,7 +43,7 @@ public class LookupDto {
 	}
 
 
-	public <TEntity extends AuditableEntity> TEntity toEntity(Class<TEntity> entityClass) {
+	public <TEntity extends ClientAuditableEntity> TEntity toEntity(Class<TEntity> entityClass) {
 		try {
 			TEntity entity = entityClass.newInstance();
 			entity.setId(id);

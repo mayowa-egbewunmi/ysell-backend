@@ -1,6 +1,6 @@
 package com.ysell.jpa.entities;
 
-import com.ysell.jpa.entities.base.ActiveAuditableEntity;
+import com.ysell.jpa.entities.base.ActiveClientAuditableEntity;
 import lombok.*;
 import org.hibernate.annotations.Where;
 
@@ -14,7 +14,7 @@ import javax.persistence.*;
 @Entity
 @Table(name = "stocks")
 @Where(clause = "is_active=1")
-public class StockEntity extends ActiveAuditableEntity {
+public class StockEntity extends ActiveClientAuditableEntity {
 
     @ManyToOne
     @JoinColumn(nullable = false)

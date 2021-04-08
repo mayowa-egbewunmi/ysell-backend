@@ -15,5 +15,7 @@ public class UserRegistrationResponse {
 
     private String token;
 
+    private String refreshToken;
+
     private boolean activated;
 }

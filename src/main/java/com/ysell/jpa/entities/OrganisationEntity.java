@@ -1,6 +1,6 @@
 package com.ysell.jpa.entities;
 
-import com.ysell.jpa.entities.base.ActiveAuditableEntity;
+import com.ysell.jpa.entities.base.ActiveClientAuditableEntity;
 import com.ysell.jpa.entities.base.NamedEntity;
 import lombok.*;
 import org.hibernate.annotations.Where;
@@ -17,7 +17,7 @@ import java.util.Set;
 @Entity
 @Table(name = "organisations")
 @Where(clause = "is_active=1")
-public class OrganisationEntity extends ActiveAuditableEntity implements NamedEntity {
+public class OrganisationEntity extends ActiveClientAuditableEntity implements NamedEntity {
 
     @Column(nullable = false, unique = true)
     private String name;

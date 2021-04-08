@@ -16,6 +16,8 @@ public interface UserService {
 
 	UserTokenResponse authenticate(LoginRequest request);
 
+	UserTokenResponse refreshToken(RefreshTokenRequest request);
+
 	PageWrapper<UserResponse> getUsersByPage(Pageable page);
 
 	UserResponse getLoggedInUser();

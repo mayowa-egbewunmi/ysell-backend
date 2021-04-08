@@ -4,6 +4,7 @@ import com.ysell.config.jwt.filter.JwtExceptionEntryPoint;
 import com.ysell.config.jwt.filter.JwtRequestFilter;
 import com.ysell.modules.common.constants.ControllerConstants;
 import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -21,12 +22,15 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @Configuration
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true)
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 	
-	private final UserDetailsService jwtUserDetailsService;	
-	private final PasswordEncoder passwordEncoder;	
-	private final JwtExceptionEntryPoint jwtExceptionEntryPoint;	
+	private final UserDetailsService jwtUserDetailsService;
+
+	private final PasswordEncoder passwordEncoder;
+
+	private final JwtExceptionEntryPoint jwtExceptionEntryPoint;
+
 	private final JwtRequestFilter jwtRequestFilter;
 	
 	public static final String[] ALLOWED_URLS = {
@@ -48,16 +52,19 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 			"/favicon.ico"
 	};
 
+
 	@Autowired
 	public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
 		auth.userDetailsService(jwtUserDetailsService).passwordEncoder(passwordEncoder);
 	}
+
 
 	@Bean
 	@Override
 	public AuthenticationManager authenticationManagerBean() throws Exception {
 		return super.authenticationManagerBean();
 	}
+
 
 	@Override
 	protected void configure(HttpSecurity httpSecurity) throws Exception {

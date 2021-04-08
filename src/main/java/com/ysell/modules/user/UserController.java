@@ -2,6 +2,7 @@ package com.ysell.modules.user;
 
 import com.ysell.common.constants.AppConstants;
 import com.ysell.common.models.YsellResponse;
+import com.ysell.config.AuthorityConfig;
 import com.ysell.modules.common.constants.ControllerConstants;
 import com.ysell.modules.common.models.PageWrapper;
 import com.ysell.modules.user.domain.UserService;
@@ -13,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -33,6 +35,12 @@ public class UserController {
     @PostMapping("/authenticate")
     public UserTokenResponse authenticate(@RequestBody @Valid LoginRequest request) {
         return userService.authenticate(request);
+    }
+
+
+    @PostMapping("/refresh_token")
+    public UserTokenResponse refreshToken(@RequestBody @Valid RefreshTokenRequest request) {
+        return userService.refreshToken(request);
     }
 
 
@@ -110,12 +118,14 @@ public class UserController {
 
 
     @PostMapping("/soft-delete")
+    @PreAuthorize("hasAuthority('" + AuthorityConfig.SOFT_DELETE + "')")
     public UserResponse softDelete(@RequestBody @Valid UserSoftDeleteRequest request) {
         return userService.softDelete(request);
     }
 
 
     @PostMapping("/undelete")
+    @PreAuthorize("hasAuthority('" + AuthorityConfig.UNDELETE + "')")
     public UserResponse undelete(@RequestBody @Valid UserSoftDeleteRequest request) {
         return userService.undelete(request);
     }

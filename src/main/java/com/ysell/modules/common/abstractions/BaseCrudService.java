@@ -1,6 +1,6 @@
 package com.ysell.modules.common.abstractions;
 
-import com.ysell.jpa.entities.base.ActiveAuditableEntity;
+import com.ysell.jpa.entities.base.ActiveClientAuditableEntity;
 import com.ysell.jpa.repositories.base.ActiveJpaRepository;
 import com.ysell.modules.common.models.PageWrapper;
 import com.ysell.modules.common.utilities.ServiceUtils;
@@ -20,7 +20,7 @@ import static org.springframework.data.domain.Sort.Direction;
 import static org.springframework.data.domain.Sort.by;
 
 @RequiredArgsConstructor
-public class BaseCrudService<TEntity extends ActiveAuditableEntity, TCreateRequest, TUpdateRequest, TResponse>
+public class BaseCrudService<TEntity extends ActiveClientAuditableEntity, TCreateRequest, TUpdateRequest, TResponse>
         implements CrudService<TCreateRequest, TUpdateRequest, TResponse> {
 
     private final ActiveJpaRepository<TEntity> repo;

@@ -1,7 +1,7 @@
 package com.ysell.modules.common.dtos;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.ysell.jpa.entities.base.ActiveAuditableEntity;
+import com.ysell.jpa.entities.base.ActiveClientAuditableEntity;
 import com.ysell.jpa.entities.enums.PaymentMode;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -20,7 +20,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @Getter
 @JsonInclude(value = JsonInclude.Include.NON_NULL)
-public class PaymentDto extends ActiveAuditableEntity {
+public class PaymentDto extends ActiveClientAuditableEntity {
 
     private UUID id;
 

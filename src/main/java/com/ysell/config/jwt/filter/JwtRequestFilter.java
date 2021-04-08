@@ -1,7 +1,6 @@
 package com.ysell.config.jwt.filter;
 
 import com.ysell.config.WebSecurityConfig;
-import com.ysell.config.jwt.models.AppUserDetails;
 import com.ysell.config.jwt.service.JwtTokenUtil;
 import io.jsonwebtoken.ExpiredJwtException;
 import lombok.RequiredArgsConstructor;
@@ -19,7 +18,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
@@ -53,7 +51,7 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 			jwtToken = requestTokenHeader.substring(7); // JWT Token is in the form "Bearer token". Remove Bearer word and getById only the Token
 
 			try {
-				username = jwtTokenUtil.getUsernameFromToken(jwtToken);
+				username = jwtTokenUtil.getSubjectFromToken(jwtToken);
 			} catch (IllegalArgumentException e) {
 				logger.error(url + ": Unable to get username from JWT Token");
 			} catch (ExpiredJwtException e) {
@@ -63,19 +61,17 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 			logger.warn(url + ": JWT Token does not begin with Bearer String");
 		}
 
+		//todo: ensure token not blacklisted and refresh token make same check
 		if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
 			// if token is valid configure Spring Security to manually set authentication
 			if (jwtTokenUtil.validateToken(jwtToken, username)) {
-				UUID userId = jwtTokenUtil.getUserIdFromToken(jwtToken);
-				UserDetails userDetails = new AppUserDetails(userId, username, null);
+				UserDetails userDetails = jwtTokenUtil.getUserDetailsFromToken(jwtToken);
 
 				UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken =
 						new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
 
 				usernamePasswordAuthenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
-				// After setting the Authentication in the context, we specify that the current user is authenticated. 
-				// So it passes the Spring Security Configurations successfully.
 				SecurityContextHolder.getContext().setAuthentication(usernamePasswordAuthenticationToken);
 			}
 		}

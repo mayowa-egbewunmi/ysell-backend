@@ -1,6 +1,6 @@
 package com.ysell.jpa.entities;
 
-import com.ysell.jpa.entities.base.ActiveAuditableEntity;
+import com.ysell.jpa.entities.base.ActiveClientAuditableEntity;
 import lombok.*;
 import org.hibernate.annotations.Where;
 
@@ -15,7 +15,7 @@ import java.util.Date;
 @Entity
 @Table(name = "reset_codes")
 @Where(clause = "is_active=1")
-public class ResetCodeEntity extends ActiveAuditableEntity {
+public class ResetCodeEntity extends ActiveClientAuditableEntity {
 
 	@OneToOne
 	@JoinColumn(nullable = false)

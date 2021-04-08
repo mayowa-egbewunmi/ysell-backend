@@ -1,7 +1,7 @@
 package com.ysell.modules.synchronisation.models.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.ysell.jpa.entities.base.ActiveAuditableEntity;
+import com.ysell.jpa.entities.base.ActiveClientAuditableEntity;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -42,7 +42,7 @@ public abstract class BaseSyncResponseDto {
     private Boolean deleted;
 
 
-    protected void setBaseFields(ActiveAuditableEntity entity, UUID organisationId) {
+    protected void setBaseFields(ActiveClientAuditableEntity entity, UUID organisationId) {
         id = entity.getId();
         this.organisationId = organisationId;
         
