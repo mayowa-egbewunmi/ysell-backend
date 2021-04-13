@@ -38,7 +38,7 @@ public class UserController {
     }
 
 
-    @PostMapping("/refresh_token")
+    @PostMapping("/refresh-token")
     public UserTokenResponse refreshToken(@RequestBody @Valid RefreshTokenRequest request) {
         return userService.refreshToken(request);
     }
