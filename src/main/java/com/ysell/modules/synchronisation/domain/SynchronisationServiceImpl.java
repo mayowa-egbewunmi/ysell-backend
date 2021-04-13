@@ -1,9 +1,5 @@
 package com.ysell.modules.synchronisation.domain;
 
-//todo: passcode for protected endpoint (admin only)
-//todo: refresh token
-//todo: logging
-
 import com.ysell.jpa.entities.OrderEntity;
 import com.ysell.jpa.entities.PaymentEntity;
 import com.ysell.jpa.entities.ProductEntity;
@@ -26,6 +22,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -52,6 +50,8 @@ public class SynchronisationServiceImpl implements SynchronisationService {
 
 	@Override
 	public SynchronisationResponse synchroniseRecords(SynchronisationRequest request) {
+		LocalDateTime startTime = LocalDateTime.now();
+
 		Set<UUID> userOrganisationIds = getLoggedInUserOrganisationIds();
 
 		validateRequest(request, userOrganisationIds);
@@ -60,6 +60,12 @@ public class SynchronisationServiceImpl implements SynchronisationService {
 		OrderResponseData orderResponseData = synchroniseOrders(request.getOrderData(), userOrganisationIds);
 		SalesResponseData salesResponseData = synchroniseSales(request.getSalesData(), userOrganisationIds);
 		PaymentResponseData paymentResponseData = synchronisePayments(request.getPaymentData(), userOrganisationIds);
+
+		LocalDateTime endTime = LocalDateTime.now();
+
+		System.out.println("Start Time: " + startTime);
+		System.out.println("End Time: " + endTime);
+		System.out.println("Time Difference In Milli-Seconds: " + (startTime.until(endTime, ChronoUnit.MILLIS)));
 
 		return SynchronisationResponse.builder()
 				.productData(productResponseData)
